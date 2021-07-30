@@ -23,14 +23,14 @@ bot.onText(/^\/start/, function (msg) {
   bot.sendMessage(chatId, "Hola, " + username + " qué pinga e?");
 });
 
-//Declaramos la funcion indicando que el evento esperado sera un "message"
-bot.on("message", function (msg) {
-  console.log(msg);
-  // msg.chat.id se encarga de recoger el id del chat donde se está realizando la petición.
-  var chatId = msg.chat.id;
-  // Enviamos nuestro mensaje indicando el id del chat.
-  bot.sendMessage(chatId, "ya... ya lo vi");
-});
+// //Declaramos la funcion indicando que el evento esperado sera un "message"
+// bot.on("message", function (msg) {
+//   console.log(msg);
+//   // msg.chat.id se encarga de recoger el id del chat donde se está realizando la petición.
+//   var chatId = msg.chat.id;
+//   // Enviamos nuestro mensaje indicando el id del chat.
+//   bot.sendMessage(chatId, "ya... ya lo vi");
+// });
 
 // Matches /echo [whatever]
 bot.onText(/\/echo (.+)/, function onEchoText(msg, match) {
