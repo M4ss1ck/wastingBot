@@ -31,3 +31,9 @@ bot.on("message", function (msg) {
   // Enviamos nuestro mensaje indicando el id del chat.
   bot.sendMessage(chatId, "ya... ya lo vi");
 });
+
+// Matches /echo [whatever]
+bot.onText(/\/echo (.+)/, function onEchoText(msg, match) {
+  const resp = match[1];
+  bot.sendMessage(msg.chat.id, resp);
+});
