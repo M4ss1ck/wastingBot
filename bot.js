@@ -11,6 +11,10 @@ const bot = new TelegramBot(token, { polling: true });
 // A partir de estas tres líneas de código, ya podríamos empezar a crear
 // comandos y eventos para darle funcionalidad a nuestro bot.
 
+bot.on("polling_error", function (error) {
+  console.log(error);
+});
+
 //Declaramos la funcion
 bot.onText(/^\/start/, function (msg) {
   // Imprimimos en consola el mensaje recibido.
