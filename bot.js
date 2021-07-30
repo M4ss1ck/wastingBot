@@ -41,3 +41,39 @@ bot.onText(/\/echo (.+)/, function onEchoText(msg, match) {
   const resp = match[1];
   bot.sendMessage(msg.chat.id, resp);
 });
+
+bot.onText(/^\/chatid/, (msg) => {
+  const chatId = msg.chat.id;
+  bot.sendMessage(chatId, "El id de este chat es: " + chatId);
+});
+
+bot.onText(/^\/myid/, (msg) => {
+  const chatId = msg.chat.id;
+  const myId = msg.from.id;
+  bot.sendMessage(chatId, "Tu id es: " + myId);
+});
+
+bot.onText(/^\/ping/, function (msg) {
+  const chatId = msg.chat.id;
+  const tipoChat = msg.chat.type;
+
+  if (tipoChat == "private") {
+    bot.sendMessage(chatId, "Pong!");
+  } else if (tipoChat == "supergroup") {
+    bot.sendMessage(chatId, "Este comando solo funciona en privado... puto!!");
+  }
+});
+
+bot.onText(/^\/puto/, function (msg) {
+  // Fijamos las variables
+  var chatId = msg.chat.id;
+  var replyName = msg.reply_to_message.from.first_name;
+  var userName = msg.from.first_name;
+  //
+
+  if (msg.reply_to_message == undefined) {
+    return;
+  }
+
+  bot.sendMessage(chatId, replyName + ": eres una puta. \n Firma: " + userName);
+});
