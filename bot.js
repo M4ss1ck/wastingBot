@@ -77,3 +77,9 @@ bot.onText(/^\/puto/, function (msg) {
 
   bot.sendMessage(chatId, replyName + ": eres una puta. \n Firma: " + userName);
 });
+
+bot.onText(/^\/comandos/, (msg) => {
+  bot.getMyCommands().then(function (info) {
+    console.log(info);
+  });
+});
