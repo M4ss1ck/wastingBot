@@ -9,6 +9,7 @@
   "author": "Massick",
   "license": "ISC",
   "dependencies": {
-    "node-telegram-bot-api": "^0.54.0"
+    "node-telegram-bot-api": "^0.54.0",
+    "telebot": "^1.4.1"
   }
 }
