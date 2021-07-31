@@ -45,15 +45,15 @@ bot.on("text", (msg) => {
         msg.reply_to_message.from.username
     );
   }
-  if (msg.text == "pinga" || "Pinga" || "penga" || "Penga") {
-    return bot.sendMessage(
-      msg.chat.id,
-      "@" +
-        msg.from.username +
-        " cariñosamente manda pa' la pinga a @" +
-        msg.reply_to_message.from.username
-    );
-  }
+  // if (msg.text == "pinga" || "Pinga" || "penga" || "Penga") {
+  //   return bot.sendMessage(
+  //     msg.chat.id,
+  //     "@" +
+  //       msg.from.username +
+  //       " cariñosamente manda pa' la pinga a @" +
+  //       msg.reply_to_message.from.username
+  //   );
+  // }
 });
 
 bot.start();
