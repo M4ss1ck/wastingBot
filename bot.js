@@ -5,6 +5,12 @@ bot.on(["/start", "/hello", "/jelou"], (msg) =>
   msg.reply.text("Ya empezaron a joder...")
 );
 
+bot.on("/ping", (msg) => msg.reply.text("Pong!"));
+
+bot.on("/chatid", (msg) =>
+  msg.reply.text("El ID de este chat es " + msg.chat.id, { asReply: true })
+);
+
 bot.on(/^\/say (.+)$/, (msg, props) => {
   const text = props.match[1];
   return bot.sendMessage(msg.from.id, text, { replyToMessage: msg.message_id });
