@@ -50,12 +50,7 @@ bot.on("text", (msg) => {
         msg.reply_to_message.from.username
     );
   }
-  if (
-    msg.text === "pinga" ||
-    msg.text === "Pinga" ||
-    msg.text === "penga" ||
-    msg.text === "Penga"
-  ) {
+  if (msg.text.match(/^(pinga|penga)$/i)) {
     return bot.sendMessage(
       msg.chat.id,
       "@" +
