@@ -17,6 +17,8 @@ bot.on(/^\/say (.+)$/, (msg, props) => {
   return bot.sendMessage(msg.chat.id, text, { replyToMessage: msg.message_id });
 });
 
+// Función reemplazar
+// TODO: que funcione con caracteres especiales
 bot.on(/^\/s\/(.+)\/(.+)/, (msg, props) => {
   const oldm = props.match[1];
   const newm = props.match[2];
@@ -28,6 +30,15 @@ bot.on(/^\/s\/(.+)\/(.+)/, (msg, props) => {
   return bot.sendMessage(msg.chat.id, text, {
     replyToMessage: msg.reply_to_message.message_id,
   });
+});
+
+//Funciones del tipo "nudes", "beso"...
+
+bot.on(["nude", "Nude", "Nudes", "nudes"], (msg) => {
+  const victim = msg.reply_to_message.username;
+  const agressor = msg.from.username;
+  const text = agressor + " le envía su colección de nudes a " + victim;
+  return bot.sendMessage(msg.chat.id, text);
 });
 
 bot.start();
