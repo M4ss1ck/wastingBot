@@ -14,7 +14,7 @@ bot.on("/chatid", (msg) =>
 bot.on(/^\/say (.+)$/, (msg, props) => {
   const text = props.match[1];
   console.log(msg);
-  return bot.sendMessage(msg.from.id, text, { replyToMessage: msg.message_id });
+  return bot.sendMessage(msg.chat.id, text, { replyToMessage: msg.message_id });
 });
 
 bot.on(/^\/s\/(.+)\/(.+)/, (msg, props) => {
@@ -25,7 +25,7 @@ bot.on(/^\/s\/(.+)\/(.+)/, (msg, props) => {
     msg.reply_to_message.text.replace(oldm, newm) +
     '"';
   //console.log(msg.reply_to_message);
-  return bot.sendMessage(msg.from.id, text, {
+  return bot.sendMessage(msg.chat.id, text, {
     replyToMessage: msg.reply_to_message.message_id,
   });
 });
