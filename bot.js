@@ -35,7 +35,8 @@ bot.on(/^\/s\/(.+)\/(.+)/, (msg, props) => {
 //Funciones del tipo "nudes", "beso"...
 
 bot.on("text", (msg) => {
-  if (msg.text === "nudes") {
+  console.log(msg.reply_to_message);
+  if (msg.text == "nudes") {
     return bot.sendMessage(
       msg.chat.id,
       msg.from.username +
