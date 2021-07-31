@@ -36,12 +36,7 @@ bot.on(/^\/s\/(.+)\/(.+)/, (msg, props) => {
 
 bot.on("text", (msg) => {
   console.log(msg.reply_to_message);
-  if (
-    msg.text === "nudes" ||
-    msg.text === "nude" ||
-    msg.text === "Nudes" ||
-    msg.text === "Nude"
-  ) {
+  if (msg.text.match(/^(nud(e|es))$/i)) {
     return bot.sendMessage(
       msg.chat.id,
       "@" +
