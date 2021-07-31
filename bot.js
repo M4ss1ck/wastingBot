@@ -39,7 +39,7 @@ bot.on(["nude", "Nude", "Nudes", "nudes"], (msg) => {
   const agressor = msg.from.username;
   const text = agressor + " le envía su colección de nudes a " + victim;
   console.log(text);
-  return bot.sendMessage(msg.chat.id, text);
+  return msg.reply.text(text);
 });
 
 bot.start();
