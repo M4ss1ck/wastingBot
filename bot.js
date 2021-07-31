@@ -21,7 +21,7 @@ bot.on(/^\/s\/(.+)\/(.+)/, (msg, props) => {
   const oldm = props.match[1];
   const newm = props.match[2];
   const text = msg.text.replace(oldm, newm);
-  console.log(props);
+  console.log(msg.reply_to_message);
   return bot.sendMessage(msg.from.id, text, { replyToMessage: msg.message_id });
 });
 
