@@ -20,7 +20,7 @@ bot.on(/^\/say (.+)$/, (msg, props) => {
 bot.on(/^\/s\/(.+)\/(.+)/, (msg, props) => {
   const oldm = props.match[1];
   const newm = props.match[2];
-  const text = msg.text.replace(oldm, newm);
+  const text = msg.reply.text.replace(oldm, newm);
   return bot.sendMessage(msg.from.id, text, { replyToMessage: msg.message_id });
 });
 
