@@ -34,12 +34,12 @@ bot.on(/^\/s\/(.+)\/(.+)/, (msg, props) => {
 
 //Funciones del tipo "nudes", "beso"...
 
-bot.on(["nude", "Nude", "Nudes", "nudes"], (msg) => {
-  const victim = msg.reply_to_message.username;
-  const agressor = msg.from.username;
-  const text = agressor + " le envía su colección de nudes a " + victim;
-  console.log(text);
-  return msg.reply.text(text);
-});
+bot.on(["nude", "Nude", "Nudes", "nudes"], (msg) =>
+  msg.reply.text(
+    msg.from.username +
+      " le envía su colección de nudes a " +
+      msg.reply_to_message.username
+  )
+);
 
 bot.start();
