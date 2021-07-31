@@ -39,9 +39,10 @@ bot.on("text", (msg) => {
   if (msg.text == "nudes") {
     return bot.sendMessage(
       msg.chat.id,
-      msg.from.username +
-        " le envía su colección de nudes a " +
-        msg.reply_to_message.username
+      "@" +
+        msg.from.username +
+        " le envía su colección de nudes a @" +
+        msg.reply_to_message.from.username
     );
   }
 });
