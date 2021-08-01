@@ -90,7 +90,7 @@ bot.on("text", (msg) => {
 bot.on("error", (msg, error) => {
   console.log(msg);
   console.log(error);
-  return bot.sendMessage(msg.from.id, error.description);
+  return bot.sendMessage(msg.data.from.id, error.description);
 });
 
 bot.start();
