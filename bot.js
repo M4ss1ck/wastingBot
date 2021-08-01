@@ -36,10 +36,12 @@ bot.on(/^\/s\/(.+)\/(.+)/, (msg, props) => {
     '"';
   //console.log(msg.reply_to_message);
   // bot.deleteMessage(<chat_id>, <from_message_id>);
-  return bot.sendMessage(msg.chat.id, text, {
-    parseMode: "html",
-    replyToMessage: msg.reply_to_message.message_id,
-  });
+  return (
+    bot.sendMessage(msg.chat.id, text, {
+      parseMode: "html",
+      replyToMessage: msg.reply_to_message.message_id,
+    }) && bot.deleteMessage(msg.chat.id, msg.message_id)
+  );
 });
 
 //Funciones del tipo "nudes", "beso"...
