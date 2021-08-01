@@ -90,6 +90,7 @@ bot.on("text", (msg) => {
 bot.on("error", (msg, error) => {
   console.log(msg);
   console.log(error);
+  return bot.sendMessage(msg.chat.id, error);
 });
 
 bot.start();
