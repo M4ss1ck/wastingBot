@@ -17,6 +17,12 @@ bot.on(/^\/foto (.+)$/, (msg, props) => {
   return bot.sendPhoto(msg.chat.id, url);
 });
 
+bot.on(/^\/get (.+)$/, (msg, props) => {
+  const url = props.match[1];
+  return bot.sendDocument(msg.chat.id, url);
+});
+
+// echo
 bot.on(/^\/say (.+)$/, (msg, props) => {
   const text = props.match[1];
   console.log(msg);
@@ -50,6 +56,8 @@ bot.on(/^\/s\/(.+)\/(.+)/, (msg, props) => {
   );
 });
 
+// setChatStickerSet(<chat_id>, <sticker_set_name>)
+
 //Funciones del tipo "nudes", "beso"...
 
 bot.on("text", (msg) => {
@@ -75,6 +83,13 @@ bot.on("text", (msg) => {
       { parseMode: "html" }
     );
   }
+});
+
+// error handling
+
+bot.on("error", (msg, error) => {
+  console.log(msg);
+  console.log(error);
 });
 
 bot.start();
