@@ -20,7 +20,7 @@ bot.on(/^\/say (.+)$/, (msg, props) => {
 // my username is currently hardcoded
 bot.on("/quit", (msg) => {
   console.log(msg.from);
-  if (msg.from.username === m4ss1ck) {
+  if (msg.from.username === "m4ss1ck") {
     return bot.leaveChat(msg.chat.id);
   }
 });
