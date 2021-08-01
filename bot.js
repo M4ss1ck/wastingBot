@@ -88,7 +88,7 @@ bot.on("text", (msg) => {
 // error handling
 
 bot.on("error", (error, data) => {
-  console.log(msg);
+  // console.log(msg);
   console.log(error);
   return bot.sendMessage(data.from.id, error.description);
 });
