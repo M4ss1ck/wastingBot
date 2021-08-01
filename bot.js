@@ -12,11 +12,9 @@ bot.on("/chatid", (msg) =>
 );
 
 // Testing sending files
-bot.on("/foto", (msg) => {
-  return bot.sendPhoto(
-    msg.chat.id,
-    "https://imgs.xkcd.com/comics/mine_captcha.png"
-  );
+bot.on(/^\/foto (.+)$/, (msg, props) => {
+  const url = props.match[1];
+  return bot.sendPhoto(msg.chat.id, url);
 });
 
 bot.on(/^\/say (.+)$/, (msg, props) => {
