@@ -11,6 +11,14 @@ bot.on("/chatid", (msg) =>
   msg.reply.text("El ID de este chat es " + msg.chat.id, { asReply: true })
 );
 
+// Testing sending files
+bot.on("/foto", (msg) => {
+  return bot.sendPhoto(
+    msg.chat.id,
+    "https://imgs.xkcd.com/comics/mine_captcha.png"
+  );
+});
+
 bot.on(/^\/say (.+)$/, (msg, props) => {
   const text = props.match[1];
   console.log(msg);
