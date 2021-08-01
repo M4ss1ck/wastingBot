@@ -17,17 +17,26 @@ bot.on(/^\/say (.+)$/, (msg, props) => {
   return bot.sendMessage(msg.chat.id, text, { replyToMessage: msg.message_id });
 });
 
+// my username is currently hardcoded
+bot.on(/^\/quit$/, (msg) => {
+  if (msg.from.username === m4ss1ck) {
+    return bot.leaveChat(msg.chat.id);
+  }
+});
+
 // Función reemplazar
 // TODO: que funcione con caracteres especiales
 bot.on(/^\/s\/(.+)\/(.+)/, (msg, props) => {
   const oldm = props.match[1];
   const newm = props.match[2];
   const text =
-    'En realidad quisiste decir: \n"' +
+    '<b>En realidad quisiste decir:</b> \n\n"' +
     msg.reply_to_message.text.replace(oldm, newm) +
     '"';
   //console.log(msg.reply_to_message);
+  // bot.deleteMessage(<chat_id>, <from_message_id>);
   return bot.sendMessage(msg.chat.id, text, {
+    parseMode: "html",
     replyToMessage: msg.reply_to_message.message_id,
   });
 });
@@ -41,8 +50,9 @@ bot.on("text", (msg) => {
       msg.chat.id,
       "@" +
         msg.from.username +
-        " le envía su colección de nudes a @" +
-        msg.reply_to_message.from.username
+        " le envía su <b>colección de nudes</b> a @" +
+        msg.reply_to_message.from.username,
+      { parseMode: "html" }
     );
   }
   if (msg.text.match(/^(pinga|penga)$/i)) {
@@ -50,8 +60,10 @@ bot.on("text", (msg) => {
       msg.chat.id,
       "@" +
         msg.from.username +
-        " cariñosamente manda pa' la pinga a @" +
-        msg.reply_to_message.from.username
+        " <em>cariñosamente</em> manda <b>pa' la pinga</b> a @" +
+        msg.reply_to_message.from.username,
+
+      { parseMode: "html" }
     );
   }
 });
