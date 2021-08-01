@@ -87,10 +87,10 @@ bot.on("text", (msg) => {
 
 // error handling
 
-bot.on("error", (msg, error) => {
+bot.on("error", (error, data) => {
   console.log(msg);
   console.log(error);
-  return bot.sendMessage(msg.data.from.id, error.description);
+  return bot.sendMessage(data.from.id, error.description);
 });
 
 bot.start();
