@@ -68,20 +68,14 @@ bot.on("text", (msg) => {
   if (msg.text.match(/^(nud(e|es))$/i)) {
     return bot.sendMessage(
       msg.chat.id,
-      `<a href="tg://user?id=${msg.from.id}"> ${msg.from.username} </a>` +
-        msg.from.username +
-        " le envía su <b>colección de nudes</b> a @" +
-        msg.reply_to_message.from.username,
+      `<a href="tg://user?id=${msg.from.id}"> ${msg.from.username} </a> le envía su <b>colección de nudes</b> a <a href="tg://user?id=${msg.reply_to_message.from.id}"> ${msg.reply_to_message.from.username} </a>`,
       { parseMode: "html" }
     );
   }
   if (msg.text.match(/^(pinga|penga)$/i)) {
     return bot.sendMessage(
       msg.chat.id,
-      "@" +
-        msg.from.username +
-        " <em>cariñosamente</em> manda <b>pa' la pinga</b> a @" +
-        msg.reply_to_message.from.username,
+      `<a href="tg://user?id=${msg.from.id}"> ${msg.from.username} </a> <em>cariñosamente</em> manda <b>pa' la pinga</b> a <a href="tg://user?id=${msg.reply_to_message.from.id}"> ${msg.reply_to_message.from.username} </a>`,
 
       { parseMode: "html" }
     );
