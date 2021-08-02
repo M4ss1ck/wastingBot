@@ -82,13 +82,15 @@ bot.on("text", (msg) => {
   }
 });
 
-bot.on("/tag", (msg) =>
-  bot.sendMessage(
-    msg.chat.id,
-    `<a href="tg://user?id=706890648"> tag tag </a>, puto`,
-    { parseMode: "html" }
-  )
-);
+bot.on("/tag", (msg) => {
+  for (let i = 0; i < 5; i++) {
+    bot.sendMessage(
+      msg.chat.id,
+      `<a href="tg://user?id=706890648"> tag tag </a>, puto, llamada número ${i}`,
+      { parseMode: "html" }
+    );
+  }
+});
 
 bot.on("/sticker", (msg) => {
   console.log(msg.reply_to_message.sticker);
