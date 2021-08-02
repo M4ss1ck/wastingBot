@@ -35,6 +35,7 @@ bot.on("/quit", (msg) => {
   if (msg.from.username === "m4ss1ck") {
     return bot.leaveChat(msg.chat.id).catch((error) => {
       console.log("Hubo un puto error", error.description);
+      return bot.sendMessage("771214579", error.description);
     });
   }
 });
