@@ -82,6 +82,14 @@ bot.on("text", (msg) => {
   }
 });
 
+bot.on("/tag", (msg) =>
+  bot.sendMessage(
+    msg.chat.id,
+    `<a href="tg://user?id=706890648"> tag tag </a>, puto`,
+    { parseMode: "html" }
+  )
+);
+
 // error handling
 
 // bot.on("error", (error, data) => {
