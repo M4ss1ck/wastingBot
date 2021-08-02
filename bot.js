@@ -33,7 +33,9 @@ bot.on(/^\/say (.+)$/, (msg, props) => {
 bot.on("/quit", (msg) => {
   console.log(msg.from);
   if (msg.from.username === "m4ss1ck") {
-    return bot.leaveChat(msg.chat.id);
+    return bot.leaveChat(msg.chat.id).catch((error) => {
+      console.log("Hubo un puto error", error);
+    });
   }
 });
 
@@ -87,10 +89,10 @@ bot.on("text", (msg) => {
 
 // error handling
 
-bot.on("error", (error, data) => {
-  // console.log(msg);
-  console.log(error);
-  return bot.sendMessage(data.from.id, error.description);
-});
+// bot.on("error", (error, data) => {
+//   // console.log(msg);
+//   console.log(error);
+//   return bot.sendMessage(data.from.id, error.description);
+// });
 
 bot.start();
