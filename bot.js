@@ -90,6 +90,10 @@ bot.on("/tag", (msg) =>
   )
 );
 
+bot.on("/info", (msg) => {
+  console.log(msg);
+});
+
 // error handling
 
 // bot.on("error", (error, data) => {
