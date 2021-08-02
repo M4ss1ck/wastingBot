@@ -59,6 +59,9 @@ bot.on(/^\/s\/(.+)\/(.+)/, (msg, props) => {
   );
 });
 
+bot.on(/^@m4ss1ck ghei$/, (msg) =>
+  bot.deleteMessage(msg.chat.id, msg.message_id)
+);
 // setChatStickerSet(<chat_id>, <sticker_set_name>)
 
 //Funciones del tipo "nudes", "beso"...
