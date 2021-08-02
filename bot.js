@@ -90,8 +90,16 @@ bot.on("/tag", (msg) =>
   )
 );
 
-bot.on("/info", (msg) => {
-  console.log(msg);
+bot.on("/sticker", (msg) => {
+  console.log(msg.reply_to_message.sticker);
+  if (msg.reply_to_message.sticker) {
+    return bot
+      .setChatStickerSet(msg.chat.id, msg.reply_to_message.sticker.set_name)
+      .catch((error) => {
+        console.log("Hubo un puto error", error.description);
+        return bot.sendMessage(msg.from.id, error.description);
+      });
+  }
 });
 
 // error handling
