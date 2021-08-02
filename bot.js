@@ -47,7 +47,7 @@ bot.on(/^\/s\/(.+)\/(.+)/, (msg, props) => {
   const newm = props.match[2];
   const text =
     '<b>En realidad quisiste decir:</b> \n\n"' +
-    msg.reply_to_message.text.replace(oldm, newm) +
+    msg.reply_to_message.text.replaceAll(oldm, newm) +
     '"';
   //console.log(msg.reply_to_message);
   // bot.deleteMessage(<chat_id>, <from_message_id>);
