@@ -68,7 +68,7 @@ bot.on("text", (msg) => {
   if (msg.text.match(/^(nud(e|es))$/i)) {
     return bot.sendMessage(
       msg.chat.id,
-      "@" +
+      `<a href="tg://user?id=${msg.from.id}"> </a>` +
         msg.from.username +
         " le envía su <b>colección de nudes</b> a @" +
         msg.reply_to_message.from.username,
