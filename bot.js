@@ -76,12 +76,12 @@ bot.on(/^\/set_del (.+)$/, (msg, props) => {
     });
 });
 
-bot
-  .on(del_input, (msg) => bot.deleteMessage(msg.chat.id, msg.message_id))
-  .catch((error) => {
+bot.on(del_input, (msg) =>
+  bot.deleteMessage(msg.chat.id, msg.message_id).catch((error) => {
     console.log("Hubo un puto error", error.description);
     return bot.sendMessage(msg.from.id, error.description);
-  });
+  })
+);
 
 // setChatStickerSet(<chat_id>, <sticker_set_name>)
 
