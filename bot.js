@@ -1,8 +1,7 @@
 const TeleBot = require("telebot");
 const bot = new TeleBot("1712168159:AAFhf_IJmGpoEAIW9ZLGknzKIuOjNbScsNE");
 
-let default_del = "@m4ss1ck ghei";
-let del_input = new RegExp("^" + default_del + "$");
+let default_del = ["/borrame", /^@m4ss1ck ghei$/];
 
 bot.on(["/start", "/hello", "/jelou"], (msg) =>
   msg.reply.text("Ya empezaron a joder...")
@@ -63,8 +62,9 @@ bot.on(/^\/s\/(.+)\/(.+)/, (msg, props) => {
 });
 
 bot.on(/^\/set_del (.+)$/, (msg, props) => {
-  default_del = props.match[1];
-  del_input = new RegExp("^" + default_del + "$");
+  const del_input = new RegExp("^" + props.match[1] + "$");
+  default_del.push(del_input);
+
   console.log("Borrar por defecto:", default_del, "Regex:", del_input);
   return bot
     .sendMessage(
@@ -77,7 +77,7 @@ bot.on(/^\/set_del (.+)$/, (msg, props) => {
     });
 });
 
-bot.on(["/borrame", "/tb_a_mi", /^test reg$/], (msg) =>
+bot.on(default_del, (msg) =>
   bot.deleteMessage(msg.chat.id, msg.message_id).catch((error) => {
     console.log(
       "Hubo un error al intentar borrar el mensaje: ",
