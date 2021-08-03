@@ -136,7 +136,7 @@ bot.on("text", (msg) => {
 // EXPERIMENTAL
 bot.on(/^\/tag (\d+)/, (msg, props) => {
   let n = props.match[1];
-  if (n > 100) {
+  if (n > 50) {
     n = 20;
   }
   let victim = 706890648;
@@ -144,12 +144,20 @@ bot.on(/^\/tag (\d+)/, (msg, props) => {
     victim = msg.reply_to_message.from.id;
   }
   console.log("Se repetirá: ", n);
-  for (let i = 0; i < n; i++) {
+  if (victim === 771214579) {
     bot.sendMessage(
       msg.chat.id,
-      `<a href="tg://user?id=${victim}"> tag tag </a>, puto, llamada número ${i}`,
+      `<a href="tg://user?id=${msg.from.id}"> Cariño </a>, no puedo hacer eso`,
       { parseMode: "html" }
     );
+  } else {
+    for (let i = 0; i < n; i++) {
+      bot.sendMessage(
+        msg.chat.id,
+        `<a href="tg://user?id=${victim}"> tag tag </a>, puto, llamada número ${i}`,
+        { parseMode: "html" }
+      );
+    }
   }
 });
 
