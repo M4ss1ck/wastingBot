@@ -158,7 +158,7 @@ bot.on(/^\/tag( \d+)?/, (msg, props) => {
     for (let i = 0; i < n; i++) {
       bot.sendMessage(
         msg.chat.id,
-        `<a href="tg://user?id=${victim}"> tag tag </a>, puto, llamada número ${i}`,
+        `<a href="tg://user?id=${victim}"> tag tag </a>\n<em>llamada número ${i}</em>`,
         { parseMode: "html" }
       );
     }
