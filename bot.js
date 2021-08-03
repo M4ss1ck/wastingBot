@@ -1,6 +1,9 @@
 const TeleBot = require("telebot");
 const bot = new TeleBot("1712168159:AAFhf_IJmGpoEAIW9ZLGknzKIuOjNbScsNE");
 
+let default_del = "@m4ss1ck ghei";
+let del_input = "/^" + default_del + "$/";
+
 bot.on(["/start", "/hello", "/jelou"], (msg) =>
   msg.reply.text("Ya empezaron a joder...")
 );
@@ -59,9 +62,16 @@ bot.on(/^\/s\/(.+)\/(.+)/, (msg, props) => {
   );
 });
 
-bot.on(/^@m4ss1ck ghei$/, (msg) =>
-  bot.deleteMessage(msg.chat.id, msg.message_id)
-);
+bot.on(/^\/set_del (.+)$/, (msg, props) => {
+  default_del = props.match[1];
+  console.log(default_del);
+  return bot.sendMessage(
+    msg.from.id,
+    "Se eliminarán los mensajes que consistan en: " + default_del
+  );
+});
+
+bot.on(del_input, (msg) => bot.deleteMessage(msg.chat.id, msg.message_id));
 // setChatStickerSet(<chat_id>, <sticker_set_name>)
 
 //Funciones del tipo "nudes", "beso"...
