@@ -65,13 +65,24 @@ bot.on(/^\/s\/(.+)\/(.+)/, (msg, props) => {
 bot.on(/^\/set_del (.+)$/, (msg, props) => {
   default_del = props.match[1];
   console.log(default_del);
-  return bot.sendMessage(
-    msg.from.id,
-    "Se eliminarán los mensajes que consistan en: " + default_del
-  );
+  return bot
+    .sendMessage(
+      msg.from.id,
+      "Se eliminarán los mensajes que consistan en: " + default_del
+    )
+    .catch((error) => {
+      console.log("Hubo un puto error", error.description);
+      return bot.sendMessage(msg.from.id, error.description);
+    });
 });
 
-bot.on(del_input, (msg) => bot.deleteMessage(msg.chat.id, msg.message_id));
+bot
+  .on(del_input, (msg) => bot.deleteMessage(msg.chat.id, msg.message_id))
+  .catch((error) => {
+    console.log("Hubo un puto error", error.description);
+    return bot.sendMessage(msg.from.id, error.description);
+  });
+
 // setChatStickerSet(<chat_id>, <sticker_set_name>)
 
 //Funciones del tipo "nudes", "beso"...
