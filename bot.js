@@ -77,9 +77,12 @@ bot.on(/^\/set_del (.+)$/, (msg, props) => {
     });
 });
 
-bot.on(del_input, (msg) =>
+bot.on(["/borrame", "/tb_a_mi", /^test reg$/], (msg) =>
   bot.deleteMessage(msg.chat.id, msg.message_id).catch((error) => {
-    console.log("Hubo un puto error", error.description);
+    console.log(
+      "Hubo un error al intentar borrar el mensaje: ",
+      error.description
+    );
     return bot.sendMessage(msg.from.id, error.description);
   })
 );
