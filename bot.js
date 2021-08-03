@@ -134,9 +134,12 @@ bot.on("text", (msg) => {
 });
 
 // EXPERIMENTAL
-bot.on(/^\/tag (\d+)?/, (msg, props) => {
+bot.on(/^\/tag( \d+)?/, (msg, props) => {
   console.log(props);
-  let n = props.match[1];
+  let n = 1;
+  if (props) {
+    n = props.match[1];
+  }
   if (n > 50) {
     n = 20;
   }
