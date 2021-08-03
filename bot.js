@@ -2,7 +2,7 @@ const TeleBot = require("telebot");
 const bot = new TeleBot("1712168159:AAFhf_IJmGpoEAIW9ZLGknzKIuOjNbScsNE");
 
 let default_del = "@m4ss1ck ghei";
-let del_input = "/^" + default_del + "$/";
+let del_input = new RegExp("/^" + default_del + "$/");
 
 bot.on(["/start", "/hello", "/jelou"], (msg) =>
   msg.reply.text("Ya empezaron a joder...")
@@ -64,12 +64,12 @@ bot.on(/^\/s\/(.+)\/(.+)/, (msg, props) => {
 
 bot.on(/^\/set_del (.+)$/, (msg, props) => {
   default_del = props.match[1];
-  del_input = "/^" + default_del + "$/";
+  del_input = new RegExp("/^" + default_del + "$/");
   console.log("Borrar por defecto:", default_del, "Regex:", del_input);
   return bot
     .sendMessage(
       msg.from.id,
-      "Se eliminarán los mensajes que consistan en: " + default_del
+      "Se eliminarán los mensajes que consistan en: " + del_input
     )
     .catch((error) => {
       console.log("Hubo un puto error", error.description);
