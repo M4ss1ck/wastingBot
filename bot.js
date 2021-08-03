@@ -133,18 +133,25 @@ bot.on("text", (msg) => {
   }
 });
 
-bot.on("/tag", (msg) => {
-  for (let i = 0; i < 5; i++) {
+// EXPERIMENTAL
+bot.on(/^\/tag (\d+)/, (msg, props) => {
+  let n = props.match[1] ? props.match[1] : 1;
+  if (n > 100) {
+    n = 20;
+  }
+  for (let i = 0; i < n; i++) {
     bot.sendMessage(
       msg.chat.id,
-      `<a href="tg://user?id=706890648"> tag tag </a>, puto, llamada número ${i}`,
+      `<a href="tg://user?id=${
+        msg.reply_to_message.from.id || 706890648
+      }"> tag tag </a>, puto, llamada número ${i}`,
       { parseMode: "html" }
     );
   }
 });
 
 bot.on("/sticker", (msg) => {
-  console.log(msg.reply_to_message.sticker);
+  console.log(msg.reply_to_message);
   if (msg.reply_to_message.sticker) {
     return bot
       .setChatStickerSet(msg.chat.id, msg.reply_to_message.sticker.set_name)
