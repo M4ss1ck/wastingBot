@@ -64,7 +64,7 @@ bot.on(/^\/s\/(.+)\/(.+)/, (msg, props) => {
 
 bot.on(/^\/set_del (.+)$/, (msg, props) => {
   default_del = props.match[1];
-  console.log(default_del);
+  console.log("Borrar por defecto:", default_del, "Regex:", del_input);
   return bot
     .sendMessage(
       msg.from.id,
