@@ -106,12 +106,21 @@ bot.on("text", (msg) => {
     }
   }
   if (msg.text.match(/^(pinga|penga)$/i)) {
-    return bot.sendMessage(
-      msg.chat.id,
-      `<a href="tg://user?id=${msg.from.id}"> ${msg.from.first_name} </a> <em>cariñosamente</em> manda <b>pa' la pinga</b> a <a href="tg://user?id=${msg.reply_to_message.from.id}"> ${msg.reply_to_message.from.first_name} </a>`,
+    if (!msg.reply_to_message) {
+      return bot.sendMessage(
+        msg.chat.id,
+        `<a href="tg://user?id=${msg.from.id}"> ${msg.from.first_name} </a> se va <b>pa' la pinga</b> ya que no puede irse del país...`,
 
-      { parseMode: "html" }
-    );
+        { parseMode: "html" }
+      );
+    } else {
+      return bot.sendMessage(
+        msg.chat.id,
+        `<a href="tg://user?id=${msg.from.id}"> ${msg.from.first_name} </a> <em>cariñosamente</em> manda <b>pa' la pinga</b> a <a href="tg://user?id=${msg.reply_to_message.from.id}"> ${msg.reply_to_message.from.first_name} </a>`,
+
+        { parseMode: "html" }
+      );
+    }
   }
 });
 
