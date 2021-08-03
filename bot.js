@@ -66,15 +66,21 @@ bot.on(/^\/set_del (.+)$/, (msg, props) => {
   default_del.push(del_input);
 
   console.log("Borrar por defecto:", default_del, "Regex:", del_input);
-  return bot
-    .sendMessage(
+  return (
+    bot.sendMessage(
       msg.from.id,
       "Se eliminarán los mensajes que consistan en: " + del_input
+    ) &&
+    bot.on(default_del, (msg) =>
+      bot.deleteMessage(msg.chat.id, msg.message_id).catch((error) => {
+        console.log(
+          "Hubo un error al intentar borrar el mensaje: ",
+          error.description
+        );
+        return bot.sendMessage(msg.from.id, error.description);
+      })
     )
-    .catch((error) => {
-      console.log("Hubo un puto error", error.description);
-      return bot.sendMessage(msg.from.id, error.description);
-    });
+  );
 });
 
 bot.on(default_del, (msg) =>
