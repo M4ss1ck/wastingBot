@@ -91,11 +91,19 @@ bot.on(del_input, (msg) =>
 bot.on("text", (msg) => {
   console.log(msg.reply_to_message);
   if (msg.text.match(/^(nud(e|es))$/i)) {
-    return bot.sendMessage(
-      msg.chat.id,
-      `<a href="tg://user?id=${msg.from.id}"> ${msg.from.first_name} </a> le envía su <b>colección de nudes</b> a <a href="tg://user?id=${msg.reply_to_message.from.id}"> ${msg.reply_to_message.from.first_name} </a>`,
-      { parseMode: "html" }
-    );
+    if (!msg.reply_to_message) {
+      return bot.sendMessage(
+        msg.chat.id,
+        `<a href="tg://user?id=${msg.from.id}"> ${msg.from.first_name} </a> se envía su <b>colección de nudes</b> a <a href="tg://user?id=${msg.from.id}"> sí mism@ </a> porque no tiene amigos... mucho menos novi@`,
+        { parseMode: "html" }
+      );
+    } else {
+      return bot.sendMessage(
+        msg.chat.id,
+        `<a href="tg://user?id=${msg.from.id}"> ${msg.from.first_name} </a> le envía su <b>colección de nudes</b> a <a href="tg://user?id=${msg.reply_to_message.from.id}"> ${msg.reply_to_message.from.first_name} </a>`,
+        { parseMode: "html" }
+      );
+    }
   }
   if (msg.text.match(/^(pinga|penga)$/i)) {
     return bot.sendMessage(
