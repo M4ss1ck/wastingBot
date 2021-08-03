@@ -140,8 +140,8 @@ bot.on(/^\/tag( \d+)?/, (msg, props) => {
   if (props) {
     n = props.match[1];
   }
-  if (n > 50) {
-    n = 20;
+  if (n > 50 || n === undefined) {
+    n = 1;
   }
   let victim = 706890648;
   if (msg.reply_to_message) {
