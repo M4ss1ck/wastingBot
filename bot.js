@@ -30,7 +30,7 @@ bot.on(/^\/calc (.+)$/, (msg, props) => {
   return bot
     .sendMessage(
       msg.chat.id,
-      `<b>El resultado de:</b>  <pre>${math}</pre>\n=> <pre>${result}</pre>`,
+      `<b>El resultado de:</b>  <em>${math}</em>\n <pre>${result}</pre>`,
       {
         parseMode: "html",
       }
