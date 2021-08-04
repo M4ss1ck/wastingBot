@@ -67,15 +67,41 @@ bot.on(/^\/s\/(.+)\/(.+)/, (msg, props) => {
   );
 });
 
-// dividir en 2 comandos distintos
-bot.on("/set_del", (msg) => {
+// dividir en 2 comandos distintos (FAILED)
+bot.on(/^\/set_del (.+)?$/, (msg, props) => {
   if (msg.reply_to_message) {
     const new_del_input = new RegExp("^" + msg.reply_to_message.text + "$");
     default_del.push(new_del_input);
     return (
       bot.sendMessage(
         msg.from.id,
-        "Se eliminarán los mensajes que consistan en: " + new_del_input
+        "Se eliminarán los mensajes que consistan en: " +
+          new_del_input +
+          "\nLa lista completa es: \n" +
+          default_del
+      ) &&
+      bot.on(default_del, (msg) =>
+        bot.deleteMessage(msg.chat.id, msg.message_id).catch((error) => {
+          console.log(
+            "Hubo un error al intentar borrar el mensaje: ",
+            error.description
+          );
+          return bot.sendMessage(msg.from.id, error.description);
+        })
+      )
+    );
+  } else if (props.match[1] !== undefined) {
+    const del_input = new RegExp("^" + props.match[1] + "$");
+
+    default_del.push(del_input);
+    console.log("Borrar por defecto:", default_del, "Regex:", del_input);
+    return (
+      bot.sendMessage(
+        msg.from.id,
+        "Se eliminarán los mensajes que consistan en: " +
+          del_input +
+          "\nLa lista completa es: \n" +
+          default_del
       ) &&
       bot.on(default_del, (msg) =>
         bot.deleteMessage(msg.chat.id, msg.message_id).catch((error) => {
