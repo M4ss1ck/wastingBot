@@ -30,7 +30,7 @@ bot.on(/^\/calc (.+)$/, (msg, props) => {
   return bot
     .sendMessage(msg.chat.id, `<pre>${result}</pre>`, {
       parseMode: "html",
-      asReply: true,
+      replyToMessage: msg.message_id,
     })
     .catch((error) => {
       console.log("Hubo un error", error.description);
