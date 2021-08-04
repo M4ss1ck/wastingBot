@@ -13,6 +13,12 @@ bot.on("/chatid", (msg) =>
   msg.reply.text("El ID de este chat es " + msg.chat.id, { asReply: true })
 );
 
+bot.on("/size", (msg) =>
+  msg.reply.text("Tamaño: " + msg.reply_to_message.photo[4].file_size, {
+    asReply: true,
+  })
+);
+
 // Testing sending files
 bot.on(/^\/foto (.+)$/, (msg, props) => {
   const url = props.match[1];
