@@ -16,12 +16,18 @@ bot.on("/chatid", (msg) =>
 // Testing sending files
 bot.on(/^\/foto (.+)$/, (msg, props) => {
   const url = props.match[1];
-  return bot.sendPhoto(msg.chat.id, url);
+  return bot.sendPhoto(msg.chat.id, url).catch((error) => {
+    console.log("Hubo un puto error", error.description);
+    return bot.sendMessage(msg.from.id, error.description);
+  });
 });
 
 bot.on(/^\/get (.+)$/, (msg, props) => {
   const url = props.match[1];
-  return bot.sendDocument(msg.chat.id, url);
+  return bot.sendDocument(msg.chat.id, url).catch((error) => {
+    console.log("Hubo un puto error", error.description);
+    return bot.sendMessage(msg.from.id, error.description);
+  });
 });
 
 // echo
@@ -61,26 +67,49 @@ bot.on(/^\/s\/(.+)\/(.+)/, (msg, props) => {
   );
 });
 
-bot.on(/^\/set_del (.+)$/, (msg, props) => {
+bot.on(/^\/set_del( .+)?$/, (msg, props) => {
   const del_input = new RegExp("^" + props.match[1] + "$");
-  default_del.push(del_input);
 
-  console.log("Borrar por defecto:", default_del, "Regex:", del_input);
-  return (
-    bot.sendMessage(
-      msg.from.id,
-      "Se eliminarán los mensajes que consistan en: " + del_input
-    ) &&
-    bot.on(default_del, (msg) =>
-      bot.deleteMessage(msg.chat.id, msg.message_id).catch((error) => {
-        console.log(
-          "Hubo un error al intentar borrar el mensaje: ",
-          error.description
-        );
-        return bot.sendMessage(msg.from.id, error.description);
-      })
-    )
-  );
+  if (del_input === undefined) {
+    if (msg.reply_to_message) {
+      const new_del_input = new RegExp("^" + msg.reply_to_message.text + "$");
+      default_del.push(new_del_input);
+      return (
+        bot.sendMessage(
+          msg.from.id,
+          "Se eliminarán los mensajes que consistan en: " + new_del_input
+        ) &&
+        bot.on(default_del, (msg) =>
+          bot.deleteMessage(msg.chat.id, msg.message_id).catch((error) => {
+            console.log(
+              "Hubo un error al intentar borrar el mensaje: ",
+              error.description
+            );
+            return bot.sendMessage(msg.from.id, error.description);
+          })
+        )
+      );
+    } else
+      msg.reply.text("Responde un mensaje o pon algo de texto. No soy mago.");
+  } else {
+    default_del.push(del_input);
+    console.log("Borrar por defecto:", default_del, "Regex:", del_input);
+    return (
+      bot.sendMessage(
+        msg.from.id,
+        "Se eliminarán los mensajes que consistan en: " + del_input
+      ) &&
+      bot.on(default_del, (msg) =>
+        bot.deleteMessage(msg.chat.id, msg.message_id).catch((error) => {
+          console.log(
+            "Hubo un error al intentar borrar el mensaje: ",
+            error.description
+          );
+          return bot.sendMessage(msg.from.id, error.description);
+        })
+      )
+    );
+  }
 });
 
 bot.on(default_del, (msg) =>
