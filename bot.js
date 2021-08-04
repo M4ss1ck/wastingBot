@@ -14,7 +14,7 @@ bot.on("/chatid", (msg) =>
 );
 
 bot.on("/size", (msg) =>
-  msg.reply.text("Tamaño: " + msg.reply_to_message.photo[4].file_size, {
+  msg.reply.text("Tamaño: " + msg.reply_to_message.photo[3].file_size, {
     asReply: true,
   })
 );
