@@ -28,13 +28,10 @@ bot.on(/^\/calc (.+)$/, (msg, props) => {
   let result = parser.parse(math).simplify();
   console.log("El resultado de " + math + " es " + result);
   return bot
-    .sendMessage(
-      msg.chat.id,
-      `<b>El resultado de:</b>  <em>${math}</em>\n <pre>${result}</pre>`,
-      {
-        parseMode: "html",
-      }
-    )
+    .sendMessage(msg.chat.id, `<pre>${result}</pre>`, {
+      parseMode: "html",
+      asReply: true,
+    })
     .catch((error) => {
       console.log("Hubo un error", error.description);
       return bot.sendMessage(msg.from.id, error.description);
