@@ -25,7 +25,7 @@ let default_del = ["/borrame", /^@m4ss1ck ghei$/];
 
 bot.on(/^\/calc (.+)$/, (msg, props) => {
   const math = props.match[1];
-  let result = parser.parse(math);
+  let result = parser.parse(math).simplify();
   console.log("El resultado de " + math + " es " + result);
   return bot
     .sendMessage(msg.chat.id, `El resultado de: ${math}\n=> ${result}`)
