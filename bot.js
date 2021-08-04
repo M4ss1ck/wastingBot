@@ -68,7 +68,7 @@ bot.on(/^\/s\/(.+)\/(.+)/, (msg, props) => {
 });
 
 // dividir en 2 comandos distintos (FAILED)
-bot.on(/^\/set_del (.+)?$/, (msg, props) => {
+bot.on(/^\/set_del( .+)?$/, (msg, props) => {
   if (msg.reply_to_message) {
     const new_del_input = new RegExp("^" + msg.reply_to_message.text + "$");
     default_del.push(new_del_input);
