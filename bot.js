@@ -94,7 +94,7 @@ bot.on("/set_del", (msg) => {
     );
 });
 
-bot.on(/^\/set_del (.+)?$/, (msg, props) => {
+bot.on(/^\/set_del (.+)$/, (msg, props) => {
   const del_input = new RegExp("^" + props.match[1] + "$");
 
   default_del.push(del_input);
