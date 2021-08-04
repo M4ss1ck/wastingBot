@@ -1,7 +1,39 @@
 const TeleBot = require("telebot");
 const bot = new TeleBot("1712168159:AAFhf_IJmGpoEAIW9ZLGknzKIuOjNbScsNE");
+const Parser = require("expr-eval").Parser;
+
+const parser = new Parser({
+  operators: {
+    // These default to true, but are included to be explicit
+    add: true,
+    concatenate: true,
+    conditional: true,
+    divide: true,
+    factorial: true,
+    multiply: true,
+    power: true,
+    remainder: true,
+    subtract: true,
+    logical: true,
+    comparison: true,
+    in: true,
+    assignment: true,
+  },
+});
 
 let default_del = ["/borrame", /^@m4ss1ck ghei$/];
+
+bot.on(/^\/calc (.+)$/, (msg, props) => {
+  const math = props.match[1];
+  let result = parser.parse(math);
+  console.log("El resultado de " + math + " es " + result);
+  return bot
+    .sendMessage(msg.chat.id, `El resultado de: ${math}\n=> ${result}`)
+    .catch((error) => {
+      console.log("Hubo un error", error.description);
+      return bot.sendMessage(msg.from.id, error.description);
+    });
+});
 
 bot.on(["/start", "/hello", "/jelou"], (msg) =>
   msg.reply.text("Ya empezaron a joder...")
