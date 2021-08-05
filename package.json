@@ -12,6 +12,7 @@
   "dependencies": {
     "dotenv": "^10.0.0",
     "expr-eval": "^2.0.2",
+    "express": "^4.17.1",
     "node-telegram-bot-api": "^0.54.0",
     "telebot": "^1.4.1"
   }

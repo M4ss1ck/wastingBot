@@ -1,7 +1,10 @@
 import TeleBot from "telebot";
-const bot = new TeleBot(process.env.TG_TOKEN);
 import { Parser } from "expr-eval";
+import express from "express";
 
+const app = express();
+
+const bot = new TeleBot(process.env.TG_TOKEN);
 const parser = new Parser({
   operators: {
     // These default to true, but are included to be explicit
@@ -22,6 +25,20 @@ const parser = new Parser({
 });
 
 let default_del = ["/borrame", /^@m4ss1ck ghei$/];
+
+app.post("/webhooks/railway/", async (req, res) => {
+  const {
+    type,
+    project: { name },
+  } = req.body;
+
+  /*
+    To get your Telegram ID, you can simply console.log and
+    read the ctx.message.from whenever you message the bot
+  */
+  bot.sendMessage(process.env.ADMIN_ID, `${type}: ${name}`);
+  res.status(200);
+});
 
 bot.on(/^\/calc (.+)$/, (msg, props) => {
   const math = props.match[1];
