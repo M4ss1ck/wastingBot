@@ -8,6 +8,7 @@
   },
   "author": "Massick",
   "license": "ISC",
+  "type": "module",
   "dependencies": {
     "dotenv": "^10.0.0",
     "expr-eval": "^2.0.2",
