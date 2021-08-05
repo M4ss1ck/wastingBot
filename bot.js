@@ -244,7 +244,7 @@ bot.on(/^\/tag( \d+)?/, (msg, props) => {
     victim = msg.reply_to_message.from.id;
   }
   console.log("Se repetirá: ", n);
-  if (victim === process.env.VICTIM) {
+  if (victim === process.env.ADMIN_ID) {
     bot.sendMessage(
       msg.chat.id,
       `<a href="tg://user?id=${msg.from.id}"> Cariño </a>, no puedo hacer eso`,
