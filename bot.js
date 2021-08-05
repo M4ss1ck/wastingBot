@@ -63,7 +63,7 @@ bot.on("/size", (msg) =>
 bot.on(/^\/foto (.+)$/, (msg, props) => {
   const url = props.match[1];
   return bot.sendPhoto(msg.chat.id, url).catch((error) => {
-    console.log("Hubo un puto error", error.description);
+    console.log("Hubo un error", error.description);
     return bot.sendMessage(msg.from.id, error.description);
   });
 });
