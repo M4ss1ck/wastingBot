@@ -4,7 +4,7 @@
   "description": "Bot for Telegram using node.js",
   "main": "bot.js",
   "scripts": {
-    "start": "node bot.js"
+    "start": "node -r dotenv/config bot.js"
   },
   "author": "Massick",
   "license": "ISC",

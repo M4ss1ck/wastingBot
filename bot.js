@@ -1,4 +1,3 @@
-require("dotenv").config();
 import TeleBot from "telebot";
 const bot = new TeleBot(process.env.TG_TOKEN);
 import { Parser } from "expr-eval";
