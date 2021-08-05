@@ -1,5 +1,6 @@
 import TeleBot from "telebot";
 import { Parser } from "expr-eval";
+import bodyParser from "body-parser";
 import express from "express";
 
 const app = express();
@@ -25,20 +26,6 @@ const parser = new Parser({
 });
 
 let default_del = ["/borrame", /^@m4ss1ck ghei$/];
-
-app.post("/webhooks/railway/", async (req, res) => {
-  const {
-    type,
-    project: { name },
-  } = req.body;
-
-  /*
-    To get your Telegram ID, you can simply console.log and
-    read the ctx.message.from whenever you message the bot
-  */
-  bot.sendMessage(process.env.ADMIN_ID, `${type}: ${name}`);
-  res.status(200);
-});
 
 bot.on(/^\/calc (.+)$/, (msg, props) => {
   const math = props.match[1];
@@ -286,3 +273,22 @@ bot.on("/sticker", (msg) => {
 // });
 
 bot.start();
+
+// webhook: https://wastingbot.up.railway.app/webhooks/railway
+app.post("/webhooks/railway/", async (req, res) => {
+  const {
+    type,
+    project: { name },
+  } = req.body;
+
+  bot.sendMessage(process.env.ADMIN_ID, `${type}: ${name}`);
+  res.status(200);
+});
+
+app.use(express.json());
+// app.use(bodyParser.raw({ type: "application/vnd.custom-type" }));
+// app.use(bodyParser.text({ type: "text/html" }));
+
+app.get("/", async (req, res) => {
+  res.json({ Hello: "World" });
+});
