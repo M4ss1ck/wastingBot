@@ -238,13 +238,21 @@ bot.on(/^\/tag( \d+)?/, (msg, props) => {
     n = props.match[1];
   }
   if (n > 50 || n === undefined) {
-    n = 1;
+    n = 5;
   }
   let victim = process.env.VICTIM;
   if (msg.reply_to_message) {
     victim = msg.reply_to_message.from.id;
   }
   console.log("Se repetirá: ", n);
+  console.log(
+    "ID de la víctima: " +
+      victim +
+      "comparado al mío " +
+      process.env.ADMIN_ID +
+      " y el original " +
+      process.env.VICTIM
+  );
   if (victim === process.env.ADMIN_ID) {
     bot.sendMessage(
       msg.chat.id,
