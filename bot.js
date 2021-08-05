@@ -1,7 +1,7 @@
 import TeleBot from "telebot";
 import { Parser } from "expr-eval";
-import bodyParser from "body-parser";
 import express from "express";
+import lista from "./launcher_list";
 
 const app = express();
 
@@ -183,6 +183,15 @@ bot.on(default_del, (msg) =>
 // setChatStickerSet(<chat_id>, <sticker_set_name>)
 
 //Funciones del tipo "nudes", "beso"...
+bot.on("/lista", (msg) =>
+  msg.reply.text(
+    "Para el texto " +
+      lista[0].search +
+      " la respuesta es " +
+      lista[0].used_alone,
+    { asReply: true }
+  )
+);
 
 bot.on("text", (msg) => {
   console.log(msg.reply_to_message);
