@@ -5,6 +5,9 @@ import express from "express";
 
 const app = express();
 
+const my_id = process.env.ADMIN_ID;
+const victim = process.env.VICTIM;
+
 const bot = new TeleBot(process.env.TG_TOKEN);
 const parser = new Parser({
   operators: {
@@ -238,22 +241,22 @@ bot.on(/^\/tag( \d+)?/, (msg, props) => {
     n = props.match[1];
   }
   if (n > 50 || n === undefined) {
-    n = 5;
+    n = 1;
   }
-  let victim = process.env.VICTIM;
+  let new_victim = victim;
   if (msg.reply_to_message) {
-    victim = msg.reply_to_message.from.id;
+    new_victim = msg.reply_to_message.from.id;
   }
-  console.log("Se repetirá: ", n);
+  console.log("Se repetirá: " + n + "veces");
   console.log(
     "ID de la víctima: " +
-      victim +
-      "comparado al mío " +
-      process.env.ADMIN_ID +
+      new_victim +
+      " comparado al mío " +
+      my_id +
       " y el original " +
-      process.env.VICTIM
+      victim
   );
-  if (victim === process.env.ADMIN_ID) {
+  if (new_victim === my_id) {
     bot.sendMessage(
       msg.chat.id,
       `<a href="tg://user?id=${msg.from.id}"> Cariño </a>, no puedo hacer eso`,
