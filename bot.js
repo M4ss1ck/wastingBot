@@ -1,7 +1,7 @@
 require("dotenv").config();
-const TeleBot = require("telebot");
+import TeleBot from "telebot";
 const bot = new TeleBot(process.env.TG_TOKEN);
-const Parser = require("expr-eval").Parser;
+import { Parser } from "expr-eval";
 
 const parser = new Parser({
   operators: {
