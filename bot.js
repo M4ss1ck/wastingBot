@@ -1,7 +1,7 @@
 import TeleBot from "telebot";
 import { Parser } from "expr-eval";
 import express from "express";
-import lista from "./launcher_list";
+import lista from "./launcher_list.js";
 
 const app = express();
 
