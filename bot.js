@@ -1,5 +1,6 @@
+require("dotenv").config();
 const TeleBot = require("telebot");
-const bot = new TeleBot("1712168159:AAFhf_IJmGpoEAIW9ZLGknzKIuOjNbScsNE");
+const bot = new TeleBot(process.env.TG_TOKEN);
 const Parser = require("expr-eval").Parser;
 
 const parser = new Parser({
@@ -83,12 +84,12 @@ bot.on(/^\/say (.+)$/, (msg, props) => {
   return bot.sendMessage(msg.chat.id, text, { replyToMessage: msg.message_id });
 });
 
-// my username is currently hardcoded
+// my username is currently hardcoded FIXED
 bot.on("/quit", (msg) => {
   console.log(msg.from);
-  if (msg.from.username === "m4ss1ck") {
+  if (msg.from.username === process.env.ADMIN_USERNAME) {
     return bot.leaveChat(msg.chat.id).catch((error) => {
-      console.log("Hubo un puto error", error.description);
+      console.log("Hubo un error", error.description);
       return bot.sendMessage(msg.from.id, error.description);
     });
   }
@@ -226,12 +227,12 @@ bot.on(/^\/tag( \d+)?/, (msg, props) => {
   if (n > 50 || n === undefined) {
     n = 1;
   }
-  let victim = 706890648;
+  let victim = process.env.VICTIM;
   if (msg.reply_to_message) {
     victim = msg.reply_to_message.from.id;
   }
   console.log("Se repetirá: ", n);
-  if (victim === 771214579) {
+  if (victim === process.env.VICTIM) {
     bot.sendMessage(
       msg.chat.id,
       `<a href="tg://user?id=${msg.from.id}"> Cariño </a>, no puedo hacer eso`,

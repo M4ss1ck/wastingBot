@@ -9,6 +9,7 @@
   "author": "Massick",
   "license": "ISC",
   "dependencies": {
+    "dotenv": "^10.0.0",
     "expr-eval": "^2.0.2",
     "node-telegram-bot-api": "^0.54.0",
     "telebot": "^1.4.1"
