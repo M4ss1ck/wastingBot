@@ -261,14 +261,14 @@ bot.on(/^\/tag( \d+)?$/, (msg, props) => {
   if (new_victim.toString() === my_id.toString()) {
     bot.sendMessage(
       msg.chat.id,
-      `<a href="tg://user?id=${msg.from.id}"> Cariño </a>, no puedo hacer eso`,
+      `<a href="tg://user?id=${msg.from.id}">Cariño</a>, no puedo hacer eso`,
       { parseMode: "html" }
     );
   } else {
     for (let i = 0; i < n; i++) {
       bot.sendMessage(
         msg.chat.id,
-        `<a href="tg://user?id=${victim}"> tag tag </a>\n<em>llamada número ${i}</em>`,
+        `<a href="tg://user?id=${new_victim}"> tag tag </a>\n<em>llamada número ${i}</em>`,
         { parseMode: "html" }
       );
     }
