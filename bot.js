@@ -1,7 +1,7 @@
 import TeleBot from "telebot";
 import { Parser } from "expr-eval";
 import express from "express";
-//import lista from "./launcher_list.js";
+import lista from "./launcher_list.js";
 
 const app = express();
 
@@ -187,50 +187,65 @@ bot.on(default_del, (msg) =>
 
 //Funciones del tipo "nudes", "beso"...
 
-// bot.on("/lista", (msg) =>
-//   msg.reply.text(
-//     "Para el texto " +
-//       lista[0].search +
-//       " la respuesta es " +
-//       lista[0].used_alone,
-//     { asReply: true }
-//   )
-// );
+// bot.on("text", (msg) => {
+//   console.log(msg.reply_to_message);
+//   if (msg.text.match(/^(nud(e|es))$/i)) {
+//     if (!msg.reply_to_message) {
+//       return bot.sendMessage(
+//         msg.chat.id,
+//         `<a href="tg://user?id=${msg.from.id}"> ${msg.from.first_name} </a> se envía su <b>colección de nudes</b> a <a href="tg://user?id=${msg.from.id}"> sí mism@ </a> porque no tiene amigos... mucho menos novi@`,
+//         { parseMode: "html" }
+//       );
+//     } else {
+//       return bot.sendMessage(
+//         msg.chat.id,
+//         `<a href="tg://user?id=${msg.from.id}"> ${msg.from.first_name} </a> le envía su <b>colección de nudes</b> a <a href="tg://user?id=${msg.reply_to_message.from.id}"> ${msg.reply_to_message.from.first_name} </a>`,
+//         { parseMode: "html" }
+//       );
+//     }
+//   }
+//   if (msg.text.match(/^(pinga|penga)$/i)) {
+//     if (!msg.reply_to_message) {
+//       return bot.sendMessage(
+//         msg.chat.id,
+//         `<a href="tg://user?id=${msg.from.id}"> ${msg.from.first_name} </a> se va <b>pa' la pinga</b> ya que no puede irse del país...`,
+
+//         { parseMode: "html" }
+//       );
+//     } else {
+//       return bot.sendMessage(
+//         msg.chat.id,
+//         `<a href="tg://user?id=${msg.from.id}"> ${msg.from.first_name} </a> <em>cariñosamente</em> manda <b>pa' la pinga</b> a <a href="tg://user?id=${msg.reply_to_message.from.id}"> ${msg.reply_to_message.from.first_name} </a>`,
+
+//         { parseMode: "html" }
+//       );
+//     }
+//   }
+// });
+
+// Usando el array exportado
 
 bot.on("text", (msg) => {
-  console.log(msg.reply_to_message);
-  if (msg.text.match(/^(nud(e|es))$/i)) {
-    if (!msg.reply_to_message) {
-      return bot.sendMessage(
-        msg.chat.id,
-        `<a href="tg://user?id=${msg.from.id}"> ${msg.from.first_name} </a> se envía su <b>colección de nudes</b> a <a href="tg://user?id=${msg.from.id}"> sí mism@ </a> porque no tiene amigos... mucho menos novi@`,
-        { parseMode: "html" }
-      );
-    } else {
-      return bot.sendMessage(
-        msg.chat.id,
-        `<a href="tg://user?id=${msg.from.id}"> ${msg.from.first_name} </a> le envía su <b>colección de nudes</b> a <a href="tg://user?id=${msg.reply_to_message.from.id}"> ${msg.reply_to_message.from.first_name} </a>`,
-        { parseMode: "html" }
-      );
-    }
-  }
-  if (msg.text.match(/^(pinga|penga)$/i)) {
-    if (!msg.reply_to_message) {
-      return bot.sendMessage(
-        msg.chat.id,
-        `<a href="tg://user?id=${msg.from.id}"> ${msg.from.first_name} </a> se va <b>pa' la pinga</b> ya que no puede irse del país...`,
+  lista.map((launcher) => {
+    const re = new RegExp("^" + launcher.search + "$", "i");
 
-        { parseMode: "html" }
-      );
-    } else {
-      return bot.sendMessage(
-        msg.chat.id,
-        `<a href="tg://user?id=${msg.from.id}"> ${msg.from.first_name} </a> <em>cariñosamente</em> manda <b>pa' la pinga</b> a <a href="tg://user?id=${msg.reply_to_message.from.id}"> ${msg.reply_to_message.from.first_name} </a>`,
-
-        { parseMode: "html" }
-      );
+    if (msg.text.match(re)) {
+      console.log(re);
+      if (!msg.reply_to_message) {
+        return bot.sendMessage(
+          msg.chat.id,
+          `<a href="tg://user?id=${msg.from.id}"> ${msg.from.first_name} </a> ${launcher.alone}`,
+          { parseMode: "html" }
+        );
+      } else {
+        return bot.sendMessage(
+          msg.chat.id,
+          `<a href="tg://user?id=${msg.from.id}"> ${msg.from.first_name} </a> ${launcher.as_reply} a <a href="tg://user?id=${msg.reply_to_message.from.id}"> ${msg.reply_to_message.from.first_name} </a>`,
+          { parseMode: "html" }
+        );
+      }
     }
-  }
+  });
 });
 
 // EXPERIMENTAL
