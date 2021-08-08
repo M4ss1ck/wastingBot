@@ -234,15 +234,16 @@ bot.on("text", (msg) => {
 });
 
 // EXPERIMENTAL
-bot.on(/^\/tag( \d+)?/, (msg, props) => {
-  console.log(props);
+bot.on(/^\/tag( \d+)?$/, (msg, props) => {
   let n = 1;
   if (props) {
+    console.log(props);
     n = props.match[1];
+    if (n > 50 || n === undefined) {
+      n = 1;
+    }
   }
-  if (n > 50 || n === undefined) {
-    n = 1;
-  }
+
   let new_victim = victim;
   if (msg.reply_to_message) {
     new_victim = msg.reply_to_message.from.id;
@@ -256,7 +257,8 @@ bot.on(/^\/tag( \d+)?/, (msg, props) => {
       " y el original " +
       victim
   );
-  if (new_victim === my_id) {
+  console.log(new_victim.toString() === my_id.toString());
+  if (new_victim.toString() === my_id.toString()) {
     bot.sendMessage(
       msg.chat.id,
       `<a href="tg://user?id=${msg.from.id}"> Cariño </a>, no puedo hacer eso`,
@@ -286,6 +288,8 @@ bot.on("/sticker", (msg) => {
 });
 
 // error handling
+
+bot.on("error", (error) => console.error("ERROR", error));
 
 // bot.on("error", (error, data) => {
 //   // console.log(msg);
