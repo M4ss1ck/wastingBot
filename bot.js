@@ -1,9 +1,9 @@
 import TeleBot from "telebot";
 import { Parser } from "expr-eval";
-import express from "express";
+//import express from "express";
 import lista from "./launcher_list.js";
 
-const app = express();
+//const app = express();
 
 const my_id = process.env.ADMIN_ID;
 const victim = process.env.VICTIM;
@@ -315,20 +315,20 @@ bot.on("error", (error) => console.error("ERROR", error));
 bot.start();
 
 // webhook: https://wastingbot.up.railway.app/webhooks/railway
-app.post("/webhooks/railway/", async (req, res) => {
-  const {
-    type,
-    project: { name },
-  } = req.body;
+// app.post("/webhooks/railway/", async (req, res) => {
+//   const {
+//     type,
+//     project: { name },
+//   } = req.body;
 
-  bot.sendMessage(process.env.ADMIN_ID, `${type}: ${name}`);
-  res.status(200);
-});
+//   bot.sendMessage(process.env.ADMIN_ID, `${type}: ${name}`);
+//   res.status(200);
+// });
 
-app.use(express.json());
-// app.use(bodyParser.raw({ type: "application/vnd.custom-type" }));
-// app.use(bodyParser.text({ type: "text/html" }));
+// app.use(express.json());
+// // app.use(bodyParser.raw({ type: "application/vnd.custom-type" }));
+// // app.use(bodyParser.text({ type: "text/html" }));
 
-app.get("/", async (req, res) => {
-  res.json({ Hello: "World" });
-});
+// app.get("/", async (req, res) => {
+//   res.json({ Hello: "World" });
+// });

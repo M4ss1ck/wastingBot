@@ -1,6 +1,6 @@
 export default [
   {
-    search: "beso",
+    search: "bes(o|os)",
     alone: "le <b>tira un beso</b> a su reflejo porque se siente hermoso/a",
     as_reply: "le lanza un <b>beso (con guiño incluido)</b>",
   },
