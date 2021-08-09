@@ -71,8 +71,11 @@ bot.on("/info", (msg) => {
 bot.on("/size", (msg) =>
   msg.reply.text(
     "Tamaño: " +
-      msg.reply_to_message.photo[msg.reply_to_message.photo.length - 1]
-        .file_size,
+      roundToTwo(
+        msg.reply_to_message.photo[msg.reply_to_message.photo.length - 1]
+          .file_size / 1024
+      ) +
+      "KB",
     {
       asReply: true,
     }
@@ -385,3 +388,7 @@ process.on("unhandledRejection", (reason, promise) => {
   // Application specific logging, throwing an error, or other logic here
   bot.start();
 });
+
+function roundToTwo(num) {
+  return +(Math.round(num + "e+2") + "e-2");
+}
