@@ -51,9 +51,12 @@ bot.on(["/start", "/hello", "/jelou"], (msg) =>
 
 bot.on("/ping", (msg) => msg.reply.text("Pong!"));
 
-bot.on("/chatid", (msg) =>
-  msg.reply.text("El ID de este chat es " + msg.chat.id, { asReply: true })
-);
+bot.on("/info", (msg) => {
+  console.log(msg);
+  bot.getChat(msg.chat.id).then((res) => console.log(res));
+
+  msg.reply.text("El ID de este chat es " + msg.chat.id, { asReply: true });
+});
 
 bot.on("/size", (msg) =>
   msg.reply.text(
