@@ -234,13 +234,21 @@ bot.on("text", (msg) => {
       if (!msg.reply_to_message) {
         return bot.sendMessage(
           msg.chat.id,
-          `<a href="tg://user?id=${msg.from.id}"> ${msg.from.first_name} </a> ${launcher.alone}`,
+          `<a href="tg://user?id=${msg.from.id}"> ${msg.from.first_name} </a> ${
+            launcher.alone[Math.floor(Math.random() * launcher.alone.length)]
+          }`,
           { parseMode: "html" }
         );
       } else {
         return bot.sendMessage(
           msg.chat.id,
-          `<a href="tg://user?id=${msg.from.id}"> ${msg.from.first_name} </a> ${launcher.as_reply} a <a href="tg://user?id=${msg.reply_to_message.from.id}"> ${msg.reply_to_message.from.first_name} </a>`,
+          `<a href="tg://user?id=${msg.from.id}"> ${msg.from.first_name} </a> ${
+            launcher.as_reply[
+              Math.floor(Math.random() * launcher.as_reply.length)
+            ]
+          } a <a href="tg://user?id=${msg.reply_to_message.from.id}"> ${
+            msg.reply_to_message.from.first_name
+          } </a>`,
           { parseMode: "html" }
         );
       }
