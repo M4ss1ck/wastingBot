@@ -1,6 +1,7 @@
 import TeleBot from "telebot";
 import { Parser } from "expr-eval";
 //import express from "express";
+import process from "process";
 import lista from "./launcher_list.js";
 
 //const app = express();
@@ -52,10 +53,19 @@ bot.on(["/start", "/hello", "/jelou"], (msg) =>
 bot.on("/ping", (msg) => msg.reply.text("Pong!"));
 
 bot.on("/info", (msg) => {
-  console.log(msg);
-  bot.getChat(msg.chat.id).then((res) => console.log(res));
+  console.log(msg?.reply_to_message);
+  bot.getChat(msg.chat.id).then((res) => {
+    console.log(res);
+    bot.sendMessage(
+      msg.chat.id,
+      `Este es el grupo <b>${res.title}</b> cuyo id es <pre>${res.id}</pre>`,
 
-  msg.reply.text("El ID de este chat es " + msg.chat.id, { asReply: true });
+      {
+        parseMode: "html",
+        replyToMessage: msg.message_id,
+      }
+    );
+  });
 });
 
 bot.on("/size", (msg) =>
@@ -109,12 +119,22 @@ bot.on("/quit", (msg) => {
 bot.on(/^\/s\/(.+)\/(.+)/, (msg, props) => {
   const oldm = props.match[1];
   const newm = props.match[2];
-  const text =
-    '<b>En realidad quisiste decir:</b> \n\n"' +
-    msg.reply_to_message.text.replaceAll(oldm, newm) +
-    '"';
-  //console.log(msg.reply_to_message);
-  // bot.deleteMessage(<chat_id>, <from_message_id>);
+  let text = "";
+  if (msg.reply_to_message.caption) {
+    console.log("CAPTION: " + msg.reply_to_message.caption);
+  }
+  if (msg.reply_to_message.text === undefined) {
+    text =
+      '<b>En realidad quisiste decir:</b> \n\n"' +
+      msg.reply_to_message.caption.replace(new RegExp(oldm, "g"), newm) +
+      '"';
+  } else {
+    text =
+      '<b>En realidad quisiste decir:</b> \n\n"' +
+      msg.reply_to_message.text.replace(new RegExp(oldm, "g"), newm) +
+      '"';
+  }
+
   return (
     bot.sendMessage(msg.chat.id, text, {
       parseMode: "html",
@@ -285,18 +305,26 @@ bot.on(/^\/tag( \d+)?$/, (msg, props) => {
   );
   console.log(new_victim.toString() === my_id.toString());
   if (new_victim.toString() === my_id.toString()) {
-    bot.sendMessage(
-      msg.chat.id,
-      `<a href="tg://user?id=${msg.from.id}">Cariño</a>, no puedo hacer eso`,
-      { parseMode: "html" }
-    );
+    bot
+      .sendMessage(
+        msg.chat.id,
+        `<a href="tg://user?id=${msg.from.id}">Cariño</a>, no puedo hacer eso`,
+        { parseMode: "html" }
+      )
+      .catch((err) => {
+        console.error(err);
+      });
   } else {
     for (let i = 0; i < n; i++) {
-      bot.sendMessage(
-        msg.chat.id,
-        `<a href="tg://user?id=${new_victim}"> tag tag </a>\n<em>llamada número ${i}</em>`,
-        { parseMode: "html" }
-      );
+      bot
+        .sendMessage(
+          msg.chat.id,
+          `<a href="tg://user?id=${new_victim}"> tag tag </a>\n<em>llamada número ${i}</em>`,
+          { parseMode: "html" }
+        )
+        .catch((err) => {
+          console.error(err);
+        });
     }
   }
 });
@@ -343,3 +371,17 @@ bot.start();
 // app.get("/", async (req, res) => {
 //   res.json({ Hello: "World" });
 // });
+
+bot.on("stop", (data) => {
+  // After 5 seconds, START the bot
+  setTimeout(function () {
+    bot.start();
+  }, 5 * 1000);
+});
+
+process.on("unhandledRejection", (reason, promise) => {
+  console.log("reason is", reason);
+  console.log("promise is", promise);
+  // Application specific logging, throwing an error, or other logic here
+  bot.start();
+});
