@@ -39,7 +39,7 @@ bot.on(["/group", "/grupo", "/promo"], (msg) => {
           url: "https://t.me/juestin_taim",
         }),
 
-        bot.inlineButton("canal", {
+        bot.inlineButton("Canal", {
           url: "https://t.me/wasting_time_pro",
         }),
       ],
