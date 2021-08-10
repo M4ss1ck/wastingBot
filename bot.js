@@ -62,7 +62,7 @@ bot.on(["/gay", "/ghei"], (msg) => {
     ],
   ]);
 
-  return bot.sendMessage(msg.from.id, "Mi % de loca", { replyMarkup });
+  return bot.sendMessage(msg.chat.id, "Mi % de loca", { replyMarkup });
 });
 
 bot.on("inlineQuery", (msg) => {
