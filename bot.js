@@ -49,9 +49,58 @@ bot.on(["/group", "/grupo", "/promo"], (msg) => {
 
   return bot.sendMessage(
     msg.chat.id,
-    "En <b>Wasting Time</b> nos dedica(ba)mos a perder el tiempo jugando werewolf, si no sabes lo que es, morirás 😔",
+    "Sea usted bienvenid@ a la comunidad de <b>Wasting Time</b>. Donde podrá pasar tiempo con sus amigos, compartir memes, jugar a encontrar el lobo y probablemente morir en el intento.",
     { parseMode: "html", replyMarkup }
   );
+});
+
+bot.on(["/gay", "/ghei"], (msg) => {
+  let replyMarkup = bot.inlineKeyboard([
+    [
+      bot.inlineButton("en otro chat", { inline: "soy loca?" }),
+      bot.inlineButton("aquí mismo", { inlineCurrent: "soy loquísima?" }),
+    ],
+  ]);
+
+  return bot.sendMessage(msg.from.id, "Mi % de loca", { replyMarkup });
+});
+
+bot.on("inlineQuery", (msg) => {
+  const query = msg.query;
+  const answers = bot.answerList(msg.id, { cacheTime: 1 });
+
+  if (msg.from.id.toString() === my_id) {
+    answers.addArticle({
+      id: msg.id + query,
+      title: "Cuál es tu % gay?",
+      //description: `Your query: ${query}`,
+      message_text: `Según este bot soy ${Math.floor(Math.random() * 10)}% gay`,
+      cacheTime: 1,
+    });
+  } else {
+    if (msg.from.id.toString() === victim) {
+      answers.addArticle({
+        id: query + msg.id,
+        title: "Cuál es tu % gay?",
+        //description: `Your query: ${query}`,
+        message_text: `ERROR: Memoria insuficiente \n[bot.error.overflow] Gayness safety limit exceeded`,
+        cacheTime: 1,
+      });
+    } else {
+      answers.addArticle({
+        id: query + msg.id,
+        title: "Cuál es tu % gay?",
+        //description: `Your query: ${query}`,
+        message_text: `Según este bot soy ${Math.floor(
+          Math.random() * 100
+        )}% gay`,
+        cacheTime: 1,
+      });
+    }
+  }
+
+  console.log("El mensaje recibido es ", msg, " y la respuesta ", answers);
+  return bot.answerQuery(answers);
 });
 
 // usar con bot.inlineButton("callback", { callback: "this_is_data" })
@@ -80,7 +129,7 @@ bot.on(/^\/calc (.+)$/, (msg, props) => {
     });
 });
 
-bot.on(["/start", "/hello", "/jelou"], (msg) =>
+bot.on(["/start", "/jelou"], (msg) =>
   msg.reply.text("Ya empezaron a joder...")
 );
 
