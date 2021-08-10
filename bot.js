@@ -31,6 +31,40 @@ const parser = new Parser({
 
 let default_del = ["/borrame", /^@m4ss1ck ghei$/];
 
+bot.on(["/group", "/grupo", "/promo"], (msg) => {
+  let replyMarkup = bot.inlineKeyboard(
+    [
+      [
+        bot.inlineButton("Grupo", {
+          url: "https://t.me/juestin_taim",
+        }),
+
+        bot.inlineButton("canal", {
+          url: "https://t.me/wasting_time_pro",
+        }),
+      ],
+    ],
+    { resize: true }
+  );
+
+  return bot.sendMessage(
+    msg.chat.id,
+    "En <b>Wasting Time</b> nos dedica(ba)mos a perder el tiempo jugando werewolf, si no sabes lo que es, morirás 😔",
+    { parseMode: "html", replyMarkup }
+  );
+});
+
+// usar con bot.inlineButton("callback", { callback: "this_is_data" })
+bot.on("callbackQuery", (msg) => {
+  // User message alert
+  console.log(msg.data);
+  return bot.answerCallbackQuery(
+    msg.id,
+    `Inline button callback: ${msg.data}`,
+    { text: msg.data, showAlert: true }
+  );
+});
+
 bot.on(/^\/calc (.+)$/, (msg, props) => {
   const math = props.match[1];
   let result = parser.parse(math).simplify();
@@ -208,46 +242,6 @@ bot.on(default_del, (msg) =>
     return bot.sendMessage(msg.from.id, error.description);
   })
 );
-
-// setChatStickerSet(<chat_id>, <sticker_set_name>)
-
-//Funciones del tipo "nudes", "beso"...
-
-// bot.on("text", (msg) => {
-//   console.log(msg.reply_to_message);
-//   if (msg.text.match(/^(nud(e|es))$/i)) {
-//     if (!msg.reply_to_message) {
-//       return bot.sendMessage(
-//         msg.chat.id,
-//         `<a href="tg://user?id=${msg.from.id}"> ${msg.from.first_name} </a> se envía su <b>colección de nudes</b> a <a href="tg://user?id=${msg.from.id}"> sí mism@ </a> porque no tiene amigos... mucho menos novi@`,
-//         { parseMode: "html" }
-//       );
-//     } else {
-//       return bot.sendMessage(
-//         msg.chat.id,
-//         `<a href="tg://user?id=${msg.from.id}"> ${msg.from.first_name} </a> le envía su <b>colección de nudes</b> a <a href="tg://user?id=${msg.reply_to_message.from.id}"> ${msg.reply_to_message.from.first_name} </a>`,
-//         { parseMode: "html" }
-//       );
-//     }
-//   }
-//   if (msg.text.match(/^(pinga|penga)$/i)) {
-//     if (!msg.reply_to_message) {
-//       return bot.sendMessage(
-//         msg.chat.id,
-//         `<a href="tg://user?id=${msg.from.id}"> ${msg.from.first_name} </a> se va <b>pa' la pinga</b> ya que no puede irse del país...`,
-
-//         { parseMode: "html" }
-//       );
-//     } else {
-//       return bot.sendMessage(
-//         msg.chat.id,
-//         `<a href="tg://user?id=${msg.from.id}"> ${msg.from.first_name} </a> <em>cariñosamente</em> manda <b>pa' la pinga</b> a <a href="tg://user?id=${msg.reply_to_message.from.id}"> ${msg.reply_to_message.from.first_name} </a>`,
-
-//         { parseMode: "html" }
-//       );
-//     }
-//   }
-// });
 
 // Usando el array exportado
 
