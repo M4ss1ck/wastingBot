@@ -1,6 +1,6 @@
 {
   "name": "mybot",
-  "version": "0.1.0",
+  "version": "0.9.0",
   "description": "Bot for Telegram using node.js",
   "main": "bot.js",
   "scripts": {

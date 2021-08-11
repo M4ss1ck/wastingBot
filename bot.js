@@ -54,6 +54,21 @@ bot.on(["/group", "/grupo", "/promo"], (msg) => {
   );
 });
 
+bot.on(["/help", "/ayuda"], (msg) => {
+  return bot.sendMessage(
+    msg.chat.id,
+    "Este es el bot de pruebas de <b>Massick</b>. Poseo montones de funciones inútiles, entre ellas:\n" +
+      "/calc <em>operaciones</em> - para realizar... <em>adivina</em>... operaciones matemáticas\n" +
+      "/s/<em>old</em>/<em>new</em> - para, respondiendo un mensaje, reemplazar <em>old</em> por <em>new</em>\n" +
+      "/size - para ver el tamaño de una foto, se usa respondiendo el mensaje\n" +
+      "/tag <em>n</em> - para molestar a Yacel o, en su defecto, a cualquier otro miembro del chat <em>n veces</em>\n" +
+      "/group, /grupo o /promo - spam\n" +
+      "/help o /ayuda - para ver este menú\n\n" +
+      "También puede utilizar algunas palabras claves como <em>nudes</em>, <em>patada</em>, <em>beso</em> y otras (muchas más en el futuro)",
+    { parseMode: "html" }
+  );
+});
+
 bot.on(["/jaja", "/jajaja", "/porn"], (msg) => {
   if (msg.reply_to_message.from.id.toString() === my_id) {
     console.log("Me intentaron hacer tag");
@@ -149,7 +164,7 @@ bot.on(/^\/calc (.+)$/, (msg, props) => {
 });
 
 bot.on(["/start", "/jelou"], (msg) =>
-  msg.reply.text("Ya empezaron a joder...")
+  msg.reply.text("Envía /ayuda para ver algunas opciones.")
 );
 
 bot.on("/ping", (msg) => msg.reply.text("Pong!"));
@@ -334,7 +349,7 @@ bot.on("text", (msg) => {
             launcher.as_reply[
               Math.floor(Math.random() * launcher.as_reply.length)
             ]
-          } a <a href="tg://user?id=${msg.reply_to_message.from.id}"> ${
+          } <a href="tg://user?id=${msg.reply_to_message.from.id}"> ${
             msg.reply_to_message.from.first_name
           } </a>`,
           { parseMode: "html" }
