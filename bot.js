@@ -469,6 +469,18 @@ bot.on(default_del, (msg) =>
 // Usando el array exportado
 
 bot.on("text", (msg) => {
+  const {
+    text,
+    chat: { id: chat_id, type },
+    from: { id: from_id, first_name, last_name, username },
+  } = msg;
+
+  console.log(
+    `[${type}] ${chat_id}: ${[first_name, last_name, username && `@${username}`]
+      .filter(Boolean)
+      .join(" ")} (${from_id}) - ${text}`
+  );
+
   lista.map((launcher) => {
     const re = new RegExp("^" + launcher.search + "$", "i");
 
