@@ -247,6 +247,67 @@ bot.on("/size", (msg) =>
   )
 );
 
+bot.on("forward", (msg) => {
+  console.log(msg);
+  if (msg.chat.type === "private") {
+    if (!msg.forward_from) {
+      if (msg.forward_from_chat) {
+        bot.sendMessage(
+          msg.from.id,
+          `Este mensaje proviene del chat ${msg.forward_from_chat.title} (ID: ${msg.forward_from_chat.id}).`,
+          { parseMode: "html", replyToMessage: msg.message_id }
+        );
+      } else {
+        console.log("SENDER NAME: ", msg.forward_sender_name);
+        bot
+          .sendMessage(
+            msg.from.id,
+            `Este mensaje viene de parte de ${msg.forward_sender_name}`,
+            { parseMode: "html", replyToMessage: msg.message_id }
+          )
+          .catch((error) => {
+            console.log("Hubo un error", error.description);
+          });
+      }
+    } else {
+      bot
+        .sendMessage(
+          msg.from.id,
+          `Este mensaje viene de parte de <a href="tg://user?id=${msg.forward_from.id}"> ${msg.forward_from.first_name} </a>`,
+          { parseMode: "html", replyToMessage: msg.message_id }
+        )
+        .catch((error) => {
+          console.log("Hubo un error", error.description);
+        });
+    }
+    if (msg.sticker) {
+      bot.sendMessage(
+        msg.from.id,
+        `Este sticker tiene un ancho de ${
+          msg.sticker.width
+        }px y una altura de ${msg.sticker.height}px.\nResponde al emoji ${
+          msg.sticker.emoji
+        } con un tamaño de ${roundToTwo(msg.sticker.file_size / 1024)}KB`,
+        { parseMode: "html", replyToMessage: msg.message_id }
+      );
+    }
+
+    if (msg.photo) {
+      bot.sendMessage(
+        msg.from.id,
+        `Esta foto tiene un ancho de ${
+          msg.photo[msg.photo.length - 1].width
+        }px y una altura de ${
+          msg.photo[msg.photo.length - 1].height
+        }px.\nY tiene un tamaño de ${roundToTwo(
+          msg.photo[msg.photo.length - 1].file_size / 1024
+        )}KB`,
+        { parseMode: "html", replyToMessage: msg.message_id }
+      );
+    }
+  }
+});
+
 // Testing sending files
 bot.on(/^\/foto (.+)$/, (msg, props) => {
   const url = props.match[1];
@@ -530,3 +591,6 @@ process.on("unhandledRejection", (reason, promise) => {
 function roundToTwo(num) {
   return +(Math.round(num + "e+2") + "e-2");
 }
+// function delay(ms) {
+//   return new Promise((resolve) => setTimeout(resolve, ms));
+// }
