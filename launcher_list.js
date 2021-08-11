@@ -18,7 +18,7 @@ export default [
       "da un golpe en el piso y sacude la habitación... creo que deberá reconsiderar lo de la dieta 😥",
     ],
     as_reply: [
-      "recuerda cuando entrenaba Karate 🥋 y le <b>lanza una patada</b>",
+      "recuerda cuando entrenaba Karate 🥋 y le <b>lanza una patada</b> a",
       "se une a un grupo de patos junto a",
     ],
   },
