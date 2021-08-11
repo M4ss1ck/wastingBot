@@ -9,7 +9,10 @@ import lista from "./launcher_list.js";
 const my_id = process.env.ADMIN_ID;
 const victim = process.env.VICTIM;
 
-const bot = new TeleBot(process.env.TG_TOKEN);
+const bot = new TeleBot({
+  token: process.env.TG_TOKEN,
+  usePlugins: ["commandButton"],
+});
 const parser = new Parser({
   operators: {
     // These default to true, but are included to be explicit
@@ -31,7 +34,14 @@ const parser = new Parser({
 
 let default_del = ["/borrame", /^@m4ss1ck ghei$/];
 
-bot.on(["/group", "/grupo", "/promo"], (msg) => {
+bot.on(["/group", "/grupo", "/promo"], (msg, self) => {
+  let id;
+  if (self.type === "callbackQuery") {
+    id = msg.message.chat.id;
+  } else {
+    id = msg.chat.id;
+  }
+
   let replyMarkup = bot.inlineKeyboard(
     [
       [
@@ -48,13 +58,33 @@ bot.on(["/group", "/grupo", "/promo"], (msg) => {
   );
 
   return bot.sendMessage(
-    msg.chat.id,
+    id,
     "Sea usted bienvenid@ a la comunidad de <b>Wasting Time</b>. Donde podrá pasar tiempo con sus amigos, compartir memes, jugar a encontrar el lobo y probablemente morir en el intento.",
     { parseMode: "html", replyMarkup }
   );
 });
 
-bot.on(["/help", "/ayuda"], (msg) => {
+bot.on(["/help", "/ayuda"], (msg, self) => {
+  console.log(self);
+  const replyMarkup = bot.inlineKeyboard([
+    [
+      // First row with command callback button
+      bot.inlineButton("Probar respuesta del bot", { callback: "/ping" }),
+    ],
+    [
+      bot.inlineButton("[EXPERIMENTAL] % de homosexualidad", {
+        callback: "/gay",
+      }),
+    ],
+    [
+      bot.inlineButton("1 tag", { callback: "/tag" }),
+      bot.inlineButton("Tag x5", { callback: "/tag 5" }),
+    ],
+    [
+      // Second row with regular command button
+      bot.inlineButton("SPAM", { callback: "/grupo" }),
+    ],
+  ]);
   return bot.sendMessage(
     msg.chat.id,
     "Este es el bot de pruebas de <b>Massick</b>. Poseo montones de funciones inútiles, entre ellas:\n" +
@@ -65,7 +95,7 @@ bot.on(["/help", "/ayuda"], (msg) => {
       "/group, /grupo o /promo - spam\n" +
       "/help o /ayuda - para ver este menú\n\n" +
       "También puede utilizar algunas palabras claves como <em>nudes</em>, <em>patada</em>, <em>beso</em> y otras (muchas más en el futuro)",
-    { parseMode: "html" }
+    { parseMode: "html", replyMarkup }
   );
 });
 
@@ -88,7 +118,13 @@ bot.on(["/jaja", "/jajaja", "/porn"], (msg) => {
   }
 });
 
-bot.on(["/gay", "/ghei"], (msg) => {
+bot.on(["/gay", "/ghei"], (msg, self) => {
+  let id;
+  if (self.type === "callbackQuery") {
+    id = msg.message.chat.id;
+  } else {
+    id = msg.chat.id;
+  }
   let replyMarkup = bot.inlineKeyboard([
     [
       bot.inlineButton("en otro chat", { inline: "soy loca?" }),
@@ -96,7 +132,7 @@ bot.on(["/gay", "/ghei"], (msg) => {
     ],
   ]);
 
-  return bot.sendMessage(msg.chat.id, "Mi % de loca", { replyMarkup });
+  return bot.sendMessage(id, "Mi % de loca", { replyMarkup });
 });
 
 bot.on("inlineQuery", (msg) => {
@@ -140,12 +176,8 @@ bot.on("inlineQuery", (msg) => {
 // usar con bot.inlineButton("callback", { callback: "this_is_data" })
 bot.on("callbackQuery", (msg) => {
   // User message alert
-  console.log(msg.data);
-  return bot.answerCallbackQuery(
-    msg.id,
-    `Inline button callback: ${msg.data}`,
-    { text: msg.data, showAlert: true }
-  );
+  console.log(`Inline button callback: ${msg.data}`);
+  return bot.answerCallbackQuery(msg.id);
 });
 
 bot.on(/^\/calc (.+)$/, (msg, props) => {
@@ -163,11 +195,27 @@ bot.on(/^\/calc (.+)$/, (msg, props) => {
     });
 });
 
-bot.on(["/start", "/jelou"], (msg) =>
-  msg.reply.text("Envía /ayuda para ver algunas opciones.")
-);
+bot.on(["/start", "/jelou"], (msg, self) => {
+  console.log("SELF: ", self);
+  console.log("MSG: ", msg);
+  let id;
+  if (self.type === "callbackQuery") {
+    id = msg.message.chat.id;
+  } else {
+    id = msg.chat.id;
+  }
+  return bot.sendMessage(id, "Envía /ayuda para ver algunas opciones.");
+});
 
-bot.on("/ping", (msg) => msg.reply.text("Pong!"));
+bot.on("/ping", (msg, self) => {
+  let id;
+  if (self.type === "callbackQuery") {
+    id = msg.message.chat.id;
+  } else {
+    id = msg.chat.id;
+  }
+  return bot.sendMessage(id, "Pong!");
+});
 
 bot.on("/info", (msg) => {
   console.log(msg?.reply_to_message);
@@ -360,11 +408,13 @@ bot.on("text", (msg) => {
 });
 
 // EXPERIMENTAL
-bot.on(/^\/tag( \d+)?$/, (msg, props) => {
+bot.on(/^\/tag( \d+)?$/, (msg, self) => {
   let n = 1;
-  if (props) {
-    console.log(props);
-    n = props.match[1];
+  console.log("SELF: \n", self);
+  // FIX: no funciona el tag múltiple
+  console.log("MATCH: \n", self.match);
+  if (self.match !== undefined) {
+    n = self.match[1];
     if (n > 50 || n === undefined) {
       n = 1;
     }
@@ -374,7 +424,7 @@ bot.on(/^\/tag( \d+)?$/, (msg, props) => {
   if (msg.reply_to_message) {
     new_victim = msg.reply_to_message.from.id;
   }
-  console.log("Se repetirá: " + n + "veces");
+  console.log("Se repetirá: " + n + " veces");
   console.log(
     "ID de la víctima: " +
       new_victim +
@@ -383,11 +433,19 @@ bot.on(/^\/tag( \d+)?$/, (msg, props) => {
       " y el original " +
       victim
   );
-  console.log(new_victim.toString() === my_id.toString());
+
+  //diferenciando las queries
+  let id;
+  if (self.type === "callbackQuery") {
+    id = msg.message.chat.id;
+  } else {
+    id = msg.chat.id;
+  }
+
   if (new_victim.toString() === my_id.toString()) {
     bot
       .sendMessage(
-        msg.chat.id,
+        id,
         `<a href="tg://user?id=${msg.from.id}">Cariño</a>, no puedo hacer eso`,
         { parseMode: "html" }
       )
@@ -398,8 +456,10 @@ bot.on(/^\/tag( \d+)?$/, (msg, props) => {
     for (let i = 0; i < n; i++) {
       bot
         .sendMessage(
-          msg.chat.id,
-          `<a href="tg://user?id=${new_victim}"> tag tag </a>\n<em>llamada número ${i}</em>`,
+          id,
+          `<a href="tg://user?id=${new_victim}"> tag tag </a>\n<em>llamada número ${
+            i + 1
+          }</em>`,
           { parseMode: "html" }
         )
         .catch((err) => {
