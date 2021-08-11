@@ -254,17 +254,16 @@ bot.on("forward", (msg) => {
       if (msg.forward_from_chat) {
         bot.sendMessage(
           msg.from.id,
-          `Este mensaje proviene del chat ${msg.forward_from_chat.title} (ID: ${msg.forward_from_chat.id}).`,
+          `Remitente: ${msg.forward_from_chat.title} \n(ID: ${msg.forward_from_chat.id}).`,
           { parseMode: "html", replyToMessage: msg.message_id }
         );
       } else {
         console.log("SENDER NAME: ", msg.forward_sender_name);
         bot
-          .sendMessage(
-            msg.from.id,
-            `Este mensaje viene de parte de ${msg.forward_sender_name}`,
-            { parseMode: "html", replyToMessage: msg.message_id }
-          )
+          .sendMessage(msg.from.id, `Remitente: ${msg.forward_sender_name}`, {
+            parseMode: "html",
+            replyToMessage: msg.message_id,
+          })
           .catch((error) => {
             console.log("Hubo un error", error.description);
           });
@@ -273,7 +272,7 @@ bot.on("forward", (msg) => {
       bot
         .sendMessage(
           msg.from.id,
-          `Este mensaje viene de parte de <a href="tg://user?id=${msg.forward_from.id}"> ${msg.forward_from.first_name} </a>`,
+          `Remitente: <a href="tg://user?id=${msg.forward_from.id}"> ${msg.forward_from.first_name} </a>`,
           { parseMode: "html", replyToMessage: msg.message_id }
         )
         .catch((error) => {
@@ -283,27 +282,59 @@ bot.on("forward", (msg) => {
     if (msg.sticker) {
       bot.sendMessage(
         msg.from.id,
-        `Este sticker tiene un ancho de ${
-          msg.sticker.width
-        }px y una altura de ${msg.sticker.height}px.\nResponde al emoji ${
-          msg.sticker.emoji
-        } con un tamaño de ${roundToTwo(msg.sticker.file_size / 1024)}KB`,
+        `Dimensiones: <pre>${msg.sticker.width} x ${
+          msg.sticker.height
+        } px</pre>\nEmoji ${msg.sticker.emoji} \nTamaño: ${roundToTwo(
+          msg.sticker.file_size / 1024
+        )}KB`,
         { parseMode: "html", replyToMessage: msg.message_id }
       );
     }
 
     if (msg.photo) {
-      bot.sendMessage(
-        msg.from.id,
-        `Esta foto tiene un ancho de ${
-          msg.photo[msg.photo.length - 1].width
-        }px y una altura de ${
-          msg.photo[msg.photo.length - 1].height
-        }px.\nY tiene un tamaño de ${roundToTwo(
-          msg.photo[msg.photo.length - 1].file_size / 1024
-        )}KB`,
-        { parseMode: "html", replyToMessage: msg.message_id }
-      );
+      // const replyMarkup = bot.inlineKeyboard([
+      //   msg.photo.map((i) => {
+      //     console.log(i.file_size);
+      //     return bot.inlineButton(
+      //       `Tamaño ${roundToTwo(i.file_size / 1024)}KB`,
+      //       {
+      //         callback: `/foto ${i.file_id}`,
+      //       }
+      //     );
+      //   }),
+      // ]);
+      // console.log(replyMarkup);
+
+      let sizes = [];
+      for (let i = 0; i < msg.photo.length - 1; i++) {
+        const size = `${roundToTwo(
+          msg.photo[i].file_size / 1024
+        )}KB - <pre>/foto ${msg.photo[i].file_id}</pre>`;
+        sizes.push(size);
+      }
+      console.log(sizes);
+      bot
+        .sendMessage(
+          msg.from.id,
+          `Dimensiones: <pre>${msg.photo[msg.photo.length - 1].width} x ${
+            msg.photo[msg.photo.length - 1].height
+          } px</pre>\nTamaño: ${roundToTwo(
+            msg.photo[msg.photo.length - 1].file_size / 1024
+          )}KB`,
+
+          { parseMode: "html", replyToMessage: msg.message_id }
+        )
+        .then(() => {
+          bot.sendMessage(
+            msg.from.id,
+            `<b>Otros tamaños</b>\n(copie el código y envíeselo al bot)\n${sizes.join(
+              "\n"
+            )}`,
+            {
+              parseMode: "html",
+            }
+          );
+        });
     }
   }
 });
