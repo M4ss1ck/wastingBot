@@ -55,12 +55,22 @@ bot.on(["/group", "/grupo", "/promo"], (msg) => {
 });
 
 bot.on(["/jaja", "/jajaja", "/porn"], (msg) => {
-  return bot
-    .sendVoice(msg.chat.id, "./audio/risas.ogg", {
-      replyToMessage: msg.reply_to_message.message_id,
-    })
-    .then(bot.deleteMessage(msg.chat.id, msg.message_id))
-    .catch((err) => console.error("ERROR: ", err));
+  if (msg.reply_to_message.from.id.toString() === my_id) {
+    console.log("Me intentaron hacer tag");
+    return bot
+      .sendVoice(msg.chat.id, "./audio/risas.ogg", {
+        replyToMessage: msg.message_id,
+      })
+      .then(bot.sendMessage(msg.chat.id, "Yo tú no lo vuelvo a intentar"))
+      .catch((err) => console.error("ERROR: ", err));
+  } else {
+    return bot
+      .sendVoice(msg.chat.id, "./audio/risas.ogg", {
+        replyToMessage: msg.reply_to_message.message_id,
+      })
+      .then(bot.deleteMessage(msg.chat.id, msg.message_id))
+      .catch((err) => console.error("ERROR: ", err));
+  }
 });
 
 bot.on(["/gay", "/ghei"], (msg) => {
