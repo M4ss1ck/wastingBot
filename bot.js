@@ -238,7 +238,7 @@ bot.on(
   (msg) => {
     if (msg.reply_to_message.sticker) {
       bot.sendMessage(
-        msg.from.id,
+        msg.chat.id,
         `Dimensiones: ${msg.reply_to_message.sticker.width}x${
           msg.reply_to_message.sticker.height
         }\nEmoji ${msg.reply_to_message.sticker.emoji}\nTamaño: ${roundToTwo(
@@ -250,7 +250,7 @@ bot.on(
 
     if (msg.reply_to_message.photo) {
       bot.sendMessage(
-        msg.from.id,
+        msg.chat.id,
         `Dimensiones: ${
           msg.reply_to_message.photo[msg.reply_to_message.photo.length - 1]
             .width
@@ -258,7 +258,8 @@ bot.on(
           msg.reply_to_message.photo[msg.reply_to_message.photo.length - 1]
             .height
         }\nTamaño: ${roundToTwo(
-          msg.reply_to_message.photo[msg.photo.length - 1].file_size / 1024
+          msg.reply_to_message.photo[msg.reply_to_message.photo.length - 1]
+            .file_size / 1024
         )}KB`,
 
         { parseMode: "html", replyToMessage: msg.reply_to_message.message_id }
@@ -266,7 +267,7 @@ bot.on(
     }
     if (msg.reply_to_message.animation) {
       bot.sendMessage(
-        msg.from.id,
+        msg.chat.id,
         `Dimensiones: ${msg.reply_to_message.animation.width}x${
           msg.reply_to_message.animation.height
         }\nDuración: ${
