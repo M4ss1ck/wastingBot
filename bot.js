@@ -233,18 +233,63 @@ bot.on("/info", (msg) => {
   });
 });
 
-bot.on("/size", (msg) =>
-  msg.reply.text(
-    "Tamaño: " +
-      roundToTwo(
-        msg.reply_to_message.photo[msg.reply_to_message.photo.length - 1]
-          .file_size / 1024
-      ) +
-      "KB",
-    {
-      asReply: true,
+bot.on(
+  "/size",
+  (msg) => {
+    if (msg.reply_to_message.sticker) {
+      bot.sendMessage(
+        msg.from.id,
+        `Dimensiones: ${msg.reply_to_message.sticker.width}x${
+          msg.reply_to_message.sticker.height
+        }\nEmoji ${msg.reply_to_message.sticker.emoji}\nTamaño: ${roundToTwo(
+          msg.reply_to_message.sticker.file_size / 1024
+        )}KB`,
+        { parseMode: "html", replyToMessage: msg.reply_to_message.message_id }
+      );
     }
-  )
+
+    if (msg.reply_to_message.photo) {
+      bot.sendMessage(
+        msg.from.id,
+        `Dimensiones: ${
+          msg.reply_to_message.photo[msg.reply_to_message.photo.length - 1]
+            .width
+        }x${
+          msg.reply_to_message.photo[msg.reply_to_message.photo.length - 1]
+            .height
+        }\nTamaño: ${roundToTwo(
+          msg.reply_to_message.photo[msg.photo.length - 1].file_size / 1024
+        )}KB`,
+
+        { parseMode: "html", replyToMessage: msg.reply_to_message.message_id }
+      );
+    }
+    if (msg.reply_to_message.animation) {
+      bot.sendMessage(
+        msg.from.id,
+        `Dimensiones: ${msg.reply_to_message.animation.width}x${
+          msg.reply_to_message.animation.height
+        }\nDuración: ${
+          msg.reply_to_message.animation.duration
+        }s\nTamaño: ${roundToTwo(
+          msg.reply_to_message.animation.file_size / 1024
+        )}KB`,
+
+        { parseMode: "html", replyToMessage: msg.reply_to_message.message_id }
+      );
+    }
+  }
+  // msg.reply.text(
+  //   "Tamaño: " +
+  //     roundToTwo(
+  //       msg.reply_to_message.photo[msg.reply_to_message.photo.length - 1]
+  //         .file_size / 1024
+  //     ) +
+  //     "KB",
+  //   {
+  //     asReply: true,
+  //   }
+  // )
 );
 
 bot.on("forward", (msg) => {
