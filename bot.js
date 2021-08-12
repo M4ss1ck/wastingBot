@@ -108,6 +108,13 @@ bot.on(["/help", "/ayuda"], (msg, self) => {
 });
 
 bot.on(["/jaja", "/jajaja", "/porn"], (msg) => {
+  if (!msg.reply_to_message) {
+    return bot.sendMessage(
+      msg.chat.id,
+      `<a href="tg://user?id=${msg.from.id}"> ${msg.from.first_name}</a>, el comando se usa respondiendo un mensaje`,
+      { parseMode: "html", replyToMessage: msg.message_id }
+    );
+  }
   if (msg.reply_to_message.from.id.toString() === my_id) {
     console.log("Me intentaron hacer tag");
     return bot
@@ -226,24 +233,43 @@ bot.on("/ping", (msg, self) => {
 });
 
 bot.on("/info", (msg) => {
-  console.log(msg?.reply_to_message);
+  console.log(msg);
   bot.getChat(msg.chat.id).then((res) => {
     console.log(res);
-    bot.sendMessage(
-      msg.chat.id,
-      `Este es el grupo <b>${res.title}</b> cuyo id es <pre>${res.id}</pre>`,
+    if (msg.chat.type === "private") {
+      let user = res.username ? `@${res.username}` : "no tiene";
+      bot.sendMessage(
+        msg.chat.id,
+        `ID: ${res.id}\nNombre: ${res.first_name}\nNombre de usuario: ${user}\nDescripción: ${res.bio}`,
 
-      {
-        parseMode: "html",
-        replyToMessage: msg.message_id,
-      }
-    );
+        {
+          parseMode: "html",
+          replyToMessage: msg.message_id,
+        }
+      );
+    }
+    // bot.sendMessage(
+    //   msg.chat.id,
+    //   `Este es el grupo <b>${res.title}</b> cuyo id es <pre>${res.id}</pre>`,
+
+    //   {
+    //     parseMode: "html",
+    //     replyToMessage: msg.message_id,
+    //   }
+    // );
   });
 });
 
 bot.on(
   "/size",
   (msg) => {
+    if (!msg.reply_to_message) {
+      return bot.sendMessage(
+        msg.chat.id,
+        `<a href="tg://user?id=${msg.from.id}"> ${msg.from.first_name}</a>, el comando se usa respondiendo un mensaje`,
+        { parseMode: "html", replyToMessage: msg.message_id }
+      );
+    }
     if (msg.reply_to_message.sticker) {
       bot.sendMessage(
         msg.chat.id,
@@ -303,21 +329,29 @@ bot.on(
 
 bot.on("forward", (msg) => {
   console.log(msg);
+  const fecha = new Date(msg.forward_date * 1000);
+  const fecha_str = `${fecha.getDate()}/${
+    fecha.getMonth() + 1
+  }/${fecha.getFullYear()} ${fecha.getHours()}:${fecha.getMinutes()}:${fecha.getSeconds()}`;
   if (msg.chat.type === "private") {
     if (!msg.forward_from) {
       if (msg.forward_from_chat) {
         bot.sendMessage(
           msg.from.id,
-          `Remitente: ${msg.forward_from_chat.title} \n(ID: ${msg.forward_from_chat.id}).`,
+          `Remitente: ${msg.forward_from_chat.title} \n(ID: ${msg.forward_from_chat.id})\nFecha: ${fecha_str}`,
           { parseMode: "html", replyToMessage: msg.message_id }
         );
       } else {
         console.log("SENDER NAME: ", msg.forward_sender_name);
         bot
-          .sendMessage(msg.from.id, `Remitente: ${msg.forward_sender_name}`, {
-            parseMode: "html",
-            replyToMessage: msg.message_id,
-          })
+          .sendMessage(
+            msg.from.id,
+            `Remitente: ${msg.forward_sender_name}\nFecha: ${fecha_str}`,
+            {
+              parseMode: "html",
+              replyToMessage: msg.message_id,
+            }
+          )
           .catch((error) => {
             console.log("Hubo un error", error.description);
           });
@@ -326,7 +360,7 @@ bot.on("forward", (msg) => {
       bot
         .sendMessage(
           msg.from.id,
-          `Remitente: <a href="tg://user?id=${msg.forward_from.id}"> ${msg.forward_from.first_name} </a>`,
+          `Remitente: <a href="tg://user?id=${msg.forward_from.id}"> ${msg.forward_from.first_name} </a>\nFecha: ${fecha_str}`,
           { parseMode: "html", replyToMessage: msg.message_id }
         )
         .catch((error) => {
