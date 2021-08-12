@@ -282,67 +282,50 @@ bot.on("forward", (msg) => {
     if (msg.sticker) {
       bot.sendMessage(
         msg.from.id,
-        `Dimensiones: <pre>${msg.sticker.width} x ${
-          msg.sticker.height
-        } px</pre>\nEmoji ${msg.sticker.emoji} \nTamaño: ${roundToTwo(
-          msg.sticker.file_size / 1024
-        )}KB`,
+        `Dimensiones: ${msg.sticker.width}x${msg.sticker.height}\nEmoji ${
+          msg.sticker.emoji
+        }\nTamaño: ${roundToTwo(msg.sticker.file_size / 1024)}KB`,
         { parseMode: "html", replyToMessage: msg.message_id }
       );
     }
 
     if (msg.photo) {
-      // const replyMarkup = bot.inlineKeyboard([
-      //   msg.photo.map((i) => {
-      //     console.log(i.file_size);
-      //     return bot.inlineButton(
-      //       `Tamaño ${roundToTwo(i.file_size / 1024)}KB`,
-      //       {
-      //         callback: `/foto ${i.file_id}`,
-      //       }
-      //     );
-      //   }),
-      // ]);
-      // console.log(replyMarkup);
+      bot.sendMessage(
+        msg.from.id,
+        `Dimensiones: ${msg.photo[msg.photo.length - 1].width}x${
+          msg.photo[msg.photo.length - 1].height
+        }\nTamaño: ${roundToTwo(
+          msg.photo[msg.photo.length - 1].file_size / 1024
+        )}KB`,
 
-      let sizes = [];
-      for (let i = 0; i < msg.photo.length - 1; i++) {
-        const size = `${roundToTwo(
-          msg.photo[i].file_size / 1024
-        )}KB - <pre>/foto ${msg.photo[i].file_id}</pre>`;
-        sizes.push(size);
-      }
-      console.log(sizes);
-      bot
-        .sendMessage(
-          msg.from.id,
-          `Dimensiones: <pre>${msg.photo[msg.photo.length - 1].width} x ${
-            msg.photo[msg.photo.length - 1].height
-          } px</pre>\nTamaño: ${roundToTwo(
-            msg.photo[msg.photo.length - 1].file_size / 1024
-          )}KB`,
+        { parseMode: "html", replyToMessage: msg.message_id }
+      );
+    }
+    if (msg.animation) {
+      bot.sendMessage(
+        msg.from.id,
+        `Dimensiones: ${msg.animation.width}x${
+          msg.animation.height
+        }\nDuración: ${msg.animation.duration}s\nTamaño: ${roundToTwo(
+          msg.animation.file_size / 1024
+        )}KB`,
 
-          { parseMode: "html", replyToMessage: msg.message_id }
-        )
-        .then(() => {
-          bot.sendMessage(
-            msg.from.id,
-            `<b>Otros tamaños</b>\n(copie el código y envíeselo al bot)\n${sizes.join(
-              "\n"
-            )}`,
-            {
-              parseMode: "html",
-            }
-          );
-        });
+        { parseMode: "html", replyToMessage: msg.message_id }
+      );
     }
   }
 });
 
 // Testing sending files
-bot.on(/^\/foto (.+)$/, (msg, props) => {
-  const url = props.match[1];
-  return bot.sendPhoto(msg.chat.id, url).catch((error) => {
+bot.on(/^\/foto (.+)$/, (msg, self) => {
+  const url = self.match[1];
+  let id;
+  if (self.type === "callbackQuery") {
+    id = msg.message.chat.id;
+  } else {
+    id = msg.chat.id;
+  }
+  return bot.sendPhoto(id, url).catch((error) => {
     console.log("Hubo un error", error.description);
     return bot.sendMessage(msg.from.id, error.description);
   });
