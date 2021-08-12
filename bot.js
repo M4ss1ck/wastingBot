@@ -11,7 +11,15 @@ const victim = process.env.VICTIM;
 
 const bot = new TeleBot({
   token: process.env.TG_TOKEN,
-  usePlugins: ["commandButton"],
+  usePlugins: ["commandButton", "reporter"],
+  pluginConfig: {
+    reporter: {
+      // What to report?
+      events: ["reconnect", "reconnected", "stop", "error"],
+      // User list
+      to: [my_id],
+    },
+  },
 });
 const parser = new Parser({
   operators: {
