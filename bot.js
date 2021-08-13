@@ -233,30 +233,85 @@ bot.on("/ping", (msg, self) => {
 });
 
 bot.on("/info", (msg) => {
-  console.log(msg);
+  //console.log(msg);
+
+  const opts = {
+    weekday: "long",
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+    hour: "numeric",
+    minute: "numeric",
+    second: "numeric",
+  };
+
   bot.getChat(msg.chat.id).then((res) => {
     console.log(res);
-    if (msg.chat.type === "private") {
-      let user = res.username ? `@${res.username}` : "no tiene";
+    if (!msg.reply_to_message) {
+      const fecha = new Date(msg.date * 1000);
+      if (msg.chat.type === "private") {
+        let user = res.username ? `@${res.username}` : "no tiene";
+        bot.sendMessage(
+          msg.chat.id,
+          `ID: ${res.id}\nNombre: ${
+            res.first_name
+          }\nNombre de usuario: ${user}\nDescripción: ${
+            res.bio
+          }\nFecha: ${fecha.toLocaleDateString("es-CU", opts)}`,
+
+          {
+            parseMode: "html",
+            replyToMessage: msg.message_id,
+          }
+        );
+      } else {
+        let user = msg.from.username ? `@${msg.from.username}` : "no tiene";
+        let link = res.invite_link
+          ? `<a href="${res.invite_link}">${res.title}</a>`
+          : "ni idea";
+        bot.sendMessage(
+          msg.chat.id,
+          `ID: ${res.id}\nNombre del grupo: ${
+            res.title
+          }\nEnlace: ${link}\n\nID (usuario): ${msg.from.id}\nNombre: ${
+            msg.from.first_name
+          }\nNombre de usuario: ${user}\nFecha: ${fecha.toLocaleDateString(
+            "es-CU",
+            opts
+          )}`,
+
+          {
+            parseMode: "html",
+            replyToMessage: msg.message_id,
+          }
+        );
+      }
+    } else {
+      // ESTÁS RESPONDIENDO UN MENSAJE
+      let user = msg.reply_to_message.from.username
+        ? `@${msg.reply_to_message.from.username}`
+        : "no tiene";
+      const fecha = new Date(msg.reply_to_message.date * 1000);
+      const grupo = msg.reply_to_message.chat.title
+        ? `\nNombre del grupo: ${msg.reply_to_message.chat.title}`
+        : "";
       bot.sendMessage(
         msg.chat.id,
-        `ID: ${res.id}\nNombre: ${res.first_name}\nNombre de usuario: ${user}\nDescripción: ${res.bio}`,
+        `<b>Sobre el mensaje respondido:</b>\nID: ${
+          msg.reply_to_message.chat.id
+        }${grupo}\nID (usuario): ${msg.reply_to_message.from.id}\nNombre: ${
+          msg.reply_to_message.from.first_name
+        }\nNombre de usuario: ${user}\nFecha: ${fecha.toLocaleDateString(
+          "es-CU",
+          opts
+        )}`,
 
         {
           parseMode: "html",
-          replyToMessage: msg.message_id,
+          replyToMessage: msg.reply_to_message.message_id,
         }
       );
     }
-    // bot.sendMessage(
-    //   msg.chat.id,
-    //   `Este es el grupo <b>${res.title}</b> cuyo id es <pre>${res.id}</pre>`,
-
-    //   {
-    //     parseMode: "html",
-    //     replyToMessage: msg.message_id,
-    //   }
-    // );
   });
 });
 
@@ -330,15 +385,23 @@ bot.on(
 bot.on("forward", (msg) => {
   console.log(msg);
   const fecha = new Date(msg.forward_date * 1000);
-  const fecha_str = `${fecha.getDate()}/${
-    fecha.getMonth() + 1
-  }/${fecha.getFullYear()} ${fecha.getHours()}:${fecha.getMinutes()}:${fecha.getSeconds()}`;
+  const opts = {
+    weekday: "long",
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+    hour: "numeric",
+    minute: "numeric",
+    second: "numeric",
+  };
   if (msg.chat.type === "private") {
     if (!msg.forward_from) {
       if (msg.forward_from_chat) {
         bot.sendMessage(
           msg.from.id,
-          `Remitente: ${msg.forward_from_chat.title} \n(ID: ${msg.forward_from_chat.id})\nFecha: ${fecha_str}`,
+          `Remitente: ${msg.forward_from_chat.title} \n(ID: ${
+            msg.forward_from_chat.id
+          })\nFecha: ${fecha.toLocaleDateString("es-CU", opts)}`,
           { parseMode: "html", replyToMessage: msg.message_id }
         );
       } else {
@@ -346,7 +409,9 @@ bot.on("forward", (msg) => {
         bot
           .sendMessage(
             msg.from.id,
-            `Remitente: ${msg.forward_sender_name}\nFecha: ${fecha_str}`,
+            `Remitente: ${
+              msg.forward_sender_name
+            }\nFecha: ${fecha.toLocaleDateString("es-CU", opts)}`,
             {
               parseMode: "html",
               replyToMessage: msg.message_id,
@@ -360,7 +425,9 @@ bot.on("forward", (msg) => {
       bot
         .sendMessage(
           msg.from.id,
-          `Remitente: <a href="tg://user?id=${msg.forward_from.id}"> ${msg.forward_from.first_name} </a>\nFecha: ${fecha_str}`,
+          `Remitente: <a href="tg://user?id=${msg.forward_from.id}"> ${
+            msg.forward_from.first_name
+          } </a>\nFecha: ${fecha.toLocaleDateString("es-CU", opts)}`,
           { parseMode: "html", replyToMessage: msg.message_id }
         )
         .catch((error) => {
