@@ -491,11 +491,18 @@ bot.on(/^\/foto (.+)$/, (msg, self) => {
 
 // trying to convert photos
 bot.on(/^\/conv$/, (msg, self) => {
+  console.log(self);
   let id;
   if (self.type === "callbackQuery") {
     id = msg.message.chat.id;
   } else {
     id = msg.chat.id;
+  }
+  if (!msg.reply_to_message) {
+    return bot.sendMessage(
+      id,
+      "Debes responder un mensaje para usar este comando"
+    );
   }
   if (msg.reply_to_message.photo) {
     bot
@@ -525,21 +532,6 @@ bot.on(/^\/conv$/, (msg, self) => {
 
         return convertir(id, url, name, size, ancho, alto, calidad);
       });
-    // .then(() =>
-    //   bot.sendPhoto(
-    //     id,
-    //     `images/${
-    //       msg.reply_to_message.photo[msg.reply_to_message.photo.length - 1]
-    //         .file_unique_id
-    //     }.jpg`,
-    //     {
-    //       caption: `Tamaño original: ${roundToTwo(
-    //         msg.reply_to_message.photo[msg.reply_to_message.photo.length - 1]
-    //           .file_size / 1024
-    //       )}`,
-    //     }
-    //   )
-    // );
   }
 });
 
@@ -839,7 +831,7 @@ async function convertir(id, url, name, size, ancho, alto, calidad) {
       .writeAsync(`images/${name}.jpg`);
     //console.log("IMAGEN: \n", final.bitmap);
     await bot.sendPhoto(id, `images/${name}.jpg`, {
-      caption: `Tamaño original: ${size}`,
+      caption: `Tamaño original: ${size} KB`,
     });
     fs.unlinkSync(`images/${name}.jpg`);
   } catch (err) {
