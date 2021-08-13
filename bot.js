@@ -4,6 +4,9 @@ import { Parser } from "expr-eval";
 import process from "process";
 import lista from "./launcher_list.js";
 
+import Jimp from "jimp";
+import fs from "fs";
+
 //const app = express();
 
 const my_id = process.env.ADMIN_ID;
@@ -486,6 +489,60 @@ bot.on(/^\/foto (.+)$/, (msg, self) => {
   });
 });
 
+// trying to convert photos
+bot.on(/^\/conv$/, (msg, self) => {
+  let id;
+  if (self.type === "callbackQuery") {
+    id = msg.message.chat.id;
+  } else {
+    id = msg.chat.id;
+  }
+  if (msg.reply_to_message.photo) {
+    bot
+      .getFile(
+        msg.reply_to_message.photo[msg.reply_to_message.photo.length - 1]
+          .file_id
+      )
+      .then((res) => {
+        console.log(res);
+        let url = res.fileLink;
+        let name =
+          msg.reply_to_message.photo[msg.reply_to_message.photo.length - 1]
+            .file_unique_id;
+        let size = roundToTwo(
+          msg.reply_to_message.photo[msg.reply_to_message.photo.length - 1]
+            .file_size / 1024
+        );
+        let ancho = Math.round(
+          msg.reply_to_message.photo[msg.reply_to_message.photo.length - 1]
+            .width / 2
+        );
+        let alto = Math.round(
+          msg.reply_to_message.photo[msg.reply_to_message.photo.length - 1]
+            .height / 2
+        );
+        let calidad = 50;
+
+        return convertir(id, url, name, size, ancho, alto, calidad);
+      });
+    // .then(() =>
+    //   bot.sendPhoto(
+    //     id,
+    //     `images/${
+    //       msg.reply_to_message.photo[msg.reply_to_message.photo.length - 1]
+    //         .file_unique_id
+    //     }.jpg`,
+    //     {
+    //       caption: `Tamaño original: ${roundToTwo(
+    //         msg.reply_to_message.photo[msg.reply_to_message.photo.length - 1]
+    //           .file_size / 1024
+    //       )}`,
+    //     }
+    //   )
+    // );
+  }
+});
+
 bot.on(/^\/get (.+)$/, (msg, props) => {
   const url = props.match[1];
   return bot.sendDocument(msg.chat.id, url).catch((error) => {
@@ -772,6 +829,41 @@ process.on("unhandledRejection", (reason, promise) => {
 function roundToTwo(num) {
   return +(Math.round(num + "e+2") + "e-2");
 }
-// function delay(ms) {
-//   return new Promise((resolve) => setTimeout(resolve, ms));
+
+async function convertir(id, url, name, size, ancho, alto, calidad) {
+  try {
+    const image = await Jimp.read(url);
+    await image
+      .resize(ancho, alto)
+      .quality(calidad)
+      .writeAsync(`images/${name}.jpg`);
+    //console.log("IMAGEN: \n", final.bitmap);
+    await bot.sendPhoto(id, `images/${name}.jpg`, {
+      caption: `Tamaño original: ${size}`,
+    });
+    fs.unlinkSync(`images/${name}.jpg`);
+  } catch (err) {
+    console.error(err);
+  }
+}
+
+// hacer un contador
+// function updateKeyboard(count) {
+
+//   let apples = 'apples';
+//   let oranges = 'oranges';
+
+//   if (count == 'apples') {
+//       apples = `==> ${ apples } <==`;
+//   } else {
+//       oranges = `==> ${ oranges } <==`;
+//   }
+
+//   return bot.inlineKeyboard([
+//       [
+//           bot.inlineButton(apples, {callback: 'apples'}),
+//           bot.inlineButton(oranges, {callback: 'oranges'})
+//       ]
+//   ]);
+
 // }
