@@ -490,8 +490,9 @@ bot.on(/^\/foto (.+)$/, (msg, self) => {
 });
 
 // trying to convert photos
-bot.on(/^\/conv$/, (msg, self) => {
+bot.on(/^\/conv(\s(\d+|auto)(\s(\d+|auto))?(\s(\d+|auto))?)?$/, (msg, self) => {
   console.log(self);
+  //console.log(self.match.length);
   let id;
   if (self.type === "callbackQuery") {
     id = msg.message.chat.id;
@@ -512,6 +513,7 @@ bot.on(/^\/conv$/, (msg, self) => {
       )
       .then((res) => {
         console.log(res);
+        //analizar los distintos valores de la expresión regular
         let url = res.fileLink;
         let name =
           msg.reply_to_message.photo[msg.reply_to_message.photo.length - 1]
@@ -520,15 +522,59 @@ bot.on(/^\/conv$/, (msg, self) => {
           msg.reply_to_message.photo[msg.reply_to_message.photo.length - 1]
             .file_size / 1024
         );
-        let ancho = Math.round(
+        //inicializar los valores ancho, alto y calidad
+        let ancho, alto, calidad;
+
+        let ancho_auto = Math.round(
           msg.reply_to_message.photo[msg.reply_to_message.photo.length - 1]
             .width / 2
         );
-        let alto = Math.round(
+        let alto_auto = Math.round(
           msg.reply_to_message.photo[msg.reply_to_message.photo.length - 1]
             .height / 2
         );
-        let calidad = 50;
+        let calidad_auto = 50;
+
+        if (self.match[6] !== undefined) {
+          //si tenemos los 3 valores
+          ancho =
+            self.match[2] === "auto" ? ancho_auto : parseInt(self.match[2]);
+          alto = self.match[4] === "auto" ? alto_auto : parseInt(self.match[4]);
+          calidad =
+            self.match[6] === "auto" ? calidad_auto : parseInt(self.match[6]);
+        } else {
+          if (self.match[4] !== undefined) {
+            // tenemos 2 valores: ancho y alto (imagen cuadrada, a menos q sea auto) y calidad
+            ancho =
+              self.match[2] === "auto" ? ancho_auto : parseInt(self.match[2]);
+            alto =
+              self.match[2] === "auto" ? alto_auto : parseInt(self.match[2]);
+            calidad =
+              self.match[4] === "auto" ? calidad_auto : parseInt(self.match[4]);
+          } else {
+            if (self.match[2] !== undefined) {
+              // tenemos un solo valor: calidad, lo demás será auto
+              ancho = ancho_auto;
+              alto = alto_auto;
+              calidad =
+                self.match[2] === "auto"
+                  ? calidad_auto
+                  : parseInt(self.match[2]);
+            } else {
+              //los valores por defecto
+              ancho = ancho_auto;
+              alto = alto_auto;
+              calidad = calidad_auto;
+            }
+          }
+        }
+        // hay que controlar que las nuevas dimensiones sean menores, o no?
+        // calidad si debe ser 1-100, aunque los otros valores deben ser positivos
+        if (ancho < 1 || alto < 1 || calidad < 1 || calidad > 100) {
+          return bot.sendMessage(id, "Valores inválidos", {
+            replyToMessage: msg.message_id,
+          });
+        }
 
         return convertir(id, url, name, size, ancho, alto, calidad);
       });
