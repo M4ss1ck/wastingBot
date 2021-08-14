@@ -772,55 +772,17 @@ bot.on("text", (msg) => {
               { parseMode: "html" }
             );
           });
-
-          // return bot.sendMessage(
-          //   msg.chat.id,
-          //   `<a href="tg://user?id=${tg_id}"> ${name} </a> ${
-          //     launcher.as_reply[
-          //       Math.floor(Math.random() * launcher.as_reply.length)
-          //     ]
-          //   } <a href="tg://user?id=${msg.reply_to_message.from.id}"> ${
-          //     msg.reply_to_message.from.first_name
-          //   } </a>`,
-          //   { parseMode: "html" }
-          // );
         }
       }
     });
   });
-
-  // lista.map((launcher) => {
-  //   const re = new RegExp("^" + launcher.search + "$", "i");
-
-  //   if (msg.text.match(re)) {
-  //     console.log(re);
-  //     if (!msg.reply_to_message) {
-  //       console.log("[alone] [name] ", name);
-  //       return bot.sendMessage(
-  //         msg.chat.id,
-  //         `<a href="tg://user?id=${tg_id}"> ${name} </a> ${
-  //           launcher.alone[Math.floor(Math.random() * launcher.alone.length)]
-  //         }`,
-  //         { parseMode: "html" }
-  //       );
-  //     } else {
-  //       return bot.sendMessage(
-  //         msg.chat.id,
-  //         `<a href="tg://user?id=${tg_id}"> ${name} </a> ${
-  //           launcher.as_reply[
-  //             Math.floor(Math.random() * launcher.as_reply.length)
-  //           ]
-  //         } <a href="tg://user?id=${msg.reply_to_message.from.id}"> ${
-  //           msg.reply_to_message.from.first_name
-  //         } </a>`,
-  //         { parseMode: "html" }
-  //       );
-  //     }
-  //   }
-  // });
 });
 
-// EXPERIMENTAL
+bot.on("/bd", () => {
+  db.find({}).then((res) => console.log(res));
+});
+
+// SPAM
 bot.on(/^\/tag( \d+)?$/, (msg, self) => {
   let n = 1;
   console.log("SELF: \n", self);
@@ -893,7 +855,7 @@ bot.on(/^\/nick (.+)$/, (msg, props) => {
   const texto = props.match[1];
   const tg_id = msg.from.id;
   db.findOne({ tg_id: tg_id }).then((res, err) => {
-    console.log(res);
+    //console.log(res);
     console.log(err);
     if (res === null) {
       let new_nick = {
