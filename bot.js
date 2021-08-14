@@ -844,19 +844,40 @@ bot.on(/^\/tag( \d+)?$/, (msg, self) => {
       });
   } else {
     // no sé si poner los nicks personalizados aquí... mejor no
-    for (let i = 0; i < n; i++) {
-      bot
-        .sendMessage(
-          id,
-          `<a href="tg://user?id=${new_victim}">tag tag</a>\n<em>llamada número ${
-            i + 1
-          }</em>`,
-          { parseMode: "html" }
-        )
-        .catch((err) => {
-          console.error(err);
-        });
-    }
+    // voy a usar async await para que la salida esté en orden
+    // como en https://zellwk.com/blog/async-await-in-loops/
+
+    const forEnOrden = async (_) => {
+      for (let i = 0; i < n; i++) {
+        await bot
+          .sendMessage(
+            id,
+            `<a href="tg://user?id=${new_victim}">tag tag</a>\n<em>llamada número ${
+              i + 1
+            }</em>`,
+            { parseMode: "html" }
+          )
+          .catch((err) => {
+            console.error(err);
+          });
+      }
+    };
+
+    forEnOrden();
+
+    // for (let i = 0; i < n; i++) {
+    //   bot
+    //     .sendMessage(
+    //       id,
+    //       `<a href="tg://user?id=${new_victim}">tag tag</a>\n<em>llamada número ${
+    //         i + 1
+    //       }</em>`,
+    //       { parseMode: "html" }
+    //     )
+    //     .catch((err) => {
+    //       console.error(err);
+    //     });
+    // }
   }
 });
 
