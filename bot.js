@@ -10,11 +10,13 @@ import fs from "fs";
 import Datastore from "nedb-promises";
 
 //const app = express();
-if (fs.existsSync("database/nicks.db")) {
-  // path exists
+
+try {
+  fs.accessSync("database/nicks.db");
   console.log("[BD] La BD está ubicada en database/nicks.db");
-} else {
+} catch (err) {
   console.log("[BD] La BD no se encuentra");
+  console.error(err);
 }
 
 let db = Datastore.create({ filename: "database/nicks.db", autoload: true });
