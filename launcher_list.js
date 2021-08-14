@@ -54,6 +54,21 @@ export default [
       "está de acuerdo con algo",
       "*existe*",
     ],
-    as_reply: ["está de acuerdo con"],
+    as_reply: ["está de acuerdo con", "babosea a"],
+  },
+  {
+    search: "yacel",
+    alone: [
+      "tiene ofertas de trabajo para homosexuales",
+      "quiere suicidarse",
+      "*se enyacela*",
+      "sale del closet",
+    ],
+    as_reply: [
+      "acaba de enyacelar a",
+      "se resinga en",
+      "le desea lo peor (incluso que no salga de latinoamérica) a",
+      "es tonto, pero menos que",
+    ],
   },
 ];
