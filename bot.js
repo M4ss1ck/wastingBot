@@ -17,6 +17,12 @@ try {
 } catch (err) {
   console.log("[BD] La BD no se encuentra");
   console.error(err);
+  fs.copyFile("database/copy_nicks.db", "database/nicks.db", (err) => {
+    if (err) {
+      console.log("[ERROR DE COPIA] ", err);
+    }
+  });
+  console.log("[BD] se utilizará la copia de respaldo");
 }
 
 let db = Datastore.create({ filename: "database/nicks.db", autoload: true });
@@ -871,50 +877,62 @@ bot.on("/sticker", (msg) => {
 bot.on(/^\/nick (.+)$/, (msg, props) => {
   const texto = props.match[1];
   const tg_id = msg.from.id;
-  db.findOne({ tg_id: tg_id }).then((res, err) => {
-    //console.log(res);
-    console.log(err);
-    if (res === null) {
-      let new_nick = {
-        tg_id: tg_id,
-        nick: texto,
-        fecha: new Date(),
-      };
-      db.insert(new_nick);
-      console.log("El nick de " + msg.from.first_name + " será " + texto);
-      return bot
-        .sendMessage(
-          msg.chat.id,
-          "El nuevo nick de " + msg.from.first_name + " será " + texto,
-          {
-            parseMode: "html",
-          }
-        )
-        .catch((error) => {
-          console.log("Hubo un error", error.description);
-          return bot.sendMessage(msg.from.id, error.description);
-        });
-    } else {
-      let new_nick = {
-        nick: texto,
-        fecha: new Date(),
-      };
-      db.update({ tg_id: tg_id }, { $set: new_nick });
-      console.log("El nuevo nick de " + msg.from.first_name + " será " + texto);
-      return bot
-        .sendMessage(
-          msg.chat.id,
-          "El nuevo nick de " + msg.from.first_name + " será " + texto,
-          {
-            parseMode: "html",
-          }
-        )
-        .catch((error) => {
-          console.log("Hubo un error", error.description);
-          return bot.sendMessage(msg.from.id, error.description);
-        });
-    }
-  });
+  db.findOne({ tg_id: tg_id })
+    .then((res, err) => {
+      //console.log(res);
+      console.log(err);
+      if (res === null) {
+        let new_nick = {
+          tg_id: tg_id,
+          nick: texto,
+          fecha: new Date(),
+        };
+        db.insert(new_nick);
+
+        console.log("El nick de " + msg.from.first_name + " será " + texto);
+        return bot
+          .sendMessage(
+            msg.chat.id,
+            "El nuevo nick de " + msg.from.first_name + " será " + texto,
+            {
+              parseMode: "html",
+            }
+          )
+          .catch((error) => {
+            console.log("Hubo un error", error.description);
+            return bot.sendMessage(msg.from.id, error.description);
+          });
+      } else {
+        let new_nick = {
+          nick: texto,
+          fecha: new Date(),
+        };
+        db.update({ tg_id: tg_id }, { $set: new_nick });
+        console.log(
+          "El nuevo nick de " + msg.from.first_name + " será " + texto
+        );
+        return bot
+          .sendMessage(
+            msg.chat.id,
+            "El nuevo nick de " + msg.from.first_name + " será " + texto,
+            {
+              parseMode: "html",
+            }
+          )
+          .catch((error) => {
+            console.log("Hubo un error", error.description);
+            return bot.sendMessage(msg.from.id, error.description);
+          });
+      }
+    })
+    .then((res) => {
+      console.log(res);
+      fs.copyFile("database/nicks.db", "database/copy_nicks.db", (err) => {
+        if (err) {
+          console.log("[ERROR DE COPIA] ", err);
+        }
+      });
+    });
 });
 
 // error handling
