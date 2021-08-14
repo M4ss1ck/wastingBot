@@ -11,7 +11,7 @@ import Datastore from "nedb-promises";
 
 //const app = express();
 
-let db = Datastore.create("database/nicks.db");
+let db = Datastore.create({ filename: "database/nicks.db", autoload: true });
 
 const my_id = process.env.ADMIN_ID;
 const victim = process.env.VICTIM;
@@ -778,8 +778,17 @@ bot.on("text", (msg) => {
   });
 });
 
-bot.on("/bd", () => {
-  db.find({}).then((res) => console.log(res));
+bot.on("/bd", (msg) => {
+  db.find({})
+    .then((res) => {
+      console.log(res);
+      if (msg.from.id.toString() === my_id) {
+        bot.sendDocument(msg.from.id, "database/nicks.db", {
+          caption: `Copia de seguridad de la BD ${new Date()}`,
+        });
+      }
+    })
+    .catch((e) => console.error(e));
 });
 
 // SPAM
