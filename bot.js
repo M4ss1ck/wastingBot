@@ -7,7 +7,11 @@ import lista from "./launcher_list.js";
 import Jimp from "jimp";
 import fs from "fs";
 
+import Datastore from "nedb-promises";
+
 //const app = express();
+
+let db = Datastore.create("database/nicks.db");
 
 const my_id = process.env.ADMIN_ID;
 const victim = process.env.VICTIM;
@@ -727,41 +731,100 @@ bot.on("text", (msg) => {
       .join(" ")} (${from_id}) - ${text}`
   );
 
-  lista.map((launcher) => {
-    const re = new RegExp("^" + launcher.search + "$", "i");
+  let name = msg.from.first_name;
+  const tg_id = msg.from.id;
+  db.findOne({ tg_id: tg_id }).then((res) => {
+    // console.log(
+    //   "Encontré la coincidencia: ",
+    //   res.nick,
+    //   "mientras buscaba a ",
+    //   name
+    // );
+    name = res === null ? name : res.nick;
 
-    if (msg.text.match(re)) {
-      console.log(re);
-      if (!msg.reply_to_message) {
-        return bot.sendMessage(
-          msg.chat.id,
-          `<a href="tg://user?id=${msg.from.id}"> ${msg.from.first_name} </a> ${
-            launcher.alone[Math.floor(Math.random() * launcher.alone.length)]
-          }`,
-          { parseMode: "html" }
-        );
-      } else {
-        return bot.sendMessage(
-          msg.chat.id,
-          `<a href="tg://user?id=${msg.from.id}"> ${msg.from.first_name} </a> ${
-            launcher.as_reply[
-              Math.floor(Math.random() * launcher.as_reply.length)
-            ]
-          } <a href="tg://user?id=${msg.reply_to_message.from.id}"> ${
-            msg.reply_to_message.from.first_name
-          } </a>`,
-          { parseMode: "html" }
-        );
+    lista.map((launcher) => {
+      const re = new RegExp("^" + launcher.search + "$", "i");
+
+      if (msg.text.match(re)) {
+        console.log(re);
+        if (!msg.reply_to_message) {
+          console.log("[alone] [name] ", name);
+          return bot.sendMessage(
+            msg.chat.id,
+            `<a href="tg://user?id=${tg_id}"> ${name} </a> ${
+              launcher.alone[Math.floor(Math.random() * launcher.alone.length)]
+            }`,
+            { parseMode: "html" }
+          );
+        } else {
+          let reply_name = msg.reply_to_message.from.first_name;
+          const reply_id = msg.reply_to_message.from.id;
+          db.findOne({ tg_id: reply_id }).then((res) => {
+            reply_name = res === null ? reply_name : res.nick;
+
+            return bot.sendMessage(
+              msg.chat.id,
+              `<a href="tg://user?id=${tg_id}"> ${name} </a> ${
+                launcher.as_reply[
+                  Math.floor(Math.random() * launcher.as_reply.length)
+                ]
+              } <a href="tg://user?id=${reply_id}"> ${reply_name} </a>`,
+              { parseMode: "html" }
+            );
+          });
+
+          // return bot.sendMessage(
+          //   msg.chat.id,
+          //   `<a href="tg://user?id=${tg_id}"> ${name} </a> ${
+          //     launcher.as_reply[
+          //       Math.floor(Math.random() * launcher.as_reply.length)
+          //     ]
+          //   } <a href="tg://user?id=${msg.reply_to_message.from.id}"> ${
+          //     msg.reply_to_message.from.first_name
+          //   } </a>`,
+          //   { parseMode: "html" }
+          // );
+        }
       }
-    }
+    });
   });
+
+  // lista.map((launcher) => {
+  //   const re = new RegExp("^" + launcher.search + "$", "i");
+
+  //   if (msg.text.match(re)) {
+  //     console.log(re);
+  //     if (!msg.reply_to_message) {
+  //       console.log("[alone] [name] ", name);
+  //       return bot.sendMessage(
+  //         msg.chat.id,
+  //         `<a href="tg://user?id=${tg_id}"> ${name} </a> ${
+  //           launcher.alone[Math.floor(Math.random() * launcher.alone.length)]
+  //         }`,
+  //         { parseMode: "html" }
+  //       );
+  //     } else {
+  //       return bot.sendMessage(
+  //         msg.chat.id,
+  //         `<a href="tg://user?id=${tg_id}"> ${name} </a> ${
+  //           launcher.as_reply[
+  //             Math.floor(Math.random() * launcher.as_reply.length)
+  //           ]
+  //         } <a href="tg://user?id=${msg.reply_to_message.from.id}"> ${
+  //           msg.reply_to_message.from.first_name
+  //         } </a>`,
+  //         { parseMode: "html" }
+  //       );
+  //     }
+  //   }
+  // });
 });
 
 // EXPERIMENTAL
 bot.on(/^\/tag( \d+)?$/, (msg, self) => {
   let n = 1;
   console.log("SELF: \n", self);
-  // FIX: no funciona el tag múltiple
+
   console.log("MATCH: \n", self.match);
   if (self.match !== undefined) {
     n = self.match[1];
@@ -775,14 +838,6 @@ bot.on(/^\/tag( \d+)?$/, (msg, self) => {
     new_victim = msg.reply_to_message.from.id;
   }
   console.log("Se repetirá: " + n + " veces");
-  console.log(
-    "ID de la víctima: " +
-      new_victim +
-      " comparado al mío " +
-      my_id +
-      " y el original " +
-      victim
-  );
 
   //diferenciando las queries
   let id;
@@ -803,11 +858,12 @@ bot.on(/^\/tag( \d+)?$/, (msg, self) => {
         console.error(err);
       });
   } else {
+    // no sé si poner los nicks personalizados aquí... mejor no
     for (let i = 0; i < n; i++) {
       bot
         .sendMessage(
           id,
-          `<a href="tg://user?id=${new_victim}"> tag tag </a>\n<em>llamada número ${
+          `<a href="tg://user?id=${new_victim}">tag tag</a>\n<em>llamada número ${
             i + 1
           }</em>`,
           { parseMode: "html" }
@@ -829,6 +885,57 @@ bot.on("/sticker", (msg) => {
         return bot.sendMessage(msg.from.id, error.description);
       });
   }
+});
+
+// trabajo con bases de datos
+
+bot.on(/^\/nick (.+)$/, (msg, props) => {
+  const texto = props.match[1];
+  const tg_id = msg.from.id;
+  db.findOne({ tg_id: tg_id }).then((res, err) => {
+    console.log(res);
+    console.log(err);
+    if (res === null) {
+      let new_nick = {
+        tg_id: tg_id,
+        nick: texto,
+        fecha: new Date(),
+      };
+      db.insert(new_nick);
+      console.log("El nick de " + msg.from.first_name + " será " + texto);
+      return bot
+        .sendMessage(
+          msg.chat.id,
+          "El nuevo nick de " + msg.from.first_name + " será " + texto,
+          {
+            parseMode: "html",
+          }
+        )
+        .catch((error) => {
+          console.log("Hubo un error", error.description);
+          return bot.sendMessage(msg.from.id, error.description);
+        });
+    } else {
+      let new_nick = {
+        nick: texto,
+        fecha: new Date(),
+      };
+      db.update({ tg_id: tg_id }, { $set: new_nick });
+      console.log("El nuevo nick de " + msg.from.first_name + " será " + texto);
+      return bot
+        .sendMessage(
+          msg.chat.id,
+          "El nuevo nick de " + msg.from.first_name + " será " + texto,
+          {
+            parseMode: "html",
+          }
+        )
+        .catch((error) => {
+          console.log("Hubo un error", error.description);
+          return bot.sendMessage(msg.from.id, error.description);
+        });
+    }
+  });
 });
 
 // error handling
