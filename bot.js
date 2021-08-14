@@ -613,27 +613,40 @@ bot.on(/^\/s\/(.+)\/(.+)/, (msg, props) => {
   const oldm = props.match[1];
   const newm = props.match[2];
   let text = "";
-  if (msg.reply_to_message.caption) {
+  if (msg.reply_to_message) {
     console.log("CAPTION: " + msg.reply_to_message.caption);
-  }
-  if (msg.reply_to_message.text === undefined) {
-    text =
-      '<b>En realidad quisiste decir:</b> \n\n"' +
-      msg.reply_to_message.caption.replace(new RegExp(oldm, "g"), newm) +
-      '"';
-  } else {
-    text =
-      '<b>En realidad quisiste decir:</b> \n\n"' +
-      msg.reply_to_message.text.replace(new RegExp(oldm, "g"), newm) +
-      '"';
-  }
+    if (msg.reply_to_message.text === undefined) {
+      text =
+        '<b>En realidad quisiste decir:</b> \n\n"' +
+        msg.reply_to_message.caption.replace(new RegExp(oldm, "g"), newm) +
+        '"';
+    } else {
+      text =
+        '<b>En realidad quisiste decir:</b> \n\n"' +
+        msg.reply_to_message.text.replace(new RegExp(oldm, "g"), newm) +
+        '"';
+    }
 
-  return (
-    bot.sendMessage(msg.chat.id, text, {
-      parseMode: "html",
-      replyToMessage: msg.reply_to_message.message_id,
-    }) && bot.deleteMessage(msg.chat.id, msg.message_id)
-  );
+    return bot
+      .sendMessage(msg.chat.id, text, {
+        parseMode: "html",
+        replyToMessage: msg.reply_to_message.message_id,
+      })
+      .then(() =>
+        bot
+          .deleteMessage(msg.chat.id, msg.message_id)
+          .catch((e) => console.error(e))
+      );
+  } else {
+    bot.sendMessage(
+      msg.chat.id,
+      "Debes responder un mensaje o de lo contrario no funcionará",
+      {
+        parseMode: "html",
+        replyToMessage: msg.message_id,
+      }
+    );
+  }
 });
 
 // dividir en 2 comandos distintos (FAILED)
@@ -874,12 +887,12 @@ async function convertir(id, url, name, size, ancho, alto, calidad) {
     await image
       .resize(ancho, alto)
       .quality(calidad)
-      .writeAsync(`images/${name}.jpg`);
+      .writeAsync(`images/${name}.png`);
     //console.log("IMAGEN: \n", final.bitmap);
-    await bot.sendPhoto(id, `images/${name}.jpg`, {
+    await bot.sendPhoto(id, `images/${name}.png`, {
       caption: `Tamaño original: ${size} KB`,
     });
-    fs.unlinkSync(`images/${name}.jpg`);
+    fs.unlinkSync(`images/${name}.png`);
   } catch (err) {
     console.error(err);
   }
