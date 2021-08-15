@@ -791,11 +791,12 @@ bot.on("text", (msg) => {
 });
 
 //para la reputación
-bot.on([/^\+$/, /^this$/], (msg) => {
+bot.on([/^\++$/, /^this$/i], (msg) => {
   const from_id = msg.from.id;
   db.findOne({ tg_id: from_id }).then((res) => {
     const user_nick = res ? res.nick : msg.from.first_name;
     const user_rep = res ? parseInt(res.rep - 1000) : 1;
+    db.update({ tg_id: from_id }, { $set: { rep: user_rep } });
     if (!msg.reply_to_message) {
       return bot.sendMessage(
         msg.chat.id,
@@ -834,6 +835,7 @@ bot.on([/^\+$/, /^this$/], (msg) => {
                 tg_id: reply_id,
                 rep: 1001,
                 fecha: new Date(),
+                nick: reply_nick,
               };
               db.insert(new_rep);
               db.find({}).sort({ fecha: -1 });
@@ -868,11 +870,12 @@ bot.on([/^\+$/, /^this$/], (msg) => {
 });
 
 // lo mismo pero para quitar rep
-bot.on([/^\-$/, /^fe(o|a)$/], (msg) => {
+bot.on([/^(\-|—)+$/, /^fe(o|a)$/i, /^asc(o|a)$/i], (msg) => {
   const from_id = msg.from.id;
   db.findOne({ tg_id: from_id }).then((res) => {
     const user_nick = res ? res.nick : msg.from.first_name;
     const user_rep = res ? parseInt(res.rep - 1000) : 1;
+    db.update({ tg_id: from_id }, { $set: { rep: user_rep } }); // intentando arreglar algo
     if (!msg.reply_to_message) {
       return bot.sendMessage(
         msg.chat.id,
@@ -900,6 +903,7 @@ bot.on([/^\-$/, /^fe(o|a)$/], (msg) => {
               tg_id: reply_id,
               rep: 999,
               fecha: new Date(),
+              nick: reply_nick,
             };
             db.insert(new_rep);
             db.find({}).sort({ fecha: -1 });
