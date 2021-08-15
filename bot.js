@@ -25,7 +25,11 @@ try {
   console.log("[BD] se utilizará la copia de respaldo");
 }
 
-let db = Datastore.create({ filename: "database/nicks.db", autoload: true });
+let db = Datastore.create({
+  filename: "database/nicks.db",
+  autoload: true,
+  corruptAlertThreshold: 1,
+});
 
 const my_id = process.env.ADMIN_ID;
 const victim = process.env.VICTIM;
@@ -746,14 +750,8 @@ bot.on("text", (msg) => {
   );
 
   let name = msg.from.first_name;
-  const tg_id = msg.from.id;
-  db.findOne({ tg_id: tg_id }).then((res) => {
-    // console.log(
-    //   "Encontré la coincidencia: ",
-    //   res.nick,
-    //   "mientras buscaba a ",
-    //   name
-    // );
+  //const tg_id = msg.from.id;
+  db.findOne({ tg_id: from_id }).then((res) => {
     name = res === null ? name : res.nick;
 
     lista.map((launcher) => {
@@ -765,7 +763,7 @@ bot.on("text", (msg) => {
           console.log("[alone] [name] ", name);
           return bot.sendMessage(
             msg.chat.id,
-            `<a href="tg://user?id=${tg_id}"> ${name} </a> ${
+            `<a href="tg://user?id=${from_id}"> ${name} </a> ${
               launcher.alone[Math.floor(Math.random() * launcher.alone.length)]
             }`,
             { parseMode: "html" }
@@ -778,7 +776,7 @@ bot.on("text", (msg) => {
 
             return bot.sendMessage(
               msg.chat.id,
-              `<a href="tg://user?id=${tg_id}"> ${name} </a> ${
+              `<a href="tg://user?id=${from_id}"> ${name} </a> ${
                 launcher.as_reply[
                   Math.floor(Math.random() * launcher.as_reply.length)
                 ]
@@ -789,6 +787,148 @@ bot.on("text", (msg) => {
         }
       }
     });
+  });
+});
+
+//para la reputación
+bot.on([/^\+$/, /^this$/], (msg) => {
+  const from_id = msg.from.id;
+  db.findOne({ tg_id: from_id }).then((res) => {
+    const user_nick = res ? res.nick : msg.from.first_name;
+    const user_rep = res ? parseInt(res.rep - 1000) : 1;
+    if (!msg.reply_to_message) {
+      return bot.sendMessage(
+        msg.chat.id,
+        `Debes responder un mensaje, ${user_nick}`
+      );
+    } else {
+      // se está respondiendo un mensaje
+      // ahora hay que evitar el farmeo de puntos
+
+      if (
+        msg.reply_to_message.from.id === from_id &&
+        from_id !== parseInt(my_id)
+      ) {
+        //responder a uno mismo
+        return bot.sendMessage(
+          msg.chat.id,
+          `<a href="tg://user?id=${from_id}">${user_nick}</a> ha intentado hacer trampas... \n<em>qué idiota</em>`,
+          { parseMode: "html" }
+        );
+      } else {
+        // aquí va el manejo de la reputación
+        const reply_id = msg.reply_to_message.from.id;
+
+        //buscando al que sube la reputación en la BD
+        db.findOne({ tg_id: reply_id })
+          .then((res) => {
+            const reply_nick =
+              res === null
+                ? msg.reply_to_message.from.first_name
+                : res.nick
+                ? res.nick
+                : msg.reply_to_message.from.first_name;
+
+            if (res === null) {
+              let new_rep = {
+                tg_id: reply_id,
+                rep: 1001,
+                fecha: new Date(),
+              };
+              db.insert(new_rep).find({});
+              db.sort({ fecha: -1 });
+              return bot.sendMessage(
+                msg.chat.id,
+                `<a href="tg://user?id=${from_id}">${user_nick}</a> hace posible que comience el viaje de <a href="tg://user?id=${reply_id}">${reply_nick}</a> al otorgarle 1 punto de reputación.`,
+                { parseMode: "html" }
+              );
+            } else {
+              let reply_rep = res.rep ? parseInt(res.rep - 999) : 2;
+              let new_rep = {
+                rep: parseInt(reply_rep + 1000),
+                fecha: new Date(),
+              };
+
+              db.update({ tg_id: reply_id }, { $set: new_rep });
+              db.find({}).sort({ fecha: -1 });
+              console.log(
+                `${reply_nick} tiene ${reply_rep} puntos de reputación ahora, cortesía de ${user_nick} (quien tiene ${user_rep})`
+              );
+              bot.sendMessage(
+                msg.chat.id,
+                `<a href="tg://user?id=${reply_id}">${reply_nick}</a> tiene ${reply_rep} puntos de reputación ahora, cortesía de <a href="tg://user?id=${from_id}">${user_nick}</a> (quien tiene ${user_rep})`,
+                { parseMode: "html" }
+              );
+            }
+          })
+          .catch((err) => console.error(err));
+      }
+    }
+  });
+});
+
+// lo mismo pero para quitar rep
+bot.on([/^\-$/, /^fe(o|a)$/], (msg) => {
+  const from_id = msg.from.id;
+  db.findOne({ tg_id: from_id }).then((res) => {
+    const user_nick = res ? res.nick : msg.from.first_name;
+    const user_rep = res ? parseInt(res.rep - 1000) : 1;
+    if (!msg.reply_to_message) {
+      return bot.sendMessage(
+        msg.chat.id,
+        `Debes responder un mensaje, ${user_nick}`
+      );
+    } else {
+      // se está respondiendo un mensaje
+      // ahora hay que evitar el farmeo de puntos, aunque no me interesa xq estamos quitando
+
+      // aquí va el manejo de la reputación
+      const reply_id = msg.reply_to_message.from.id;
+
+      //buscando al que sube la reputación en la BD
+      db.findOne({ tg_id: reply_id })
+        .then((res) => {
+          const reply_nick =
+            res === null
+              ? msg.reply_to_message.from.first_name
+              : res.nick
+              ? res.nick
+              : msg.reply_to_message.from.first_name;
+
+          if (res === null) {
+            let new_rep = {
+              tg_id: reply_id,
+              rep: 999,
+              fecha: new Date(),
+            };
+            db.insert(new_rep);
+            db.find({}).sort({ fecha: -1 });
+            return bot.sendMessage(
+              msg.chat.id,
+              `<a href="tg://user?id=${from_id}">${user_nick}</a> hace posible que comience el viaje de <a href="tg://user?id=${reply_id}">${reply_nick}</a>, pero lo hizo quitándole reputación. Ahora tiene -1.`,
+              { parseMode: "html" }
+            );
+          } else {
+            let reply_rep = res.rep ? parseInt(res.rep - 1000 - 1) : 0;
+            let new_rep = {
+              rep: parseInt(reply_rep + 1000),
+              fecha: new Date(),
+            };
+
+            db.update({ tg_id: reply_id }, { $set: new_rep });
+            db.find({}).sort({ fecha: -1 });
+            console.log(
+              `${reply_nick} tiene ${reply_rep} puntos de reputación ahora, cortesía de ${user_nick} (quien tiene ${user_rep})`
+            );
+            bot.sendMessage(
+              msg.chat.id,
+              `<a href="tg://user?id=${reply_id}">${reply_nick}</a> tiene ${reply_rep} puntos de reputación ahora, cortesía de <a href="tg://user?id=${from_id}">${user_nick}</a> (quien tiene ${user_rep})`,
+              { parseMode: "html" }
+            );
+          }
+        })
+        .catch((err) => console.error(err));
+    }
   });
 });
 
@@ -864,20 +1004,6 @@ bot.on(/^\/tag( \d+)?$/, (msg, self) => {
     };
 
     forEnOrden();
-
-    // for (let i = 0; i < n; i++) {
-    //   bot
-    //     .sendMessage(
-    //       id,
-    //       `<a href="tg://user?id=${new_victim}">tag tag</a>\n<em>llamada número ${
-    //         i + 1
-    //       }</em>`,
-    //       { parseMode: "html" }
-    //     )
-    //     .catch((err) => {
-    //       console.error(err);
-    //     });
-    // }
   }
 });
 
@@ -907,14 +1033,22 @@ bot.on(/^\/nick (.+)$/, (msg, props) => {
           tg_id: tg_id,
           nick: texto,
           fecha: new Date(),
+          rep: 1000,
         };
         db.insert(new_nick);
 
-        console.log("El nick de " + msg.from.first_name + " será " + texto);
+        console.log(
+          "El nick de " +
+            msg.from.first_name +
+            " será " +
+            texto +
+            "\ncon una reputación de " +
+            (res.rep - 1000)
+        );
         return bot
           .sendMessage(
             msg.chat.id,
-            "El nuevo nick de " + msg.from.first_name + " será " + texto,
+            "El nick de " + msg.from.first_name + " será " + texto,
             {
               parseMode: "html",
             }
@@ -926,11 +1060,16 @@ bot.on(/^\/nick (.+)$/, (msg, props) => {
       } else {
         let new_nick = {
           nick: texto,
-          fecha: new Date(),
+          //fecha: new Date(),
         };
         db.update({ tg_id: tg_id }, { $set: new_nick });
         console.log(
-          "El nuevo nick de " + msg.from.first_name + " será " + texto
+          "El nuevo nick de " +
+            msg.from.first_name +
+            " será " +
+            texto +
+            "\ncon una reputación de " +
+            (res.rep - 1000)
         );
         return bot
           .sendMessage(
