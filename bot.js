@@ -835,8 +835,8 @@ bot.on([/^\+$/, /^this$/], (msg) => {
                 rep: 1001,
                 fecha: new Date(),
               };
-              db.insert(new_rep).find({});
-              db.sort({ fecha: -1 });
+              db.insert(new_rep);
+              db.find({}).sort({ fecha: -1 });
               return bot.sendMessage(
                 msg.chat.id,
                 `<a href="tg://user?id=${from_id}">${user_nick}</a> hace posible que comience el viaje de <a href="tg://user?id=${reply_id}">${reply_nick}</a> al otorgarle 1 punto de reputación.`,
