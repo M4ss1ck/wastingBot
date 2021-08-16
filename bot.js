@@ -1116,8 +1116,7 @@ bot.on(/^\/nick (.+)$/, (msg, props) => {
             msg.from.first_name +
             " será " +
             texto +
-            "\ncon una reputación de " +
-            (res.rep - 1000)
+            "\ncon una reputación de 0"
         );
         return bot
           .sendMessage(
