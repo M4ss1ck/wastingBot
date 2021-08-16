@@ -751,7 +751,7 @@ bot.on("text", (msg) => {
 
   let name = msg.from.first_name;
   //const tg_id = msg.from.id;
-  db.findOne({ tg_id: from_id }).then((res) => {
+  db.findOne({ tg_id: from_id.toString() }).then((res) => {
     name = res === null ? name : res.nick;
 
     lista.map((launcher) => {
@@ -771,7 +771,7 @@ bot.on("text", (msg) => {
         } else {
           let reply_name = msg.reply_to_message.from.first_name;
           const reply_id = msg.reply_to_message.from.id;
-          db.findOne({ tg_id: reply_id }).then((res) => {
+          db.findOne({ tg_id: reply_id.toString() }).then((res) => {
             reply_name = res === null ? reply_name : res.nick;
 
             return bot.sendMessage(
@@ -793,10 +793,18 @@ bot.on("text", (msg) => {
 //para la reputación
 bot.on([/^\++$/, /^this$/i], (msg) => {
   const from_id = msg.from.id;
-  db.findOne({ tg_id: from_id }).then((res) => {
-    const user_nick = res ? res.nick : msg.from.first_name;
+  db.findOne({ tg_id: from_id.toString() }).then((res) => {
+    const user_nick =
+      res === null
+        ? msg.from.first_name
+        : res.nick
+        ? res.nick
+        : msg.from.first_name;
     const user_rep = res ? parseInt(res.rep - 1000) : 1;
-    db.update({ tg_id: from_id }, { $set: { rep: user_rep } });
+    db.update(
+      { tg_id: from_id.toString() },
+      { $set: { rep: parseInt(user_rep + 1000) } }
+    );
     if (!msg.reply_to_message) {
       return bot.sendMessage(
         msg.chat.id,
@@ -821,7 +829,7 @@ bot.on([/^\++$/, /^this$/i], (msg) => {
         const reply_id = msg.reply_to_message.from.id;
 
         //buscando al que sube la reputación en la BD
-        db.findOne({ tg_id: reply_id })
+        db.findOne({ tg_id: reply_id.toString() })
           .then((res) => {
             const reply_nick =
               res === null
@@ -832,7 +840,7 @@ bot.on([/^\++$/, /^this$/i], (msg) => {
 
             if (res === null) {
               let new_rep = {
-                tg_id: reply_id,
+                tg_id: reply_id.toString(),
                 rep: 1001,
                 fecha: new Date(),
                 nick: reply_nick,
@@ -851,7 +859,7 @@ bot.on([/^\++$/, /^this$/i], (msg) => {
                 fecha: new Date(),
               };
 
-              db.update({ tg_id: reply_id }, { $set: new_rep });
+              db.update({ tg_id: reply_id.toString() }, { $set: new_rep });
               db.find({}).sort({ fecha: -1 });
               console.log(
                 `${reply_nick} tiene ${reply_rep} puntos de reputación ahora, cortesía de ${user_nick} (quien tiene ${user_rep})`
@@ -872,10 +880,19 @@ bot.on([/^\++$/, /^this$/i], (msg) => {
 // lo mismo pero para quitar rep
 bot.on([/^(\-|—)+$/, /^fe(o|a)$/i, /^asc(o|a)$/i], (msg) => {
   const from_id = msg.from.id;
-  db.findOne({ tg_id: from_id }).then((res) => {
-    const user_nick = res ? res.nick : msg.from.first_name;
+  db.findOne({ tg_id: from_id.toString() }).then((res) => {
+    const user_nick =
+      res === null
+        ? msg.from.first_name
+        : res.nick
+        ? res.nick
+        : msg.from.first_name;
+
     const user_rep = res ? parseInt(res.rep - 1000) : 1;
-    db.update({ tg_id: from_id }, { $set: { rep: user_rep } }); // intentando arreglar algo
+    db.update(
+      { tg_id: from_id.toString() },
+      { $set: { rep: parseInt(user_rep + 1000) } }
+    ); // intentando arreglar algo
     if (!msg.reply_to_message) {
       return bot.sendMessage(
         msg.chat.id,
@@ -889,7 +906,7 @@ bot.on([/^(\-|—)+$/, /^fe(o|a)$/i, /^asc(o|a)$/i], (msg) => {
       const reply_id = msg.reply_to_message.from.id;
 
       //buscando al que sube la reputación en la BD
-      db.findOne({ tg_id: reply_id })
+      db.findOne({ tg_id: reply_id.toString() })
         .then((res) => {
           const reply_nick =
             res === null
@@ -900,7 +917,7 @@ bot.on([/^(\-|—)+$/, /^fe(o|a)$/i, /^asc(o|a)$/i], (msg) => {
 
           if (res === null) {
             let new_rep = {
-              tg_id: reply_id,
+              tg_id: reply_id.toString(),
               rep: 999,
               fecha: new Date(),
               nick: reply_nick,
@@ -919,7 +936,7 @@ bot.on([/^(\-|—)+$/, /^fe(o|a)$/i, /^asc(o|a)$/i], (msg) => {
               fecha: new Date(),
             };
 
-            db.update({ tg_id: reply_id }, { $set: new_rep });
+            db.update({ tg_id: reply_id.toString() }, { $set: new_rep });
             db.find({}).sort({ fecha: -1 });
             console.log(
               `${reply_nick} tiene ${reply_rep} puntos de reputación ahora, cortesía de ${user_nick} (quien tiene ${user_rep})`
@@ -934,6 +951,59 @@ bot.on([/^(\-|—)+$/, /^fe(o|a)$/i, /^asc(o|a)$/i], (msg) => {
         .catch((err) => console.error(err));
     }
   });
+});
+
+// para reiniciar los valores de rep
+bot.on("/reset_rep", (msg) => {
+  if (msg.from.id.toString() === my_id) {
+    db.update({}, { $set: { rep: 1000 } });
+    return bot.sendMessage(
+      msg.chat.id,
+      `Se ha reiniciado la reputación para todos los usuarios`
+    );
+  }
+});
+
+bot.on(/^\/set_rep (\d+) (\d+)$/, (msg, props) => {
+  console.log(props.match);
+
+  if (msg.from.id.toString() === my_id) {
+    const dest_id = props.match[1];
+    const dest_rep = props.match[2];
+
+    db.findOne({ tg_id: dest_id.toString() }).then((res) => {
+      const dest_nick =
+        res === null
+          ? msg.from.first_name
+          : res.nick
+          ? res.nick
+          : msg.from.first_name;
+      if (res === null) {
+        const new_input = {
+          tg_id: dest_id.toString(),
+          nick: dest_nick,
+          rep: parseInt(dest_rep) + 1000,
+          fecha: new Date(),
+        };
+        db.insert(new_input);
+        db.find({}).sort({ fecha: -1 });
+        return bot.sendMessage(
+          msg.chat.id,
+          `Se ha registrado a ${dest_nick} con reputación ${dest_rep}`
+        );
+      } else {
+        db.update(
+          { tg_id: dest_id.toString() },
+          { $set: { rep: parseInt(dest_rep) + 1000 } }
+        );
+        db.find({}).sort({ fecha: -1 });
+        return bot.sendMessage(
+          msg.chat.id,
+          `Se ha actualizado el registro de ${dest_nick} con reputación ${dest_rep}`
+        );
+      }
+    });
+  }
 });
 
 bot.on("/bd", (msg) => {
@@ -1028,13 +1098,13 @@ bot.on("/sticker", (msg) => {
 bot.on(/^\/nick (.+)$/, (msg, props) => {
   const texto = props.match[1];
   const tg_id = msg.from.id;
-  db.findOne({ tg_id: tg_id })
+  db.findOne({ tg_id: tg_id.toString() })
     .then((res, err) => {
       //console.log(res);
       console.log(err);
       if (res === null) {
         let new_nick = {
-          tg_id: tg_id,
+          tg_id: tg_id.toString(),
           nick: texto,
           fecha: new Date(),
           rep: 1000,
@@ -1066,7 +1136,7 @@ bot.on(/^\/nick (.+)$/, (msg, props) => {
           nick: texto,
           //fecha: new Date(),
         };
-        db.update({ tg_id: tg_id }, { $set: new_nick });
+        db.update({ tg_id: tg_id.toString() }, { $set: new_nick });
         console.log(
           "El nuevo nick de " +
             msg.from.first_name +
