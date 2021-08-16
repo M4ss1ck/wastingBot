@@ -793,38 +793,125 @@ bot.on("text", (msg) => {
 //para la reputación
 bot.on([/^\++$/, /^this$/i], (msg) => {
   const from_id = msg.from.id;
-  db.findOne({ tg_id: from_id.toString() }).then((res) => {
-    const user_nick =
-      res === null
-        ? msg.from.first_name
-        : res.nick
-        ? res.nick
-        : msg.from.first_name;
-    const user_rep = res ? parseInt(res.rep - 1000) : 1;
-    db.update(
-      { tg_id: from_id.toString() },
-      { $set: { rep: parseInt(user_rep + 1000) } }
-    );
-    if (!msg.reply_to_message) {
-      return bot.sendMessage(
-        msg.chat.id,
-        `Debes responder un mensaje, ${user_nick}`
+  db.findOne({ tg_id: from_id.toString() })
+    .then((res) => {
+      const user_nick =
+        res === null
+          ? msg.from.first_name
+          : res.nick
+          ? res.nick
+          : msg.from.first_name;
+      const user_rep = res ? parseInt(res.rep - 1000) : 1;
+      db.update(
+        { tg_id: from_id.toString() },
+        { $set: { rep: parseInt(user_rep + 1000) } }
       );
-    } else {
-      // se está respondiendo un mensaje
-      // ahora hay que evitar el farmeo de puntos
-
-      if (
-        msg.reply_to_message.from.id === from_id &&
-        from_id !== parseInt(my_id)
-      ) {
-        //responder a uno mismo
+      if (!msg.reply_to_message) {
         return bot.sendMessage(
           msg.chat.id,
-          `<a href="tg://user?id=${from_id}">${user_nick}</a> ha intentado hacer trampas... \n<em>qué idiota</em>`,
-          { parseMode: "html" }
+          `Debes responder un mensaje, ${user_nick}`
         );
       } else {
+        // se está respondiendo un mensaje
+        // ahora hay que evitar el farmeo de puntos
+
+        if (
+          msg.reply_to_message.from.id === from_id &&
+          from_id !== parseInt(my_id)
+        ) {
+          //responder a uno mismo
+          return bot.sendMessage(
+            msg.chat.id,
+            `<a href="tg://user?id=${from_id}">${user_nick}</a> ha intentado hacer trampas... \n<em>qué idiota</em>`,
+            { parseMode: "html" }
+          );
+        } else {
+          // aquí va el manejo de la reputación
+          const reply_id = msg.reply_to_message.from.id;
+
+          //buscando al que sube la reputación en la BD
+          db.findOne({ tg_id: reply_id.toString() })
+            .then((res) => {
+              const reply_nick =
+                res === null
+                  ? msg.reply_to_message.from.first_name
+                  : res.nick
+                  ? res.nick
+                  : msg.reply_to_message.from.first_name;
+
+              if (res === null) {
+                let new_rep = {
+                  tg_id: reply_id.toString(),
+                  rep: 1001,
+                  fecha: new Date(),
+                  nick: reply_nick,
+                };
+                db.insert(new_rep);
+                db.find({}).sort({ fecha: -1 });
+                return bot.sendMessage(
+                  msg.chat.id,
+                  `<a href="tg://user?id=${from_id}">${user_nick}</a> hace posible que comience el viaje de <a href="tg://user?id=${reply_id}">${reply_nick}</a> al otorgarle 1 punto de reputación.`,
+                  { parseMode: "html" }
+                );
+              } else {
+                let reply_rep = res.rep ? parseInt(res.rep - 999) : 2;
+                let new_rep = {
+                  rep: parseInt(reply_rep + 1000),
+                  fecha: new Date(),
+                };
+
+                db.update({ tg_id: reply_id.toString() }, { $set: new_rep });
+                db.find({}).sort({ fecha: -1 });
+                console.log(
+                  `${reply_nick} tiene ${reply_rep} puntos de reputación ahora, cortesía de ${user_nick} (quien tiene ${user_rep})`
+                );
+                bot.sendMessage(
+                  msg.chat.id,
+                  `<a href="tg://user?id=${reply_id}">${reply_nick}</a> tiene ${reply_rep} puntos de reputación ahora, cortesía de <a href="tg://user?id=${from_id}">${user_nick}</a> (quien tiene ${user_rep})`,
+                  { parseMode: "html" }
+                );
+              }
+            })
+            .catch((err) => console.error(err));
+        }
+      }
+    })
+    .then((res) => {
+      fs.copyFile("database/nicks.db", "database/copy_nicks.db", (err) => {
+        if (err) {
+          console.log("[ERROR DE COPIA] ", err);
+        }
+      });
+      console.log("[BD] actualizada");
+    });
+});
+
+// lo mismo pero para quitar rep
+bot.on([/^(\-|—)+$/, /^fe(o|a)$/i, /^asc(o|a)$/i], (msg) => {
+  const from_id = msg.from.id;
+  db.findOne({ tg_id: from_id.toString() })
+    .then((res) => {
+      const user_nick =
+        res === null
+          ? msg.from.first_name
+          : res.nick
+          ? res.nick
+          : msg.from.first_name;
+
+      const user_rep = res ? parseInt(res.rep - 1000) : 1;
+      db.update(
+        { tg_id: from_id.toString() },
+        { $set: { rep: parseInt(user_rep + 1000) } }
+      ); // intentando arreglar algo
+      if (!msg.reply_to_message) {
+        return bot.sendMessage(
+          msg.chat.id,
+          `Debes responder un mensaje, ${user_nick}`
+        );
+      } else {
+        // se está respondiendo un mensaje
+        // ahora hay que evitar el farmeo de puntos, aunque no me interesa xq estamos quitando
+
         // aquí va el manejo de la reputación
         const reply_id = msg.reply_to_message.from.id;
 
@@ -841,7 +928,7 @@ bot.on([/^\++$/, /^this$/i], (msg) => {
             if (res === null) {
               let new_rep = {
                 tg_id: reply_id.toString(),
-                rep: 1001,
+                rep: 999,
                 fecha: new Date(),
                 nick: reply_nick,
               };
@@ -849,11 +936,11 @@ bot.on([/^\++$/, /^this$/i], (msg) => {
               db.find({}).sort({ fecha: -1 });
               return bot.sendMessage(
                 msg.chat.id,
-                `<a href="tg://user?id=${from_id}">${user_nick}</a> hace posible que comience el viaje de <a href="tg://user?id=${reply_id}">${reply_nick}</a> al otorgarle 1 punto de reputación.`,
+                `<a href="tg://user?id=${from_id}">${user_nick}</a> hace posible que comience el viaje de <a href="tg://user?id=${reply_id}">${reply_nick}</a>, pero lo hizo quitándole reputación. Ahora tiene -1.`,
                 { parseMode: "html" }
               );
             } else {
-              let reply_rep = res.rep ? parseInt(res.rep - 999) : 2;
+              let reply_rep = res.rep ? parseInt(res.rep - 1000 - 1) : 0;
               let new_rep = {
                 rep: parseInt(reply_rep + 1000),
                 fecha: new Date(),
@@ -873,84 +960,15 @@ bot.on([/^\++$/, /^this$/i], (msg) => {
           })
           .catch((err) => console.error(err));
       }
-    }
-  });
-});
-
-// lo mismo pero para quitar rep
-bot.on([/^(\-|—)+$/, /^fe(o|a)$/i, /^asc(o|a)$/i], (msg) => {
-  const from_id = msg.from.id;
-  db.findOne({ tg_id: from_id.toString() }).then((res) => {
-    const user_nick =
-      res === null
-        ? msg.from.first_name
-        : res.nick
-        ? res.nick
-        : msg.from.first_name;
-
-    const user_rep = res ? parseInt(res.rep - 1000) : 1;
-    db.update(
-      { tg_id: from_id.toString() },
-      { $set: { rep: parseInt(user_rep + 1000) } }
-    ); // intentando arreglar algo
-    if (!msg.reply_to_message) {
-      return bot.sendMessage(
-        msg.chat.id,
-        `Debes responder un mensaje, ${user_nick}`
-      );
-    } else {
-      // se está respondiendo un mensaje
-      // ahora hay que evitar el farmeo de puntos, aunque no me interesa xq estamos quitando
-
-      // aquí va el manejo de la reputación
-      const reply_id = msg.reply_to_message.from.id;
-
-      //buscando al que sube la reputación en la BD
-      db.findOne({ tg_id: reply_id.toString() })
-        .then((res) => {
-          const reply_nick =
-            res === null
-              ? msg.reply_to_message.from.first_name
-              : res.nick
-              ? res.nick
-              : msg.reply_to_message.from.first_name;
-
-          if (res === null) {
-            let new_rep = {
-              tg_id: reply_id.toString(),
-              rep: 999,
-              fecha: new Date(),
-              nick: reply_nick,
-            };
-            db.insert(new_rep);
-            db.find({}).sort({ fecha: -1 });
-            return bot.sendMessage(
-              msg.chat.id,
-              `<a href="tg://user?id=${from_id}">${user_nick}</a> hace posible que comience el viaje de <a href="tg://user?id=${reply_id}">${reply_nick}</a>, pero lo hizo quitándole reputación. Ahora tiene -1.`,
-              { parseMode: "html" }
-            );
-          } else {
-            let reply_rep = res.rep ? parseInt(res.rep - 1000 - 1) : 0;
-            let new_rep = {
-              rep: parseInt(reply_rep + 1000),
-              fecha: new Date(),
-            };
-
-            db.update({ tg_id: reply_id.toString() }, { $set: new_rep });
-            db.find({}).sort({ fecha: -1 });
-            console.log(
-              `${reply_nick} tiene ${reply_rep} puntos de reputación ahora, cortesía de ${user_nick} (quien tiene ${user_rep})`
-            );
-            bot.sendMessage(
-              msg.chat.id,
-              `<a href="tg://user?id=${reply_id}">${reply_nick}</a> tiene ${reply_rep} puntos de reputación ahora, cortesía de <a href="tg://user?id=${from_id}">${user_nick}</a> (quien tiene ${user_rep})`,
-              { parseMode: "html" }
-            );
-          }
-        })
-        .catch((err) => console.error(err));
-    }
-  });
+    })
+    .then((res) => {
+      fs.copyFile("database/nicks.db", "database/copy_nicks.db", (err) => {
+        if (err) {
+          console.log("[ERROR DE COPIA] ", err);
+        }
+      });
+      console.log("[BD] actualizada");
+    });
 });
 
 // para reiniciar los valores de rep
@@ -971,38 +989,47 @@ bot.on(/^\/set_rep (\d+) (\d+)$/, (msg, props) => {
     const dest_id = props.match[1];
     const dest_rep = props.match[2];
 
-    db.findOne({ tg_id: dest_id.toString() }).then((res) => {
-      const dest_nick =
-        res === null
-          ? msg.from.first_name
-          : res.nick
-          ? res.nick
-          : msg.from.first_name;
-      if (res === null) {
-        const new_input = {
-          tg_id: dest_id.toString(),
-          nick: dest_nick,
-          rep: parseInt(dest_rep) + 1000,
-          fecha: new Date(),
-        };
-        db.insert(new_input);
-        db.find({}).sort({ fecha: -1 });
-        return bot.sendMessage(
-          msg.chat.id,
-          `Se ha registrado a ${dest_nick} con reputación ${dest_rep}`
-        );
-      } else {
-        db.update(
-          { tg_id: dest_id.toString() },
-          { $set: { rep: parseInt(dest_rep) + 1000 } }
-        );
-        db.find({}).sort({ fecha: -1 });
-        return bot.sendMessage(
-          msg.chat.id,
-          `Se ha actualizado el registro de ${dest_nick} con reputación ${dest_rep}`
-        );
-      }
-    });
+    db.findOne({ tg_id: dest_id.toString() })
+      .then((res) => {
+        const dest_nick =
+          res === null
+            ? msg.from.first_name
+            : res.nick
+            ? res.nick
+            : msg.from.first_name;
+        if (res === null) {
+          const new_input = {
+            tg_id: dest_id.toString(),
+            nick: dest_nick,
+            rep: parseInt(dest_rep) + 1000,
+            fecha: new Date(),
+          };
+          db.insert(new_input);
+          db.find({}).sort({ fecha: -1 });
+          return bot.sendMessage(
+            msg.chat.id,
+            `Se ha registrado a ${dest_nick} con reputación ${dest_rep}`
+          );
+        } else {
+          db.update(
+            { tg_id: dest_id.toString() },
+            { $set: { rep: parseInt(dest_rep) + 1000 } }
+          );
+          db.find({}).sort({ fecha: -1 });
+          return bot.sendMessage(
+            msg.chat.id,
+            `Se ha actualizado el registro de ${dest_nick} con reputación ${dest_rep}`
+          );
+        }
+      })
+      .then((res) => {
+        fs.copyFile("database/nicks.db", "database/copy_nicks.db", (err) => {
+          if (err) {
+            console.log("[ERROR DE COPIA] ", err);
+          }
+        });
+        console.log("[BD] actualizada");
+      });
   }
 });
 
