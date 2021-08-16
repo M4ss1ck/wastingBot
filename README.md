@@ -65,7 +65,7 @@ Al bot detectar un mensaje que consiste en `search`:
 1. Si no está respondiendo otro mensaje: menciona al usuario y le añade un string al azar de `alone`
 2. Si está respondiendo otro mensaje: menciona al usuario, le añade un string al azar de `as_reply` y menciona al usuario que envió el mensaje respondido.
 
-Esta lista no es exhaustiva ni mucho menos, constantemente estoy modificando los comandos y añadiendo otr
+Esta lista no es exhaustiva ni mucho menos, constantemente estoy modificando los comandos y añadiendo otros
 
 ## 🚀 Publicación sobre cómo crear un bot
 
