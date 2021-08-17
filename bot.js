@@ -8,13 +8,13 @@ import Jimp from "jimp";
 import fs from "fs";
 
 import Datastore from "nedb-promises";
-import { MongoClient } from "mongodb";
+//import { MongoClient } from "mongodb";
 
 //const app = express();
 
 // MongoDB attempt
-const client = new MongoClient(process.env.MONGODB_URL);
-const dbName = "users";
+//const client = new MongoClient(process.env.MONGODB_URL);
+//const dbName = "users";
 
 // async function main() {
 //   // Use connect method to connect to the server
