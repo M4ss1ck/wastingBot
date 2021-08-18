@@ -8,30 +8,20 @@ import Jimp from "jimp";
 import fs from "fs";
 
 import Datastore from "nedb-promises";
-//import { MongoClient } from "mongodb";
+
+import axios from "axios";
 
 //const app = express();
 
-// MongoDB attempt
-//const client = new MongoClient(process.env.MONGODB_URL);
-//const dbName = "users";
-
-// async function main() {
-//   // Use connect method to connect to the server
-//   await client.connect();
-//   console.log("Connected successfully to server");
-//   const db = client.db(dbName);
-//   //const collection = db.collection("users");
-
-//   // the following code examples can be pasted here...
-
-//   return "done.";
-// }
-
-// main()
-//   .then(console.log)
-//   .catch(console.error)
-//   .finally(() => client.close());
+let db;
+const iniciarbd = async () => {
+  db = await Datastore.create({
+    filename: "database/nicks.db",
+    autoload: true,
+    corruptAlertThreshold: 1,
+  });
+};
+iniciarbd();
 
 try {
   fs.accessSync("database/nicks.db");
@@ -46,12 +36,6 @@ try {
   });
   console.log("[BD] se utilizará la copia de respaldo");
 }
-
-let db = Datastore.create({
-  filename: "database/nicks.db",
-  autoload: true,
-  corruptAlertThreshold: 1,
-});
 
 const my_id = process.env.ADMIN_ID;
 const victim = process.env.VICTIM;
@@ -653,9 +637,9 @@ bot.on("/quit", (msg) => {
 
 // Función reemplazar
 // TODO: que funcione con caracteres especiales
-bot.on(/^\/s\/(.+)\/(.+)/, (msg, props) => {
+bot.on(/^\/s\/(.+)\/(.+)?/, (msg, props) => {
   const oldm = props.match[1];
-  const newm = props.match[2];
+  const newm = props.match[2] === undefined ? "" : props.match[2];
   let text = "";
   if (msg.reply_to_message) {
     console.log("CAPTION: " + msg.reply_to_message.caption);
@@ -909,7 +893,7 @@ bot.on([/^\++$/, /^this$/i], (msg) => {
 });
 
 // lo mismo pero para quitar rep
-bot.on([/^(\-|—)+$/, /^fe(o|a)$/i, /^asc(o|a)$/i], (msg) => {
+bot.on([/^(\-|—)+$/, /^fe(o|a)$/i, /^asc(o|a)$/i, /^thisn't$/i], (msg) => {
   const from_id = msg.from.id;
   db.findOne({ tg_id: from_id.toString() })
     .then((res) => {
@@ -1004,7 +988,7 @@ bot.on("/reset_rep", (msg) => {
   }
 });
 
-bot.on(/^\/set_rep (\d+) (\d+)$/, (msg, props) => {
+bot.on(/^\/set_rep (\d+) (\d+|\-\d+)$/, (msg, props) => {
   console.log(props.match);
 
   if (msg.from.id.toString() === my_id) {
@@ -1066,6 +1050,42 @@ bot.on("/bd", (msg) => {
       }
     })
     .catch((e) => console.error(e));
+});
+
+bot.on(["/set_bd", "/set_db"], (msg) => {
+  console.log(msg);
+  if (msg.reply_to_message && msg.from.id.toString() === my_id) {
+    if (msg.reply_to_message.document) {
+      console.log("[DOCUMENT FOUND]");
+      bot.getFile(msg.reply_to_message.document.file_id).then((res) => {
+        console.log(res);
+        const url = res.fileLink;
+        axios({
+          //method: "get",
+          url: url,
+          //responseType: "blob",
+        }).then(async (res) => {
+          console.log(res.data);
+          const new_data = res.data
+            .replace(/,"_id":"[a-zA-Z0-9]+"}/g, "}")
+            .replace(/\n/g, "123")
+            .split("123");
+
+          let list = [];
+          //list.push(new_data);
+          //console.log(new_data);
+          //console.log(JSON.parse(new_data[0]));
+          for (let i = 0; i < new_data.length - 1; i++) {
+            list.push(JSON.parse(new_data[i]));
+          }
+          console.log(list);
+          await db.insert(list);
+          db.find({}).sort({ fecha: -1 });
+        });
+      });
+    }
+    //console.log("test");
+  }
 });
 
 // SPAM
