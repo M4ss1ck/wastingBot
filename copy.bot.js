@@ -11,8 +11,6 @@ import Datastore from "nedb-promises";
 
 import axios from "axios";
 
-import { roundToAny, convertir } from "./functions.js";
-
 //const app = express();
 
 let db;
@@ -23,7 +21,6 @@ const iniciarbd = async () => {
     corruptAlertThreshold: 1,
   });
 };
-
 iniciarbd();
 
 try {
@@ -77,7 +74,12 @@ const parser = new Parser({
 let default_del = ["/borrame", /^@m4ss1ck ghei$/];
 
 bot.on(["/group", "/grupo", "/promo"], (msg, self) => {
-  let id = self.type === "callbackQuery" ? msg.message.chat.id : msg.chat.id;
+  let id;
+  if (self.type === "callbackQuery") {
+    id = msg.message.chat.id;
+  } else {
+    id = msg.chat.id;
+  }
 
   let replyMarkup = bot.inlineKeyboard(
     [
@@ -163,8 +165,12 @@ bot.on(["/jaja", "/jajaja", "/porn"], (msg) => {
 });
 
 bot.on(["/gay", "/ghei"], (msg, self) => {
-  let id = self.type === "callbackQuery" ? msg.message.chat.id : msg.chat.id;
-
+  let id;
+  if (self.type === "callbackQuery") {
+    id = msg.message.chat.id;
+  } else {
+    id = msg.chat.id;
+  }
   let replyMarkup = bot.inlineKeyboard([
     [
       bot.inlineButton("en otro chat", { inline: "soy loca?" }),
@@ -247,10 +253,14 @@ bot.on(/^\/cal(c|c@\w+)( (.+))?$/, (msg, props) => {
 });
 
 bot.on(["/start", "/jelou"], (msg, self) => {
-  //console.log("SELF: ", self);
-  //console.log("MSG: ", msg);
-  let id = self.type === "callbackQuery" ? msg.message.chat.id : msg.chat.id;
-
+  console.log("SELF: ", self);
+  console.log("MSG: ", msg);
+  let id;
+  if (self.type === "callbackQuery") {
+    id = msg.message.chat.id;
+  } else {
+    id = msg.chat.id;
+  }
   return bot.sendMessage(id, "Envía /ayuda para ver algunas opciones.");
 });
 
@@ -362,9 +372,8 @@ bot.on(
         msg.chat.id,
         `Dimensiones: ${msg.reply_to_message.sticker.width}x${
           msg.reply_to_message.sticker.height
-        }\nEmoji ${msg.reply_to_message.sticker.emoji}\nTamaño: ${roundToAny(
-          msg.reply_to_message.sticker.file_size / 1024,
-          1
+        }\nEmoji ${msg.reply_to_message.sticker.emoji}\nTamaño: ${roundToTwo(
+          msg.reply_to_message.sticker.file_size / 1024
         )}KB`,
         { parseMode: "html", replyToMessage: msg.reply_to_message.message_id }
       );
@@ -379,10 +388,9 @@ bot.on(
         }x${
           msg.reply_to_message.photo[msg.reply_to_message.photo.length - 1]
             .height
-        }\nTamaño: ${roundToAny(
+        }\nTamaño: ${roundToTwo(
           msg.reply_to_message.photo[msg.reply_to_message.photo.length - 1]
-            .file_size / 1024,
-          1
+            .file_size / 1024
         )}KB`,
 
         { parseMode: "html", replyToMessage: msg.reply_to_message.message_id }
@@ -395,9 +403,8 @@ bot.on(
           msg.reply_to_message.animation.height
         }\nDuración: ${
           msg.reply_to_message.animation.duration
-        }s\nTamaño: ${roundToAny(
-          msg.reply_to_message.animation.file_size / 1024,
-          1
+        }s\nTamaño: ${roundToTwo(
+          msg.reply_to_message.animation.file_size / 1024
         )}KB`,
 
         { parseMode: "html", replyToMessage: msg.reply_to_message.message_id }
@@ -406,7 +413,7 @@ bot.on(
   }
   // msg.reply.text(
   //   "Tamaño: " +
-  //     roundToAny(
+  //     roundToTwo(
   //       msg.reply_to_message.photo[msg.reply_to_message.photo.length - 1]
   //         .file_size / 1024
   //     ) +
@@ -474,7 +481,7 @@ bot.on("forward", (msg) => {
         msg.from.id,
         `Dimensiones: ${msg.sticker.width}x${msg.sticker.height}\nEmoji ${
           msg.sticker.emoji
-        }\nTamaño: ${roundToAny(msg.sticker.file_size / 1024, 1)}KB`,
+        }\nTamaño: ${roundToTwo(msg.sticker.file_size / 1024)}KB`,
         { parseMode: "html", replyToMessage: msg.message_id }
       );
     }
@@ -484,9 +491,8 @@ bot.on("forward", (msg) => {
         msg.from.id,
         `Dimensiones: ${msg.photo[msg.photo.length - 1].width}x${
           msg.photo[msg.photo.length - 1].height
-        }\nTamaño: ${roundToAny(
-          msg.photo[msg.photo.length - 1].file_size / 1024,
-          1
+        }\nTamaño: ${roundToTwo(
+          msg.photo[msg.photo.length - 1].file_size / 1024
         )}KB`,
 
         { parseMode: "html", replyToMessage: msg.message_id }
@@ -497,9 +503,8 @@ bot.on("forward", (msg) => {
         msg.from.id,
         `Dimensiones: ${msg.animation.width}x${
           msg.animation.height
-        }\nDuración: ${msg.animation.duration}s\nTamaño: ${roundToAny(
-          msg.animation.file_size / 1024,
-          1
+        }\nDuración: ${msg.animation.duration}s\nTamaño: ${roundToTwo(
+          msg.animation.file_size / 1024
         )}KB`,
 
         { parseMode: "html", replyToMessage: msg.message_id }
@@ -552,10 +557,9 @@ bot.on(
           let name =
             msg.reply_to_message.photo[msg.reply_to_message.photo.length - 1]
               .file_unique_id;
-          let size = roundToAny(
+          let size = roundToTwo(
             msg.reply_to_message.photo[msg.reply_to_message.photo.length - 1]
-              .file_size / 1024,
-            1
+              .file_size / 1024
           );
           //inicializar los valores ancho, alto y calidad
           let ancho, alto, calidad;
@@ -614,7 +618,7 @@ bot.on(
             });
           }
 
-          return convertir(Jimp, id, url, name, size, ancho, alto, calidad);
+          return convertir(id, url, name, size, ancho, alto, calidad);
         });
     }
   }
@@ -1337,9 +1341,28 @@ process.on("unhandledRejection", (reason, promise) => {
   //bot.start();
 });
 
-// TODO: webscraping desde lectulandia para últimos libros
+function roundToTwo(num) {
+  return +(Math.round(num + "e+2") + "e-2");
+}
 
-// TODO: hacer un contador
+async function convertir(id, url, name, size, ancho, alto, calidad) {
+  try {
+    const image = await Jimp.read(url);
+    await image
+      .resize(ancho, alto)
+      .quality(calidad)
+      .writeAsync(`images/${name}.png`);
+    //console.log("IMAGEN: \n", final.bitmap);
+    await bot.sendPhoto(id, `images/${name}.png`, {
+      caption: `Tamaño original: ${size} KB`,
+    });
+    fs.unlinkSync(`images/${name}.png`);
+  } catch (err) {
+    console.error(err);
+  }
+}
+
+// hacer un contador
 // function updateKeyboard(count) {
 
 //   let apples = 'apples';

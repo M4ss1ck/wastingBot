@@ -1,33 +1,35 @@
 <h1 align="center">
-  Bot de Telegram usando Node JS
+  Telegram bot using Node JS
 </h1>
 
-Bot de pruebas. Puede hacer montones de cosas inútiles en los grupos, pero tiene algunas funciones decentes.
+It's my test bot. It can do a lot of useless stuff in groups, but it has some decent functions too.
 
-Cualquier duda o -lo más probable- sugerencia me la puedes hacer llegar [vía telegram](https://t.me/m4ss1ck)
+Any doubt or -most likely- suggestion you can find me [here](https://t.me/m4ss1ck)
 
-## 👀 Dependencias
+### \*Esta información también está disponible en español <a href="./LEEME.md">aquí</a>
 
-- [Telebot](https://github.com/mullwar/telebot): Para comunicarnos con la API de Telegram
-- [dotenv](https://github.com/motdotla/dotenv): Para las variables de entorno
-- [process](https://github.com/shtylman/node-process): Manejo de algunos errores específicos
-- [jimp](https://github.com/oliver-moran/jimp): Nuestro conversor de imágenes, aunque puede hacer mucho más
-- [expr-eval](https://github.com/silentmatt/expr-eval): Para calcular las operaciones matemáticas usando el comando `/calc`
-- [nedb-promises](https://github.com/bajankristof/nedb-promises): Nuestra base de datos, aunque se me da muy mal trabajar con ellas 😥
+## 👀 Dependencies
 
-  ##### Por alguna razón instalé express.js... ya lo usaré
+- [Telebot](https://github.com/mullwar/telebot): To communicate with the Telegram API.
+- [dotenv](https://github.com/motdotla/dotenv): For environment variables.
+- [process](https://github.com/shtylman/node-process): Handling some specific errors.
+- [jimp](https://github.com/oliver-moran/jimp): Our image converter, although it can do much more.
+- [expr-eval](https://github.com/silentmatt/expr-eval): To calculate mathematical operations using the `/calc` command.
+- [nedb-promises](https://github.com/bajankristof/nedb-promises): Our database, although I am very bad at working with them 😥.
 
-## 👀 Instalación
+  ##### For some reason I installed express.js... I'll use it at some point.
+
+## 👀 How to install it
 
 ```shell
-    # clona este repo https://github.com/M4ss1ck/wastingBot
+    # clone this repo https://github.com/M4ss1ck/wastingBot
     npm install
     npm run start
 ```
 
-## 👀 Uso
+## 👀 How to use it
 
-Primeramente necesitas establecer algunas variables en el archivo `.env` (renombrado como `.env.sample` en el repositorio)
+First of all you need to set some variables in the `.env` file (renamed as `.env.sample` in the repository).
 
 ```
 TG_TOKEN=123456789:AAFbuKsrLW3Q77HsElI7oHGFqJXItozZ2jQ
@@ -36,43 +38,41 @@ VICTIM=987654321
 ADMIN_ID=123456789
 ```
 
-`TG_TOKEN` es el token que obtienes de [@BotFather](https://t.me/BotFather) al crear tu bot.
+`TG_TOKEN` is the token you get from [@BotFather](https://t.me/BotFather) when you create your bot.
 
-`ADMIN_USERNAME` es un nombre de usuario con algunos privilegios
+`ADMIN_USERNAME` is a username with some privileges.
 
-`ADMIN_ID` lo mismo que la variable anterior, esta vez con el ID de Telegram
+`ADMIN_ID` is the same as the previous variable, this time with the Telegram ID.
 
-`VICTIM` se refiere a la víctima por defecto de nuestro comando `/tag`
+`VICTIM` refers to the default victim of our `/tag` command.
 
-**Comandos disponibles:**
+**Available commands:**
 
-- `/ayuda` o `/help` nos muestran una lista de los comandos disponibles
-- `/calc <operaciones>` nos permite resolver operaciones aritméticas sencillas
-- `/s/<viejo>/<nuevo>` nos permite reemplazar `viejo` por `nuevo` al responder un mensaje. Borra nuestro mensaje si tiene permisos suficientes 🌚
-- `/foto <url>` y `/get <url>` nos permiten descargar fotos y otros archivos cualesquiera, respectivamente, a partir de su dirección
-- `/size` nos permite conocer tamaño y dimensiones de imágenes y stickers. Se usa respondiendo la imagen o sticker
-- `/conv <ancho> <alto> <calidad>` o `/conv <ancho y alto> <calidad>` o `/conv <calidad>` nos permite convertir una imagen con el objetivo de reducir su tamaño. `ancho` y `alto` toman valores en pixeles (ej: 100, 200) o `auto` que reduce las dimensiones a la mitad en ambos casos, `calidad` toma valores 1-100
+- `/ayuda` or `/help` show us a list of the available commands
+- `/calc <operations>` allows us to solve simple arithmetic operations
+- `/s/<old>/<new>` allows us to replace `old` with `new` when replying to a message. Delete our message if the bot have the required permissions 🌚
+- `/foto <url>` and `/get <url>` allow us to download photos and any other files, respectively, using their `url`s
+- `/size` allows us to know size and dimensions of images and stickers. It is used by responding to the image or sticker
+- `/conv <width> <height> <quality>` or `/conv <width and height> <quality>` or `/conv <quality>` allows us to convert an image in order to reduce its size. `width` and `height` take values in pixels (e.g. 100, 200) or `auto` which reduces the dimensions by half in both cases, `quality` takes values 1-100.
 
-**Comandos solo para `ADMIN_ID`:**
+**Commands for `ADMIN_ID` only:**
 
-- `/quit` el bot sale del grupo
-- `/set_del` añade el texto del mensaje respondido a la lista negra del bot. Borrará los mensajes exactamente iguales a cualquiera de la lista
+- `/quit` the bot leaves the group
+- `/set_del` adds the text of the replied message to the bot's blacklist. It will delete messages exactly the same as any in the list.
 
-**Otros**
-En `launcher_list.js` tenemos un arreglo de objetos con 3 elementos: `search`, `alone` y `as_reply`.
-Al bot detectar un mensaje que consiste en `search`:
+**Others**
+In `launcher_list.js` we have an array of objects with 3 elements: `search`, `alone` and `as_reply`.
+When the bot detects a message consisting of `search`:
 
-1. Si no está respondiendo otro mensaje: menciona al usuario y le añade un string al azar de `alone`
-2. Si está respondiendo otro mensaje: menciona al usuario, le añade un string al azar de `as_reply` y menciona al usuario que envió el mensaje respondido.
+1. If you are not replying to another message: mention the user and add a random string of `alone`.
+2. If you are replying to another message: mention the user, add a random string from `as_reply` and mention the user who sent the replied message.
 
-Esta lista no es exhaustiva ni mucho menos, constantemente estoy modificando los comandos y añadiendo otros
+This list is by no means exhaustive, I am constantly modifying commands and adding others.
 
-## 🚀 Publicación sobre cómo crear un bot
+## 🚀 Post on how to create this bot
 
-Pendiente
+Pending
 
-## 👀 Descargo de responsabilidad
+## 👀 Disclaimer
 
-Este es un trabajo en progreso, con el que de paso estudio javascript y node js, de ahí que coexistan tantos comandos distintos en un mismo bot. En un futuro organizaré un poco (o un muchísimo) el código, que a veces no lo entiendo ni yo.
-
-Quise hacer esto en español porque no encontré mucha bibliografía al respecto en este idioma y, aunque soy un novato, alguien puede aprender de mis experiencias.
+This is a work in progress, with which I am studying javascript and node js, that's why so many different commands coexist in the same bot. In the future I will organize a little (or a lot) this code, which sometimes I don't even understand it myself.
