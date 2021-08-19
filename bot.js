@@ -226,19 +226,30 @@ bot.on("callbackQuery", (msg) => {
   return bot.answerCallbackQuery(msg.id);
 });
 
-bot.on(/^\/calc (.+)$/, (msg, props) => {
-  const math = props.match[1];
-  let result = parser.parse(math).simplify();
-  console.log("El resultado de " + math + " es " + result);
-  return bot
-    .sendMessage(msg.chat.id, `<pre>${result}</pre>`, {
-      parseMode: "html",
-      replyToMessage: msg.message_id,
-    })
-    .catch((error) => {
-      console.log("Hubo un error", error.description);
-      return bot.sendMessage(msg.from.id, error.description);
-    });
+bot.on(/^\/cal(c|c@\w+)( (.+))?$/, (msg, props) => {
+  const math = props.match[3];
+  if (math === undefined) {
+    return bot.sendMessage(
+      msg.chat.id,
+      `Debe introducir una expresión matemática.\nEjemplos: <pre>/calc 2+3^6</pre>\n<pre>/calc PI^4</pre>\n<pre>/calc 25346*3456/32</pre>`,
+      {
+        parseMode: "html",
+        replyToMessage: msg.message_id,
+      }
+    );
+  } else {
+    let result = parser.parse(math).simplify();
+    console.log("El resultado de " + math + " es " + result);
+    return bot
+      .sendMessage(msg.chat.id, `<pre>${result}</pre>`, {
+        parseMode: "html",
+        replyToMessage: msg.message_id,
+      })
+      .catch((error) => {
+        console.log("Hubo un error", error.description);
+        return bot.sendMessage(msg.from.id, error.description);
+      });
+  }
 });
 
 bot.on(["/start", "/jelou"], (msg, self) => {
@@ -503,118 +514,129 @@ bot.on("forward", (msg) => {
 });
 
 // Testing sending files
-bot.on(/^\/foto (.+)$/, (msg, self) => {
-  const url = self.match[1];
-  let id;
-  if (self.type === "callbackQuery") {
-    id = msg.message.chat.id;
+bot.on(/^\/(foto|foto@\w+)( (.+))?$/, (msg, self) => {
+  const url = self.match[3];
+  // checking if there's a callback
+  let id = self.type === "callbackQuery" ? msg.message.chat.id : msg.chat.id;
+
+  if (url === undefined) {
+    return bot.sendMessage(id, "Debe incluir un enlace válido");
   } else {
-    id = msg.chat.id;
+    return bot.sendPhoto(id, url).catch((error) => {
+      console.log("Hubo un error", error.description);
+      return bot.sendMessage(msg.from.id, error.description);
+    });
   }
-  return bot.sendPhoto(id, url).catch((error) => {
-    console.log("Hubo un error", error.description);
-    return bot.sendMessage(msg.from.id, error.description);
-  });
 });
 
 // trying to convert photos
-bot.on(/^\/conv(\s(\d+|auto)(\s(\d+|auto))?(\s(\d+|auto))?)?$/, (msg, self) => {
-  console.log(self);
-  //console.log(self.match.length);
-  let id;
-  if (self.type === "callbackQuery") {
-    id = msg.message.chat.id;
-  } else {
-    id = msg.chat.id;
-  }
-  if (!msg.reply_to_message) {
-    return bot.sendMessage(
-      id,
-      "Debes responder un mensaje para usar este comando"
-    );
-  }
-  if (msg.reply_to_message.photo) {
-    bot
-      .getFile(
-        msg.reply_to_message.photo[msg.reply_to_message.photo.length - 1]
-          .file_id
-      )
-      .then((res) => {
-        console.log(res);
-        //analizar los distintos valores de la expresión regular
-        let url = res.fileLink;
-        let name =
-          msg.reply_to_message.photo[msg.reply_to_message.photo.length - 1]
-            .file_unique_id;
-        let size = roundToTwo(
-          msg.reply_to_message.photo[msg.reply_to_message.photo.length - 1]
-            .file_size / 1024
-        );
-        //inicializar los valores ancho, alto y calidad
-        let ancho, alto, calidad;
+bot.on(
+  /^\/con(v|v@\w+)(\s(\d+|auto)(\s(\d+|auto))?(\s(\d+|auto))?)?$/,
+  (msg, self) => {
+    console.log(self);
+    //console.log(self.match.length);
+    // checking if there's a callback
+    let id = self.type === "callbackQuery" ? msg.message.chat.id : msg.chat.id;
 
-        let ancho_auto = Math.round(
+    if (!msg.reply_to_message) {
+      return bot.sendMessage(
+        id,
+        "Debes responder un mensaje para usar este comando"
+      );
+    }
+    if (msg.reply_to_message.photo) {
+      bot
+        .getFile(
           msg.reply_to_message.photo[msg.reply_to_message.photo.length - 1]
-            .width / 2
-        );
-        let alto_auto = Math.round(
-          msg.reply_to_message.photo[msg.reply_to_message.photo.length - 1]
-            .height / 2
-        );
-        let calidad_auto = 50;
+            .file_id
+        )
+        .then((res) => {
+          console.log(res);
+          //analizar los distintos valores de la expresión regular
+          let url = res.fileLink;
+          let name =
+            msg.reply_to_message.photo[msg.reply_to_message.photo.length - 1]
+              .file_unique_id;
+          let size = roundToTwo(
+            msg.reply_to_message.photo[msg.reply_to_message.photo.length - 1]
+              .file_size / 1024
+          );
+          //inicializar los valores ancho, alto y calidad
+          let ancho, alto, calidad;
 
-        if (self.match[6] !== undefined) {
-          //si tenemos los 3 valores
-          ancho =
-            self.match[2] === "auto" ? ancho_auto : parseInt(self.match[2]);
-          alto = self.match[4] === "auto" ? alto_auto : parseInt(self.match[4]);
-          calidad =
-            self.match[6] === "auto" ? calidad_auto : parseInt(self.match[6]);
-        } else {
-          if (self.match[4] !== undefined) {
-            // tenemos 2 valores: ancho y alto (imagen cuadrada, a menos q sea auto) y calidad
+          let ancho_auto = Math.round(
+            msg.reply_to_message.photo[msg.reply_to_message.photo.length - 1]
+              .width / 2
+          );
+          let alto_auto = Math.round(
+            msg.reply_to_message.photo[msg.reply_to_message.photo.length - 1]
+              .height / 2
+          );
+          let calidad_auto = 50;
+
+          if (self.match[7] !== undefined) {
+            //si tenemos los 3 valores
             ancho =
-              self.match[2] === "auto" ? ancho_auto : parseInt(self.match[2]);
+              self.match[3] === "auto" ? ancho_auto : parseInt(self.match[3]);
             alto =
-              self.match[2] === "auto" ? alto_auto : parseInt(self.match[2]);
+              self.match[5] === "auto" ? alto_auto : parseInt(self.match[5]);
             calidad =
-              self.match[4] === "auto" ? calidad_auto : parseInt(self.match[4]);
+              self.match[7] === "auto" ? calidad_auto : parseInt(self.match[7]);
           } else {
-            if (self.match[2] !== undefined) {
-              // tenemos un solo valor: calidad, lo demás será auto
-              ancho = ancho_auto;
-              alto = alto_auto;
+            if (self.match[5] !== undefined) {
+              // tenemos 2 valores: ancho y alto (imagen cuadrada, a menos q sea auto) y calidad
+              ancho =
+                self.match[3] === "auto" ? ancho_auto : parseInt(self.match[3]);
+              alto =
+                self.match[3] === "auto" ? alto_auto : parseInt(self.match[3]);
               calidad =
-                self.match[2] === "auto"
+                self.match[5] === "auto"
                   ? calidad_auto
-                  : parseInt(self.match[2]);
+                  : parseInt(self.match[5]);
             } else {
-              //los valores por defecto
-              ancho = ancho_auto;
-              alto = alto_auto;
-              calidad = calidad_auto;
+              if (self.match[3] !== undefined) {
+                // tenemos un solo valor: calidad, lo demás será auto
+                ancho = ancho_auto;
+                alto = alto_auto;
+                calidad =
+                  self.match[3] === "auto"
+                    ? calidad_auto
+                    : parseInt(self.match[3]);
+              } else {
+                //los valores por defecto
+                ancho = ancho_auto;
+                alto = alto_auto;
+                calidad = calidad_auto;
+              }
             }
           }
-        }
-        // hay que controlar que las nuevas dimensiones sean menores, o no?
-        // calidad si debe ser 1-100, aunque los otros valores deben ser positivos
-        if (ancho < 1 || alto < 1 || calidad < 1 || calidad > 100) {
-          return bot.sendMessage(id, "Valores inválidos", {
-            replyToMessage: msg.message_id,
-          });
-        }
+          // hay que controlar que las nuevas dimensiones sean menores, o no?
+          // calidad si debe ser 1-100, aunque los otros valores deben ser positivos
+          if (ancho < 1 || alto < 1 || calidad < 1 || calidad > 100) {
+            return bot.sendMessage(id, "Valores inválidos", {
+              replyToMessage: msg.message_id,
+            });
+          }
 
-        return convertir(id, url, name, size, ancho, alto, calidad);
-      });
+          return convertir(id, url, name, size, ancho, alto, calidad);
+        });
+    }
   }
-});
+);
 
-bot.on(/^\/get (.+)$/, (msg, props) => {
-  const url = props.match[1];
-  return bot.sendDocument(msg.chat.id, url).catch((error) => {
-    console.log("Hubo un puto error", error.description);
-    return bot.sendMessage(msg.from.id, error.description);
-  });
+bot.on(/^\/ge(t|t@\w+) (.+)$/, (msg, props) => {
+  const url = self.match[3];
+  // checking if there's a callback
+  let id = self.type === "callbackQuery" ? msg.message.chat.id : msg.chat.id;
+
+  if (url === undefined) {
+    return bot.sendMessage(id, "Debe incluir un enlace válido");
+  } else {
+    return bot.sendDocument(id, url).catch((error) => {
+      console.log("Hubo un error", error.description);
+      return bot.sendMessage(msg.from.id, error.description);
+    });
+  }
 });
 
 // echo
@@ -637,44 +659,67 @@ bot.on("/quit", (msg) => {
 
 // Función reemplazar
 // TODO: que funcione con caracteres especiales
-bot.on(/^\/s\/(.+)\/(.+)?/, (msg, props) => {
-  const oldm = props.match[1];
-  const newm = props.match[2] === undefined ? "" : props.match[2];
-  let text = "";
-  if (msg.reply_to_message) {
-    console.log("CAPTION: " + msg.reply_to_message.caption);
-    if (msg.reply_to_message.text === undefined) {
-      text =
-        '<b>En realidad quisiste decir:</b> \n\n"' +
-        msg.reply_to_message.caption.replace(new RegExp(oldm, "g"), newm) +
-        '"';
-    } else {
-      text =
-        '<b>En realidad quisiste decir:</b> \n\n"' +
-        msg.reply_to_message.text.replace(new RegExp(oldm, "g"), newm) +
-        '"';
-    }
-
-    return bot
-      .sendMessage(msg.chat.id, text, {
-        parseMode: "html",
-        replyToMessage: msg.reply_to_message.message_id,
-      })
-      .then(() =>
-        bot
-          .deleteMessage(msg.chat.id, msg.message_id)
-          .catch((e) => console.error(e))
-      );
-  } else {
-    bot.sendMessage(
+bot.on(/^\/(s|s@\w+)\/(.+)?\/(.+)?/, (msg, props) => {
+  const oldm = props.match[2];
+  const newm = props.match[3] === undefined ? "" : props.match[3];
+  console.log(props);
+  if (props.match[2] === undefined) {
+    return bot.sendMessage(
       msg.chat.id,
-      "Debes responder un mensaje o de lo contrario no funcionará",
+      `Debe escoger qué parte del mensaje desea reemplazar y con qué desea hacerlo.\nPor ejemplo, si tenemos un mensaje que diga "Eres feo" y queremos transformarlo en "Eres hermoso", debemos usar <pre>/s/feo/hermoso</pre> respondiendo dicho mensaje.\n\n<b>Nota:</b> Si el bot es administrador, borrará nuestro mensaje`,
       {
         parseMode: "html",
         replyToMessage: msg.message_id,
       }
     );
+  } else {
+    let text = "";
+    if (msg.reply_to_message) {
+      console.log("CAPTION: " + msg.reply_to_message.caption);
+      if (msg.reply_to_message.text === undefined) {
+        text =
+          '<b>En realidad quisiste decir:</b> \n\n"' +
+          msg.reply_to_message.caption.replace(new RegExp(oldm, "g"), newm) +
+          '"';
+      } else {
+        text =
+          '<b>En realidad quisiste decir:</b> \n\n"' +
+          msg.reply_to_message.text.replace(new RegExp(oldm, "g"), newm) +
+          '"';
+      }
+
+      return bot
+        .sendMessage(msg.chat.id, text, {
+          parseMode: "html",
+          replyToMessage: msg.reply_to_message.message_id,
+        })
+        .then(() =>
+          bot
+            .deleteMessage(msg.chat.id, msg.message_id)
+            .catch((e) => console.error(e))
+        );
+    } else {
+      bot.sendMessage(
+        msg.chat.id,
+        "Debes responder un mensaje o de lo contrario no funcionará",
+        {
+          parseMode: "html",
+          replyToMessage: msg.message_id,
+        }
+      );
+    }
   }
+});
+
+bot.on(/^\/(s|s@\w+)(\/)?$/, (msg) => {
+  return bot.sendMessage(
+    msg.chat.id,
+    `Debe escoger qué parte del mensaje desea reemplazar y con qué desea hacerlo.\nPor ejemplo, si tenemos un mensaje que diga "Eres feo" y queremos transformarlo en "Eres hermoso", debemos usar <pre>/s/feo/hermoso</pre> respondiendo dicho mensaje.\n\n<b>Nota:</b> Si el bot es administrador, borrará nuestro mensaje`,
+    {
+      parseMode: "html",
+      replyToMessage: msg.message_id,
+    }
+  );
 });
 
 // dividir en 2 comandos distintos (FAILED)
@@ -797,41 +842,140 @@ bot.on("text", (msg) => {
 });
 
 //para la reputación
-bot.on([/^\++$/, /^this$/i], (msg) => {
-  const from_id = msg.from.id;
-  db.findOne({ tg_id: from_id.toString() })
-    .then((res) => {
-      const user_nick =
-        res === null
-          ? msg.from.first_name
-          : res.nick
-          ? res.nick
-          : msg.from.first_name;
-      const user_rep = res ? parseInt(res.rep - 1000) : 1;
-      db.update(
-        { tg_id: from_id.toString() },
-        { $set: { rep: parseInt(user_rep + 1000) } }
-      );
-      if (!msg.reply_to_message) {
-        return bot.sendMessage(
-          msg.chat.id,
-          `Debes responder un mensaje, ${user_nick}`
+bot.on(
+  [/^\++$/, /^this$/i, /^op$/i, /^nice$/i, /^nai(s|z)$/i, /^g(u|oo)d$/i],
+  (msg) => {
+    const from_id = msg.from.id;
+    db.findOne({ tg_id: from_id.toString() })
+      .then((res) => {
+        const user_nick =
+          res === null
+            ? msg.from.first_name
+            : res.nick
+            ? res.nick
+            : msg.from.first_name;
+        const user_rep = res ? parseInt(res.rep - 1000) : 1;
+        db.update(
+          { tg_id: from_id.toString() },
+          { $set: { rep: parseInt(user_rep + 1000) } }
         );
-      } else {
-        // se está respondiendo un mensaje
-        // ahora hay que evitar el farmeo de puntos
-
-        if (
-          msg.reply_to_message.from.id === from_id &&
-          from_id !== parseInt(my_id)
-        ) {
-          //responder a uno mismo
+        if (!msg.reply_to_message) {
           return bot.sendMessage(
             msg.chat.id,
-            `<a href="tg://user?id=${from_id}">${user_nick}</a> ha intentado hacer trampas... \n<em>qué idiota</em>`,
-            { parseMode: "html" }
+            `Debes responder un mensaje, ${user_nick}`
           );
         } else {
+          // se está respondiendo un mensaje
+          // ahora hay que evitar el farmeo de puntos
+
+          if (
+            msg.reply_to_message.from.id === from_id &&
+            from_id !== parseInt(my_id)
+          ) {
+            //responder a uno mismo
+            return bot.sendMessage(
+              msg.chat.id,
+              `<a href="tg://user?id=${from_id}">${user_nick}</a> ha intentado hacer trampas... \n<em>qué idiota</em>`,
+              { parseMode: "html" }
+            );
+          } else {
+            // aquí va el manejo de la reputación
+            const reply_id = msg.reply_to_message.from.id;
+
+            //buscando al que sube la reputación en la BD
+            db.findOne({ tg_id: reply_id.toString() })
+              .then((res) => {
+                const reply_nick =
+                  res === null
+                    ? msg.reply_to_message.from.first_name
+                    : res.nick
+                    ? res.nick
+                    : msg.reply_to_message.from.first_name;
+
+                if (res === null) {
+                  let new_rep = {
+                    tg_id: reply_id.toString(),
+                    rep: 1001,
+                    fecha: new Date(),
+                    nick: reply_nick,
+                  };
+                  db.insert(new_rep);
+                  db.find({}).sort({ fecha: -1 });
+                  return bot.sendMessage(
+                    msg.chat.id,
+                    `<a href="tg://user?id=${from_id}">${user_nick}</a> hace posible que comience el viaje de <a href="tg://user?id=${reply_id}">${reply_nick}</a> al otorgarle 1 punto de reputación.`,
+                    { parseMode: "html" }
+                  );
+                } else {
+                  let reply_rep = res.rep ? parseInt(res.rep - 999) : 2;
+                  let new_rep = {
+                    rep: parseInt(reply_rep + 1000),
+                    fecha: new Date(),
+                  };
+
+                  db.update({ tg_id: reply_id.toString() }, { $set: new_rep });
+                  db.find({}).sort({ fecha: -1 });
+                  console.log(
+                    `${reply_nick} tiene ${reply_rep} puntos de reputación ahora, cortesía de ${user_nick} (quien tiene ${user_rep})`
+                  );
+                  bot.sendMessage(
+                    msg.chat.id,
+                    `<a href="tg://user?id=${reply_id}">${reply_nick}</a> tiene ${reply_rep} puntos de reputación ahora, cortesía de <a href="tg://user?id=${from_id}">${user_nick}</a> (quien tiene ${user_rep})`,
+                    { parseMode: "html" }
+                  );
+                }
+              })
+              .catch((err) => console.error(err));
+          }
+        }
+      })
+      .then((res) => {
+        fs.copyFile("database/nicks.db", "database/copy_nicks.db", (err) => {
+          if (err) {
+            console.log("[ERROR DE COPIA] ", err);
+          }
+        });
+        console.log("[BD] actualizada");
+      });
+  }
+);
+
+// lo mismo pero para quitar rep
+bot.on(
+  [
+    /^(\-|—)+$/,
+    /^fe(o|a)$/i,
+    /^asc(o|a)$/i,
+    /^thisn't$/i,
+    /^uff$/i,
+    /^mm+$/i,
+    /^n(o|op|ope)$/i,
+  ],
+  (msg) => {
+    const from_id = msg.from.id;
+    db.findOne({ tg_id: from_id.toString() })
+      .then((res) => {
+        const user_nick =
+          res === null
+            ? msg.from.first_name
+            : res.nick
+            ? res.nick
+            : msg.from.first_name;
+
+        const user_rep = res ? parseInt(res.rep - 1000) : 1;
+        db.update(
+          { tg_id: from_id.toString() },
+          { $set: { rep: parseInt(user_rep + 1000) } }
+        ); // intentando arreglar algo
+        if (!msg.reply_to_message) {
+          return bot.sendMessage(
+            msg.chat.id,
+            `Debes responder un mensaje, ${user_nick}`
+          );
+        } else {
+          // se está respondiendo un mensaje
+          // ahora hay que evitar el farmeo de puntos, aunque no me interesa xq estamos quitando
+
           // aquí va el manejo de la reputación
           const reply_id = msg.reply_to_message.from.id;
 
@@ -848,7 +992,7 @@ bot.on([/^\++$/, /^this$/i], (msg) => {
               if (res === null) {
                 let new_rep = {
                   tg_id: reply_id.toString(),
-                  rep: 1001,
+                  rep: 999,
                   fecha: new Date(),
                   nick: reply_nick,
                 };
@@ -856,11 +1000,11 @@ bot.on([/^\++$/, /^this$/i], (msg) => {
                 db.find({}).sort({ fecha: -1 });
                 return bot.sendMessage(
                   msg.chat.id,
-                  `<a href="tg://user?id=${from_id}">${user_nick}</a> hace posible que comience el viaje de <a href="tg://user?id=${reply_id}">${reply_nick}</a> al otorgarle 1 punto de reputación.`,
+                  `<a href="tg://user?id=${from_id}">${user_nick}</a> hace posible que comience el viaje de <a href="tg://user?id=${reply_id}">${reply_nick}</a>, pero lo hizo quitándole reputación. Ahora tiene -1.`,
                   { parseMode: "html" }
                 );
               } else {
-                let reply_rep = res.rep ? parseInt(res.rep - 999) : 2;
+                let reply_rep = res.rep ? parseInt(res.rep - 1000 - 1) : 0;
                 let new_rep = {
                   rep: parseInt(reply_rep + 1000),
                   fecha: new Date(),
@@ -880,102 +1024,17 @@ bot.on([/^\++$/, /^this$/i], (msg) => {
             })
             .catch((err) => console.error(err));
         }
-      }
-    })
-    .then((res) => {
-      fs.copyFile("database/nicks.db", "database/copy_nicks.db", (err) => {
-        if (err) {
-          console.log("[ERROR DE COPIA] ", err);
-        }
+      })
+      .then((res) => {
+        fs.copyFile("database/nicks.db", "database/copy_nicks.db", (err) => {
+          if (err) {
+            console.log("[ERROR DE COPIA] ", err);
+          }
+        });
+        console.log("[BD] actualizada");
       });
-      console.log("[BD] actualizada");
-    });
-});
-
-// lo mismo pero para quitar rep
-bot.on([/^(\-|—)+$/, /^fe(o|a)$/i, /^asc(o|a)$/i, /^thisn't$/i], (msg) => {
-  const from_id = msg.from.id;
-  db.findOne({ tg_id: from_id.toString() })
-    .then((res) => {
-      const user_nick =
-        res === null
-          ? msg.from.first_name
-          : res.nick
-          ? res.nick
-          : msg.from.first_name;
-
-      const user_rep = res ? parseInt(res.rep - 1000) : 1;
-      db.update(
-        { tg_id: from_id.toString() },
-        { $set: { rep: parseInt(user_rep + 1000) } }
-      ); // intentando arreglar algo
-      if (!msg.reply_to_message) {
-        return bot.sendMessage(
-          msg.chat.id,
-          `Debes responder un mensaje, ${user_nick}`
-        );
-      } else {
-        // se está respondiendo un mensaje
-        // ahora hay que evitar el farmeo de puntos, aunque no me interesa xq estamos quitando
-
-        // aquí va el manejo de la reputación
-        const reply_id = msg.reply_to_message.from.id;
-
-        //buscando al que sube la reputación en la BD
-        db.findOne({ tg_id: reply_id.toString() })
-          .then((res) => {
-            const reply_nick =
-              res === null
-                ? msg.reply_to_message.from.first_name
-                : res.nick
-                ? res.nick
-                : msg.reply_to_message.from.first_name;
-
-            if (res === null) {
-              let new_rep = {
-                tg_id: reply_id.toString(),
-                rep: 999,
-                fecha: new Date(),
-                nick: reply_nick,
-              };
-              db.insert(new_rep);
-              db.find({}).sort({ fecha: -1 });
-              return bot.sendMessage(
-                msg.chat.id,
-                `<a href="tg://user?id=${from_id}">${user_nick}</a> hace posible que comience el viaje de <a href="tg://user?id=${reply_id}">${reply_nick}</a>, pero lo hizo quitándole reputación. Ahora tiene -1.`,
-                { parseMode: "html" }
-              );
-            } else {
-              let reply_rep = res.rep ? parseInt(res.rep - 1000 - 1) : 0;
-              let new_rep = {
-                rep: parseInt(reply_rep + 1000),
-                fecha: new Date(),
-              };
-
-              db.update({ tg_id: reply_id.toString() }, { $set: new_rep });
-              db.find({}).sort({ fecha: -1 });
-              console.log(
-                `${reply_nick} tiene ${reply_rep} puntos de reputación ahora, cortesía de ${user_nick} (quien tiene ${user_rep})`
-              );
-              bot.sendMessage(
-                msg.chat.id,
-                `<a href="tg://user?id=${reply_id}">${reply_nick}</a> tiene ${reply_rep} puntos de reputación ahora, cortesía de <a href="tg://user?id=${from_id}">${user_nick}</a> (quien tiene ${user_rep})`,
-                { parseMode: "html" }
-              );
-            }
-          })
-          .catch((err) => console.error(err));
-      }
-    })
-    .then((res) => {
-      fs.copyFile("database/nicks.db", "database/copy_nicks.db", (err) => {
-        if (err) {
-          console.log("[ERROR DE COPIA] ", err);
-        }
-      });
-      console.log("[BD] actualizada");
-    });
-});
+  }
+);
 
 // para reiniciar los valores de rep
 bot.on("/reset_rep", (msg) => {
@@ -1089,13 +1148,12 @@ bot.on(["/set_bd", "/set_db"], (msg) => {
 });
 
 // SPAM
-bot.on(/^\/tag( \d+)?$/, (msg, self) => {
+bot.on(/^\/ta(g|g@\w+)( \d+)?$/, (msg, self) => {
   let n = 1;
-  console.log("SELF: \n", self);
-
-  console.log("MATCH: \n", self.match);
+  //console.log("SELF: \n", self);
+  //console.log("MATCH: \n", self.match);
   if (self.match !== undefined) {
-    n = self.match[1];
+    n = self.match[2];
     if (n > 50 || n === undefined) {
       n = 1;
     }
@@ -1164,8 +1222,8 @@ bot.on("/sticker", (msg) => {
 
 // trabajo con bases de datos
 
-bot.on(/^\/nick (.+)$/, (msg, props) => {
-  const texto = props.match[1];
+bot.on(/^\/(nick|nick@\w+) (.+)$/, (msg, props) => {
+  const texto = props.match[2];
   const tg_id = msg.from.id;
   db.findOne({ tg_id: tg_id.toString() })
     .then((res, err) => {
