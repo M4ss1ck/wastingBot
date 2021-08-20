@@ -839,7 +839,15 @@ bot.on("text", (msg) => {
 
 //para la reputación
 bot.on(
-  [/^\++$/, /^this$/i, /^op$/i, /^nice$/i, /^nai(s|z)$/i, /^g(u|oo)d$/i],
+  [
+    /^\++$/,
+    /^this$/i,
+    /^op$/i,
+    /^nice$/i,
+    /^nai(s|z)$/i,
+    /^g(u|oo)d$/i,
+    /^yes$/,
+  ],
   (msg) => {
     const from_id = msg.from.id;
     db.findOne({ tg_id: from_id.toString() })
@@ -896,7 +904,7 @@ bot.on(
                     nick: reply_nick,
                   };
                   db.insert(new_rep);
-                  db.find({}).sort({ fecha: -1 });
+                  removeUnusedItems();
                   return bot.sendMessage(
                     msg.chat.id,
                     `<a href="tg://user?id=${from_id}">${user_nick}</a> hace posible que comience el viaje de <a href="tg://user?id=${reply_id}">${reply_nick}</a> al otorgarle 1 punto de reputación.`,
@@ -910,13 +918,13 @@ bot.on(
                   };
 
                   db.update({ tg_id: reply_id.toString() }, { $set: new_rep });
-                  db.find({}).sort({ fecha: -1 });
+                  removeUnusedItems();
                   console.log(
-                    `${reply_nick} tiene ${reply_rep} puntos de reputación ahora, cortesía de ${user_nick} (quien tiene ${user_rep})`
+                    `${reply_nick} tiene ${reply_rep} puntos de reputación ahora, cortesía de ${user_nick} (rep: ${user_rep})`
                   );
                   bot.sendMessage(
                     msg.chat.id,
-                    `<a href="tg://user?id=${reply_id}">${reply_nick}</a> tiene ${reply_rep} puntos de reputación ahora, cortesía de <a href="tg://user?id=${from_id}">${user_nick}</a> (quien tiene ${user_rep})`,
+                    `<a href="tg://user?id=${reply_id}">${reply_nick}</a> tiene ${reply_rep} puntos de reputación ahora, cortesía de <a href="tg://user?id=${from_id}">${user_nick}</a> (rep: ${user_rep})`,
                     { parseMode: "html" }
                   );
                 }
@@ -946,6 +954,7 @@ bot.on(
     /^uff$/i,
     /^mm+$/i,
     /^n(o|op|ope)$/i,
+    /^yesn't$/,
   ],
   (msg) => {
     const from_id = msg.from.id;
@@ -993,7 +1002,7 @@ bot.on(
                   nick: reply_nick,
                 };
                 db.insert(new_rep);
-                db.find({}).sort({ fecha: -1 });
+                removeUnusedItems();
                 return bot.sendMessage(
                   msg.chat.id,
                   `<a href="tg://user?id=${from_id}">${user_nick}</a> hace posible que comience el viaje de <a href="tg://user?id=${reply_id}">${reply_nick}</a>, pero lo hizo quitándole reputación. Ahora tiene -1.`,
@@ -1007,13 +1016,13 @@ bot.on(
                 };
 
                 db.update({ tg_id: reply_id.toString() }, { $set: new_rep });
-                db.find({}).sort({ fecha: -1 });
+                removeUnusedItems();
                 console.log(
-                  `${reply_nick} tiene ${reply_rep} puntos de reputación ahora, cortesía de ${user_nick} (quien tiene ${user_rep})`
+                  `${reply_nick} tiene ${reply_rep} puntos de reputación ahora, cortesía de ${user_nick} (rep: ${user_rep})`
                 );
                 bot.sendMessage(
                   msg.chat.id,
-                  `<a href="tg://user?id=${reply_id}">${reply_nick}</a> tiene ${reply_rep} puntos de reputación ahora, cortesía de <a href="tg://user?id=${from_id}">${user_nick}</a> (quien tiene ${user_rep})`,
+                  `<a href="tg://user?id=${reply_id}">${reply_nick}</a> tiene ${reply_rep} puntos de reputación ahora, cortesía de <a href="tg://user?id=${from_id}">${user_nick}</a> (rep: ${user_rep})`,
                   { parseMode: "html" }
                 );
               }
@@ -1066,7 +1075,7 @@ bot.on(/^\/set_rep (\d+) (\d+|\-\d+)$/, (msg, props) => {
             fecha: new Date(),
           };
           db.insert(new_input);
-          db.find({}).sort({ fecha: -1 });
+          removeUnusedItems();
           return bot.sendMessage(
             msg.chat.id,
             `Se ha registrado a ${dest_nick} con reputación ${dest_rep}`
@@ -1076,7 +1085,7 @@ bot.on(/^\/set_rep (\d+) (\d+|\-\d+)$/, (msg, props) => {
             { tg_id: dest_id.toString() },
             { $set: { rep: parseInt(dest_rep) + 1000 } }
           );
-          db.find({}).sort({ fecha: -1 });
+          removeUnusedItems();
           return bot.sendMessage(
             msg.chat.id,
             `Se ha actualizado el registro de ${dest_nick} con reputación ${dest_rep}`
@@ -1095,16 +1104,12 @@ bot.on(/^\/set_rep (\d+) (\d+|\-\d+)$/, (msg, props) => {
 });
 
 bot.on("/bd", (msg) => {
-  db.find({})
-    .then((res) => {
-      console.log(res);
-      if (msg.from.id.toString() === my_id) {
-        bot.sendDocument(msg.from.id, "database/nicks.db", {
-          caption: `Copia de seguridad de la BD ${new Date()}`,
-        });
-      }
-    })
-    .catch((e) => console.error(e));
+  if (msg.from.id.toString() === my_id) {
+    removeUnusedItems();
+    return bot.sendDocument(msg.from.id, "database/nicks.db", {
+      caption: `Copia de seguridad de la BD\n${new Date()}`,
+    });
+  }
 });
 
 bot.on(["/set_bd", "/set_db"], (msg) => {
@@ -1113,14 +1118,14 @@ bot.on(["/set_bd", "/set_db"], (msg) => {
     if (msg.reply_to_message.document) {
       console.log("[DOCUMENT FOUND]");
       bot.getFile(msg.reply_to_message.document.file_id).then((res) => {
-        console.log(res);
+        //console.log(res);
         const url = res.fileLink;
         axios({
           //method: "get",
           url: url,
           //responseType: "blob",
         }).then(async (res) => {
-          console.log(res.data);
+          //console.log(res.data);
           const new_data = res.data
             .replace(/,"_id":"[a-zA-Z0-9]+"}/g, "}")
             .replace(/\n/g, "123")
@@ -1133,9 +1138,16 @@ bot.on(["/set_bd", "/set_db"], (msg) => {
           for (let i = 0; i < new_data.length - 1; i++) {
             list.push(JSON.parse(new_data[i]));
           }
-          console.log(list);
+          //console.log(new Date(list[0].fecha.$$date));
+
+          for (let i = 0; i < list.length; i++) {
+            list[i].fecha = new Date(list[i].fecha.$$date);
+          }
+
+          //console.log(list[0]);
+
           await db.insert(list);
-          db.find({}).sort({ fecha: -1 });
+          //removeUnusedItems();
         });
       });
     }
@@ -1295,11 +1307,11 @@ bot.on(/^\/(nick|nick@\w+) (.+)$/, (msg, props) => {
 
 bot.on("error", (error) => console.error("ERROR", error));
 
-// bot.on("error", (error, data) => {
-//   // console.log(msg);
-//   console.log(error);
-//   return bot.sendMessage(data.from.id, error.description);
-// });
+bot.on("/fix", (msg) => {
+  removeUnusedItems();
+  //console.log(error);
+  return bot.sendMessage(msg.from.id, "[CALLING removeUnusedItems()]");
+});
 
 bot.start();
 
@@ -1336,6 +1348,45 @@ process.on("unhandledRejection", (reason, promise) => {
   // Application specific logging, throwing an error, or other logic here
   //bot.start();
 });
+
+// TODO: función para borrar entradas repetidas (porque fueron actualizadas) de la BD
+async function removeUnusedItems() {
+  try {
+    await db
+      .find({})
+      .sort({ fecha: -1 })
+      .then((res) => {
+        console.log("[removeUnusedItems]");
+        let idList = [];
+        // revisar cada usuario de la BD
+        for (const current_user of res) {
+          if (!idList.includes(current_user.tg_id)) {
+            idList.push(current_user.tg_id);
+            //console.log(current_user.tg_id);
+          }
+        }
+        db.count({}).then((res) => console.log("[COUNT BEFORE] " + res));
+        for (const id of idList) {
+          db.findOne({ tg_id: id }).then(async (res) => {
+            //console.log(res.fecha);
+
+            await db.remove({
+              tg_id: id,
+              fecha: res.fecha,
+              _id: { $ne: res._id },
+            });
+
+            await db
+              .remove({ tg_id: id, fecha: { $gt: res.fecha } }, { multi: true })
+              .catch((err) => console.error(err));
+          });
+        }
+        db.count({}).then((res) => console.log("[COUNT AFTER] " + res));
+      });
+  } catch (err) {
+    console.error(err);
+  }
+}
 
 // TODO: webscraping desde lectulandia para últimos libros
 
