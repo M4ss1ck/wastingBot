@@ -1,7 +1,7 @@
 import fs from "fs";
 
 function roundToAny(num, n = 2) {
-  return +(Math.round(num + "e" + n) + "e" - n);
+  return +(Math.round(num + `e+${n}`) + `e-${n}`);
 }
 
 async function convertir(Jimp, id, url, name, size, ancho, alto, calidad) {
