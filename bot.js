@@ -11,7 +11,7 @@ import Datastore from "nedb-promises";
 
 import axios from "axios";
 
-import { roundToAny, convertir } from "./functions.js";
+import { roundToAny, convertir, dealWithData } from "./functions.js";
 
 //const app = express();
 
@@ -1389,6 +1389,23 @@ async function removeUnusedItems() {
 }
 
 // TODO: webscraping desde lectulandia para últimos libros
+
+// probando ejemplo de reddit
+
+bot.on("/meme", (msg) => {
+  const mainUrl = `https://reddit.com/r/dankmemes`;
+  axios
+    .get(mainUrl)
+    .then(async (response) => {
+      const url = await dealWithData(response.data);
+      bot.sendPhoto(msg.chat.id, url, {
+        caption: `Robado de https://reddit.com/r/dankmemes`,
+      });
+    })
+    .catch((err) => {
+      console.log(err);
+    });
+});
 
 // TODO: hacer un contador
 // function updateKeyboard(count) {
