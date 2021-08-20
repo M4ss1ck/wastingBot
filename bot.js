@@ -11,7 +11,7 @@ import Datastore from "nedb-promises";
 
 import axios from "axios";
 
-import { roundToAny, convertir, dankMemes } from "./functions.js";
+import { roundToAny, convertir, dankMemes, lectulandia } from "./functions.js";
 
 //const app = express();
 
@@ -1415,6 +1415,40 @@ bot.on("/meme", (msg) => {
     .catch((err) => {
       console.log(err);
     });
+});
+
+bot.on(["/lec", "/lectulandia"], (msg) => {
+  if (msg.chat.type === "private") {
+    const mainUrl = `https://www.lectulandia.co/book/`;
+    axios
+      .get(mainUrl)
+      .then((response) => {
+        const books = lectulandia(response.data);
+        const librosEnOrden = async (_) => {
+          for (const book of books) {
+            const [enlace, portada, titulo, autor_nombre, autor_enlace, desc] =
+              book;
+            const caption = `<b>Título:</b> <a href="${enlace}">${titulo}</a>\n<b>Autor:</b> <a href="${autor_enlace}">${autor_nombre}</a>\n\n<em>${desc}</em>`;
+            //console.log(caption);
+            await bot.sendPhoto(msg.chat.id, portada, {
+              caption: caption,
+              parseMode: "html",
+            });
+          }
+        };
+
+        librosEnOrden();
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  } else {
+    bot.sendMessage(
+      msg.chat.id,
+      "Este comando sólo funciona por privado para no inundar el chat y evitar abusos",
+      { replyToMessage: msg.message_id }
+    );
+  }
 });
 
 // TODO: hacer un contador
