@@ -11,7 +11,7 @@ import Datastore from "nedb-promises";
 
 import axios from "axios";
 
-import { roundToAny, convertir, dealWithData } from "./functions.js";
+import { roundToAny, convertir, dankMemes } from "./functions.js";
 
 //const app = express();
 
@@ -614,13 +614,23 @@ bot.on(
             });
           }
 
-          return convertir(Jimp, id, url, name, size, ancho, alto, calidad);
+          return convertir(
+            Jimp,
+            bot,
+            id,
+            url,
+            name,
+            size,
+            ancho,
+            alto,
+            calidad
+          );
         });
     }
   }
 );
 
-bot.on(/^\/ge(t|t@\w+) (.+)$/, (msg, props) => {
+bot.on(/^\/ge(t|t@\w+) (.+)$/, (msg, self) => {
   const url = self.match[3];
   // checking if there's a callback
   let id = self.type === "callbackQuery" ? msg.message.chat.id : msg.chat.id;
@@ -1397,7 +1407,7 @@ bot.on("/meme", (msg) => {
   axios
     .get(mainUrl)
     .then(async (response) => {
-      const url = await dealWithData(response.data);
+      const url = await dankMemes(response.data);
       bot.sendPhoto(msg.chat.id, url, {
         caption: `Robado de https://reddit.com/r/dankmemes`,
       });
