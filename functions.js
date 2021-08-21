@@ -32,7 +32,8 @@ const cuantaRazonUno = (html, indexValue) => {
   const urlCR = $(".story_content img");
   const i = indexValue;
   const src = urlCR[i].attribs.src;
-  return src;
+  const title = urlCR[i].attribs.title;
+  return [src, title];
 };
 
 const dankMemes = (html) => {
