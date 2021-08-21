@@ -11,7 +11,14 @@ import Datastore from "nedb-promises";
 
 import axios from "axios";
 
-import { roundToAny, convertir, dankMemes, lectulandia } from "./functions.js";
+import {
+  roundToAny,
+  convertir,
+  dankMemes,
+  lectulandia,
+  lectulandia1,
+  dankMemesEsp,
+} from "./functions.js";
 
 //const app = express();
 
@@ -1401,14 +1408,64 @@ async function removeUnusedItems() {
 // TODO: webscraping desde lectulandia para últimos libros
 
 // probando ejemplo de reddit
+bot.on(/^\/meme$/, (msg, self) => {
+  let id = self.type === "callbackQuery" ? msg.message.chat.id : msg.chat.id;
+  const mainUrl = `https://reddit.com/r/dankmemes`;
+  axios
+    .get(mainUrl)
+    .then(async (response) => {
+      const cant = await dankMemes(response.data);
 
-bot.on("/meme", (msg) => {
+      let botones = [
+        [
+          bot.inlineButton(`Post aleatorio`, {
+            callback: `/memeRandom`,
+          }),
+        ],
+      ];
+      for (let i = 0; i < cant; i++) {
+        const boton = [
+          bot.inlineButton(`Post número ${i + 1}`, {
+            callback: `/meme ${i}`,
+          }),
+        ];
+
+        botones.push(boton);
+      }
+      const replyMarkup = bot.inlineKeyboard(botones);
+
+      await bot.sendMessage(
+        id,
+        `${cant} memes robados de https://reddit.com/r/dankmemes`,
+        { parseMode: "html", webPreview: false, replyMarkup }
+      );
+    })
+    .catch((err) => {
+      console.log(err);
+    });
+});
+
+bot.on(/^\/meme (\d+)$/, (msg, self) => {
+  let id = self.type === "callbackQuery" ? msg.message.chat.id : msg.chat.id;
+  const index = self.match[1];
+  console.log(index);
+  const mainUrl = `https://reddit.com/r/dankmemes`;
+  axios.get(mainUrl).then(async (response) => {
+    const url = await dankMemesEsp(response.data, index);
+    await bot.sendPhoto(id, url, {
+      caption: `Robado de https://reddit.com/r/dankmemes`,
+    });
+  });
+});
+
+bot.on("/memeRandom", (msg, self) => {
+  let id = self.type === "callbackQuery" ? msg.message.chat.id : msg.chat.id;
   const mainUrl = `https://reddit.com/r/dankmemes`;
   axios
     .get(mainUrl)
     .then(async (response) => {
       const url = await dankMemes(response.data);
-      bot.sendPhoto(msg.chat.id, url, {
+      bot.sendPhoto(id, url, {
         caption: `Robado de https://reddit.com/r/dankmemes`,
       });
     })
@@ -1417,27 +1474,77 @@ bot.on("/meme", (msg) => {
     });
 });
 
-bot.on(["/lec", "/lectulandia"], (msg) => {
+bot.on([/^\/lec$/, /^\/lectulandia$/], (msg, self) => {
+  let id = self.type === "callbackQuery" ? msg.message.chat.id : msg.chat.id;
   if (msg.chat.type === "private") {
     const mainUrl = `https://www.lectulandia.co/book/`;
     axios
       .get(mainUrl)
       .then((response) => {
         const books = lectulandia(response.data);
-        const librosEnOrden = async (_) => {
-          for (const book of books) {
-            const [enlace, portada, titulo, autor_nombre, autor_enlace, desc] =
-              book;
-            const caption = `<b>Título:</b> <a href="${enlace}">${titulo}</a>\n<b>Autor:</b> <a href="${autor_enlace}">${autor_nombre}</a>\n\n<em>${desc}</em>`;
-            //console.log(caption);
-            await bot.sendPhoto(msg.chat.id, portada, {
-              caption: caption,
-              parseMode: "html",
-            });
-          }
-        };
 
-        librosEnOrden();
+        const encabezado = `He encontrado ${books.length} libros: `;
+        //let texto = [encabezado];
+
+        let botones = [];
+        for (let i = 0; i < books.length; i++) {
+          const [enlace, portada, titulo, autor_nombre, autor_enlace, desc] =
+            books[i];
+          // const caption = `<b>Título:</b> <a href="${enlace}">${titulo}</a>\n<b>Autor:</b> <a href="${autor_enlace}">${autor_nombre}</a>`;
+          // texto.push(caption);
+          const boton = [
+            bot.inlineButton(`${titulo} de ${autor_nombre}`, {
+              callback: `/lec ${i}`,
+            }),
+          ];
+          botones.push(boton);
+        }
+
+        // const mensaje = texto.join("\n\n");
+
+        const replyMarkup = bot.inlineKeyboard(botones);
+
+        bot.sendMessage(id, encabezado, {
+          parseMode: "html",
+          webPreview: false,
+          replyMarkup,
+        });
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  } else {
+    bot.sendMessage(
+      id,
+      "Este comando sólo funciona por privado para no inundar el chat y evitar abusos",
+      { replyToMessage: msg.message_id }
+    );
+  }
+});
+
+// para un libro en específico y después para la botonera
+
+bot.on(/^\/(lec|lectulandia) (\d+)$/, (msg, self) => {
+  //console.log(self);
+  let id = self.type === "callbackQuery" ? msg.message.chat.id : msg.chat.id;
+  if (
+    (msg.chat && msg.chat.type === "private") ||
+    self.type === "callbackQuery"
+  ) {
+    const index = self.match[2];
+    const mainUrl = `https://www.lectulandia.co/book/`;
+    axios
+      .get(mainUrl)
+      .then((response) => {
+        const book = lectulandia1(response.data, index);
+        const [enlace, portada, titulo, autor_nombre, autor_enlace, desc] =
+          book;
+        const caption = `<b>Título:</b> <a href="${enlace}">${titulo}</a>\n<b>Autor:</b> <a href="${autor_enlace}">${autor_nombre}</a>\n\n<em>${desc}</em>`;
+        //console.log(caption);
+        bot.sendPhoto(id, portada, {
+          caption: caption,
+          parseMode: "html",
+        });
       })
       .catch((err) => {
         console.log(err);
