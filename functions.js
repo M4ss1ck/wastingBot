@@ -31,8 +31,6 @@ const cuantaRazonUno = (html, indexValue) => {
   const $ = cheerio.load(html);
   const urlCR = $(".story_content img");
   const i = indexValue;
-  console.log(urlCR[i]);
-  console.log(i);
   const src = urlCR[i].attribs.src;
   return src;
 };
