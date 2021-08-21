@@ -18,6 +18,8 @@ import {
   lectulandia,
   lectulandia1,
   dankMemesEsp,
+  cuantaRazon,
+  cuantaRazonUno,
 } from "./functions.js";
 
 //const app = express();
@@ -1405,8 +1407,6 @@ async function removeUnusedItems() {
   }
 }
 
-// TODO: webscraping desde lectulandia para últimos libros
-
 // probando ejemplo de reddit
 bot.on(/^\/meme$/, (msg, self) => {
   let id = self.type === "callbackQuery" ? msg.message.chat.id : msg.chat.id;
@@ -1556,6 +1556,63 @@ bot.on(/^\/(lec|lectulandia) (\d+)$/, (msg, self) => {
       { replyToMessage: msg.message_id }
     );
   }
+});
+
+// lo mismo de lectulandia para cuantarazon.com
+
+bot.on([/^\/cr$/i, /^\/cuantarazon$/i], (msg, self) => {
+  let id = self.type === "callbackQuery" ? msg.message.chat.id : msg.chat.id;
+  if (msg.chat.type === "private") {
+    const mainUrl = `https://www.cuantarazon.com/ultimos/p/1`;
+    axios
+      .get(mainUrl)
+      .then(async (response) => {
+        const cant = await cuantaRazon(response.data);
+
+        let botones = [];
+        for (let i = 0; i < cant; i++) {
+          const boton = [
+            bot.inlineButton(`Foto número ${i + 1}`, {
+              callback: `/cr ${i}`,
+            }),
+          ];
+
+          botones.push(boton);
+        }
+        const replyMarkup = bot.inlineKeyboard(botones);
+
+        await bot.sendMessage(
+          id,
+          `${cant} fotos robadas de https://www.cuantarazon.com`,
+          { parseMode: "html", webPreview: false, replyMarkup }
+        );
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  } else {
+    bot.sendMessage(
+      id,
+      "Este comando sólo funciona por privado para no inundar el chat y evitar abusos",
+      { replyToMessage: msg.message_id }
+    );
+  }
+});
+
+// para un meme en específico y después para la botonera
+
+bot.on(/^\/(cr|cuantarazon) (\d+)$/, (msg, self) => {
+  //console.log(self);
+  let id = self.type === "callbackQuery" ? msg.message.chat.id : msg.chat.id;
+  const index = self.match[2];
+  //console.log(index);
+  const mainUrl = `https://www.cuantarazon.com/ultimos/p/1`;
+  axios.get(mainUrl).then(async (response) => {
+    const url = await cuantaRazonUno(response.data, index);
+    await bot.sendPhoto(id, url, {
+      caption: `Robada de https://www.cuantarazon.com`,
+    });
+  });
 });
 
 // TODO: hacer un contador

@@ -21,6 +21,21 @@ async function convertir(Jimp, bot, id, url, name, size, ancho, alto, calidad) {
     console.error(err);
   }
 }
+const cuantaRazon = (html) => {
+  const $ = cheerio.load(html);
+  const urlCR = $(".story_content img");
+  return urlCR.length;
+};
+
+const cuantaRazonUno = (html, indexValue) => {
+  const $ = cheerio.load(html);
+  const urlCR = $(".story_content img");
+  const i = indexValue;
+  console.log(urlCR[i]);
+  console.log(i);
+  const src = urlCR[i].attribs.src;
+  return src;
+};
 
 const dankMemes = (html) => {
   const $ = cheerio.load(html);
@@ -113,4 +128,6 @@ export {
   lectulandia,
   lectulandia1,
   dankMemesEsp,
+  cuantaRazon,
+  cuantaRazonUno,
 };
