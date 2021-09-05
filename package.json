@@ -19,6 +19,7 @@
     "jimp": "^0.16.1",
     "mongodb": "^4.1.0",
     "nedb-promises": "^5.0.0",
+    "node-cron": "^3.0.0",
     "process": "^0.11.10",
     "telebot": "^1.4.1"
   }

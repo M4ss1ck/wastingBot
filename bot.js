@@ -22,6 +22,8 @@ import {
   cuantaRazonUno,
 } from "./functions.js";
 
+import cron from "node-cron";
+
 //const app = express();
 
 let db;
@@ -1607,6 +1609,14 @@ bot.on(/^\/(cr|cuantarazon) (\d+)( p(\d+))?$/, (msg, self) => {
       caption: `"${titulo}"\nRobada de https://www.cuantarazon.com`,
     });
   });
+});
+
+// para que el bot no deje de funcionar a la semana, que envíe mensajes constantemente
+cron.schedule("0 */1 * * *", () => {
+  const chat_id = process.env.KEEP_ALIVE_CHAT_ID;
+  const fecha = new Date();
+  console.log("[ping] Todo fresa\n", fecha);
+  bot.sendMessage(chat_id, `Estoy vivo\nCon fecha ${fecha}`);
 });
 
 // TODO: hacer un contador
