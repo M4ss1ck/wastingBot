@@ -5,9 +5,6 @@ import process from "process";
 import lista from "./launcher_list.js";
 
 import Jimp from "jimp";
-import fs from "fs";
-
-import Datastore from "nedb-promises";
 
 import axios from "axios";
 
@@ -24,32 +21,9 @@ import {
 
 import cron from "node-cron";
 
+import { query } from "./db.js";
+
 //const app = express();
-
-let db;
-const iniciarbd = async () => {
-  db = await Datastore.create({
-    filename: "database/nicks.db",
-    autoload: true,
-    corruptAlertThreshold: 1,
-  });
-};
-
-iniciarbd();
-
-try {
-  fs.accessSync("database/nicks.db");
-  console.log("[BD] La BD está ubicada en database/nicks.db");
-} catch (err) {
-  console.log("[BD] La BD no se encuentra");
-  console.error(err);
-  fs.copyFile("database/copy_nicks.db", "database/nicks.db", (err) => {
-    if (err) {
-      console.log("[ERROR DE COPIA] ", err);
-    }
-  });
-  console.log("[BD] se utilizará la copia de respaldo");
-}
 
 const my_id = process.env.ADMIN_ID;
 const victim = process.env.VICTIM;
@@ -257,11 +231,11 @@ bot.on(/^\/cal(c|c@\w+)( (.+))?$/, (msg, props) => {
   }
 });
 
-bot.on(["/start", "/jelou"], (msg, self) => {
+bot.on(["/start", "/jelou"], async (msg, self) => {
   //console.log("SELF: ", self);
   //console.log("MSG: ", msg);
   let id = self.type === "callbackQuery" ? msg.message.chat.id : msg.chat.id;
-
+  await query("SELECT * FROM usuarios");
   return bot.sendMessage(id, "Envía /ayuda para ver algunas opciones.");
 });
 
@@ -817,48 +791,73 @@ bot.on("text", (msg) => {
       .join(" ")} (${from_id}) - ${text}`
   );
 
-  let name = msg.from.first_name;
-  //const tg_id = msg.from.id;
-  db.findOne({ tg_id: from_id.toString() }).then((res) => {
-    name = res === null ? name : res.nick;
+  let name;
+  query(
+    `SELECT nick FROM usuarios WHERE tg_id = '${from_id}'`,
+    [],
+    (err, res) => {
+      if (err) {
+        console.log("[ERROR SELECTING] weird af");
+        console.log(err.stack);
+      } else {
+        console.log("[res.rows[0]]");
+        console.log(res.rows[0]);
 
-    lista.map((launcher) => {
-      const re = new RegExp("^" + launcher.search + "$", "i");
+        name = res.rows[0] === undefined ? first_name : res.rows[0].nick;
 
-      if (msg.text.match(re)) {
-        console.log(re);
-        if (!msg.reply_to_message) {
-          console.log("[alone] [name] ", name);
-          return bot.sendMessage(
-            msg.chat.id,
-            `<a href="tg://user?id=${from_id}"> ${name} </a> ${
-              launcher.alone[Math.floor(Math.random() * launcher.alone.length)]
-            }`,
-            { parseMode: "html" }
-          );
-        } else {
-          let reply_name = msg.reply_to_message.from.first_name;
-          const reply_id = msg.reply_to_message.from.id;
-          db.findOne({ tg_id: reply_id.toString() }).then((res) => {
-            reply_name = res === null ? reply_name : res.nick;
+        lista.map((launcher) => {
+          const re = new RegExp("^" + launcher.search + "$", "i");
 
-            return bot.sendMessage(
-              msg.chat.id,
-              `<a href="tg://user?id=${from_id}"> ${name} </a> ${
-                launcher.as_reply[
-                  Math.floor(Math.random() * launcher.as_reply.length)
-                ]
-              } <a href="tg://user?id=${reply_id}"> ${reply_name} </a>`,
-              { parseMode: "html" }
-            );
-          });
-        }
+          if (msg.text.match(re)) {
+            console.log(re);
+            if (!msg.reply_to_message) {
+              //console.log("[alone] [name] ", name);
+              return bot.sendMessage(
+                msg.chat.id,
+                `<a href="tg://user?id=${from_id}"> ${name} </a> ${
+                  launcher.alone[
+                    Math.floor(Math.random() * launcher.alone.length)
+                  ]
+                }`,
+                { parseMode: "html" }
+              );
+            } else {
+              let reply_name = msg.reply_to_message.from.first_name;
+              const reply_id = msg.reply_to_message.from.id;
+
+              query(
+                `SELECT nick FROM usuarios WHERE tg_id = '${reply_id}'`,
+                [],
+                (err, res) => {
+                  if (err) {
+                    console.log("[ERROR SELECTING] weird af");
+                    console.log(err.stack);
+                  } else {
+                    reply_name =
+                      res.rows[0] === undefined ? reply_name : res.rows[0].nick;
+                    return bot.sendMessage(
+                      msg.chat.id,
+                      `<a href="tg://user?id=${from_id}"> ${name} </a> ${
+                        launcher.as_reply[
+                          Math.floor(Math.random() * launcher.as_reply.length)
+                        ]
+                      } <a href="tg://user?id=${reply_id}"> ${reply_name} </a>`,
+                      { parseMode: "html" }
+                    );
+                  }
+                }
+              );
+            }
+          }
+        });
       }
-    });
-  });
+    }
+  );
 });
 
 //para la reputación
+//postgres
+
 bot.on(
   [
     /^\++$/,
@@ -870,98 +869,138 @@ bot.on(
     /^yes$/,
   ],
   (msg) => {
-    const from_id = msg.from.id;
-    db.findOne({ tg_id: from_id.toString() })
-      .then((res) => {
-        const user_nick =
-          res === null
-            ? msg.from.first_name
-            : res.nick
-            ? res.nick
-            : msg.from.first_name;
-        const user_rep = res ? parseInt(res.rep - 1000) : 1;
-        db.update(
-          { tg_id: from_id.toString() },
-          { $set: { rep: parseInt(user_rep + 1000) } }
-        );
-        if (!msg.reply_to_message) {
-          return bot.sendMessage(
-            msg.chat.id,
-            `Debes responder un mensaje, ${user_nick}`
-          );
-        } else {
-          // se está respondiendo un mensaje
-          // ahora hay que evitar el farmeo de puntos
-
-          if (
-            msg.reply_to_message.from.id === from_id &&
-            from_id !== parseInt(my_id)
-          ) {
-            //responder a uno mismo
-            return bot.sendMessage(
-              msg.chat.id,
-              `<a href="tg://user?id=${from_id}">${user_nick}</a> ha intentado hacer trampas... \n<em>qué idiota</em>`,
-              { parseMode: "html" }
-            );
+    if (msg.reply_to_message) {
+      //id del remitente
+      const from_id = msg.from.id;
+      //extraer nick y rep del remitente
+      query(
+        `SELECT rep, nick FROM usuarios WHERE tg_id = '${from_id}'`,
+        [],
+        (err, res) => {
+          if (err) {
+            console.log("[ERROR SELECTING] weird af");
+            console.log(err.stack);
           } else {
-            // aquí va el manejo de la reputación
-            const reply_id = msg.reply_to_message.from.id;
-
-            //buscando al que sube la reputación en la BD
-            db.findOne({ tg_id: reply_id.toString() })
-              .then((res) => {
-                const reply_nick =
-                  res === null
-                    ? msg.reply_to_message.from.first_name
-                    : res.nick
-                    ? res.nick
-                    : msg.reply_to_message.from.first_name;
-
-                if (res === null) {
-                  let new_rep = {
-                    tg_id: reply_id.toString(),
-                    rep: 1001,
-                    fecha: new Date(),
-                    nick: reply_nick,
-                  };
-                  db.insert(new_rep);
-                  removeUnusedItems();
-                  return bot.sendMessage(
-                    msg.chat.id,
-                    `<a href="tg://user?id=${from_id}">${user_nick}</a> hace posible que comience el viaje de <a href="tg://user?id=${reply_id}">${reply_nick}</a> al otorgarle 1 punto de reputación.`,
-                    { parseMode: "html" }
-                  );
-                } else {
-                  let reply_rep = res.rep ? parseInt(res.rep - 999) : 2;
-                  let new_rep = {
-                    rep: parseInt(reply_rep + 1000),
-                    fecha: new Date(),
-                  };
-
-                  db.update({ tg_id: reply_id.toString() }, { $set: new_rep });
-                  removeUnusedItems();
-                  console.log(
-                    `${reply_nick} tiene ${reply_rep} puntos de reputación ahora, cortesía de ${user_nick} (rep: ${user_rep})`
-                  );
-                  bot.sendMessage(
-                    msg.chat.id,
-                    `<a href="tg://user?id=${reply_id}">${reply_nick}</a> tiene ${reply_rep} puntos de reputación ahora, cortesía de <a href="tg://user?id=${from_id}">${user_nick}</a> (rep: ${user_rep})`,
-                    { parseMode: "html" }
-                  );
+            // inicializar rep y nick del usuario
+            let from_rep = 0;
+            let from_nick = msg.from.first_name;
+            // en caso de no encontrar elementos en la tabla, agrega un nuevo usuario
+            if (res.rows[0] === undefined) {
+              const values = [from_id, from_rep, new Date(), from_nick];
+              query(
+                "INSERT INTO usuarios(tg_id, rep, fecha, nick) VALUES($1, $2, $3, $4)",
+                values,
+                (err, res) => {
+                  if (err) {
+                    console.log("[ERROR UPDATING]");
+                    console.log(err.stack);
+                  } else {
+                    console.log("[res.rows[0]]");
+                    console.log(res.rows[0]);
+                    //console.log(res);
+                  }
                 }
-              })
-              .catch((err) => console.error(err));
+              );
+            } else {
+              console.log("[res.rows[0]]");
+              console.log(res.rows[0]);
+              // si todo va bien, tomo los valores
+              from_rep = res.rows[0].rep;
+              from_nick = res.rows[0].nick;
+            }
+
+            //farmeo de puntos
+            if (
+              msg.reply_to_message.from.id === from_id &&
+              from_id !== parseInt(my_id)
+            ) {
+              //responder a uno mismo
+              return bot.sendMessage(
+                msg.chat.id,
+                `<a href="tg://user?id=${from_id}">${from_nick}</a> ha intentado hacer trampas... \n<em>qué idiota</em>`,
+                { parseMode: "html" }
+              );
+            } else {
+              // aquí va el manejo de la reputación
+              const reply_id = msg.reply_to_message.from.id;
+
+              //buscando al que sube la reputación en la BD
+              query(
+                `SELECT rep, nick FROM usuarios WHERE tg_id = '${reply_id}'`,
+                [],
+                (err, res) => {
+                  if (err) {
+                    console.log("[ERROR SELECTING] weird af");
+                    console.log(err.stack);
+                  } else {
+                    // inicializar rep y nick del otro usuario
+                    let reply_rep = 1;
+                    let reply_nick = msg.reply_to_message.from.first_name;
+                    // en caso de no encontrar elementos en la tabla, agrega un nuevo usuario
+                    if (res.rows[0] === undefined) {
+                      const values = [
+                        reply_id,
+                        reply_rep,
+                        new Date(),
+                        reply_nick,
+                      ];
+                      query(
+                        "INSERT INTO usuarios(tg_id, rep, fecha, nick) VALUES($1, $2, $3, $4)",
+                        values,
+                        (err, res) => {
+                          if (err) {
+                            console.log("[ERROR UPDATING]");
+                            console.log(err.stack);
+                          } else {
+                            console.log("[res.rows[0]]");
+                            console.log(res.rows[0]);
+                            //console.log(res);
+                          }
+                        }
+                      );
+                    } else {
+                      console.log("[res.rows[0]]");
+                      console.log(res.rows[0]);
+                      // si todo va bien, tomo los valores
+                      reply_rep = res.rows[0].rep;
+                      reply_nick = res.rows[0].nick;
+                    }
+
+                    query(
+                      `UPDATE usuarios SET rep = rep + 1, fecha = now() WHERE tg_id = '${reply_id}' RETURNING *`,
+                      [],
+                      (err, res) => {
+                        if (err) {
+                          console.log("[ERROR UPDATING]");
+                          console.log(err.stack);
+                        } else {
+                          console.log("[res.rows[0]]");
+                          console.log(res.rows[0]);
+                          //console.log(res);
+                        }
+                      }
+                    );
+
+                    console.log(
+                      `${reply_nick} tiene ${
+                        reply_rep + 1
+                      } puntos de reputación ahora, cortesía de ${from_nick} (rep: ${from_rep})`
+                    );
+                    bot.sendMessage(
+                      msg.chat.id,
+                      `<a href="tg://user?id=${reply_id}">${reply_nick}</a> tiene ${
+                        reply_rep + 1
+                      } puntos de reputación ahora, cortesía de <a href="tg://user?id=${from_id}">${from_nick}</a> (rep: ${from_rep})`,
+                      { parseMode: "html" }
+                    );
+                  }
+                }
+              );
+            }
           }
         }
-      })
-      .then((res) => {
-        fs.copyFile("database/nicks.db", "database/copy_nicks.db", (err) => {
-          if (err) {
-            console.log("[ERROR DE COPIA] ", err);
-          }
-        });
-        console.log("[BD] actualizada");
-      });
+      );
+    }
   }
 );
 
@@ -975,97 +1014,149 @@ bot.on(
     /^uff$/i,
     /^mm+$/i,
     /^n(o|op|ope)$/i,
-    /^yesn't$/,
+    /^yesn't$/i,
   ],
   (msg) => {
-    const from_id = msg.from.id;
-    db.findOne({ tg_id: from_id.toString() })
-      .then((res) => {
-        const user_nick =
-          res === null
-            ? msg.from.first_name
-            : res.nick
-            ? res.nick
-            : msg.from.first_name;
-
-        const user_rep = res ? parseInt(res.rep - 1000) : 1;
-        db.update(
-          { tg_id: from_id.toString() },
-          { $set: { rep: parseInt(user_rep + 1000) } }
-        ); // intentando arreglar algo
-        if (!msg.reply_to_message) {
-          return bot.sendMessage(
-            msg.chat.id,
-            `Debes responder un mensaje, ${user_nick}`
-          );
-        } else {
-          // se está respondiendo un mensaje
-          // ahora hay que evitar el farmeo de puntos, aunque no me interesa xq estamos quitando
-
-          // aquí va el manejo de la reputación
-          const reply_id = msg.reply_to_message.from.id;
-
-          //buscando al que sube la reputación en la BD
-          db.findOne({ tg_id: reply_id.toString() })
-            .then((res) => {
-              const reply_nick =
-                res === null
-                  ? msg.reply_to_message.from.first_name
-                  : res.nick
-                  ? res.nick
-                  : msg.reply_to_message.from.first_name;
-
-              if (res === null) {
-                let new_rep = {
-                  tg_id: reply_id.toString(),
-                  rep: 999,
-                  fecha: new Date(),
-                  nick: reply_nick,
-                };
-                db.insert(new_rep);
-                removeUnusedItems();
-                return bot.sendMessage(
-                  msg.chat.id,
-                  `<a href="tg://user?id=${from_id}">${user_nick}</a> hace posible que comience el viaje de <a href="tg://user?id=${reply_id}">${reply_nick}</a>, pero lo hizo quitándole reputación. Ahora tiene -1.`,
-                  { parseMode: "html" }
-                );
-              } else {
-                let reply_rep = res.rep ? parseInt(res.rep - 1000 - 1) : 0;
-                let new_rep = {
-                  rep: parseInt(reply_rep + 1000),
-                  fecha: new Date(),
-                };
-
-                db.update({ tg_id: reply_id.toString() }, { $set: new_rep });
-                removeUnusedItems();
-                console.log(
-                  `${reply_nick} tiene ${reply_rep} puntos de reputación ahora, cortesía de ${user_nick} (rep: ${user_rep})`
-                );
-                bot.sendMessage(
-                  msg.chat.id,
-                  `<a href="tg://user?id=${reply_id}">${reply_nick}</a> tiene ${reply_rep} puntos de reputación ahora, cortesía de <a href="tg://user?id=${from_id}">${user_nick}</a> (rep: ${user_rep})`,
-                  { parseMode: "html" }
-                );
-              }
-            })
-            .catch((err) => console.error(err));
-        }
-      })
-      .then((res) => {
-        fs.copyFile("database/nicks.db", "database/copy_nicks.db", (err) => {
+    if (msg.reply_to_message) {
+      //id del remitente
+      const from_id = msg.from.id;
+      //extraer nick y rep del remitente
+      query(
+        `SELECT rep, nick FROM usuarios WHERE tg_id = '${from_id}'`,
+        [],
+        (err, res) => {
           if (err) {
-            console.log("[ERROR DE COPIA] ", err);
+            console.log("[ERROR SELECTING] weird af");
+            console.log(err.stack);
+          } else {
+            // inicializar rep y nick del usuario
+            let from_rep = 0;
+            let from_nick = msg.from.first_name;
+            // en caso de no encontrar elementos en la tabla, agrega un nuevo usuario
+            if (res.rows[0] === undefined) {
+              const values = [from_id, from_rep, new Date(), from_nick];
+              query(
+                "INSERT INTO usuarios(tg_id, rep, fecha, nick) VALUES($1, $2, $3, $4)",
+                values,
+                (err, res) => {
+                  if (err) {
+                    console.log("[ERROR UPDATING]");
+                    console.log(err.stack);
+                  } else {
+                    console.log("[res.rows[0]]");
+                    console.log(res.rows[0]);
+                    //console.log(res);
+                  }
+                }
+              );
+            } else {
+              console.log("[res.rows[0]]");
+              console.log(res.rows[0]);
+              // si todo va bien, tomo los valores
+              from_rep = res.rows[0].rep;
+              from_nick = res.rows[0].nick;
+            }
+
+            //farmeo de puntos
+            if (
+              msg.reply_to_message.from.id === from_id &&
+              from_id !== parseInt(my_id)
+            ) {
+              //responder a uno mismo
+              return bot.sendMessage(
+                msg.chat.id,
+                `<a href="tg://user?id=${from_id}">${from_nick}</a> ha intentado hacer trampas... \n<em>qué idiota</em>`,
+                { parseMode: "html" }
+              );
+            } else {
+              // aquí va el manejo de la reputación
+              const reply_id = msg.reply_to_message.from.id;
+
+              //buscando al que sube la reputación en la BD
+              query(
+                `SELECT rep, nick FROM usuarios WHERE tg_id = '${reply_id}'`,
+                [],
+                (err, res) => {
+                  if (err) {
+                    console.log("[ERROR SELECTING] weird af");
+                    console.log(err.stack);
+                  } else {
+                    // inicializar rep y nick del otro usuario
+                    let reply_rep = -1;
+                    let reply_nick = msg.reply_to_message.from.first_name;
+                    // en caso de no encontrar elementos en la tabla, agrega un nuevo usuario
+                    if (res.rows[0] === undefined) {
+                      const values = [
+                        reply_id,
+                        reply_rep,
+                        new Date(),
+                        reply_nick,
+                      ];
+                      query(
+                        "INSERT INTO usuarios(tg_id, rep, fecha, nick) VALUES($1, $2, $3, $4)",
+                        values,
+                        (err, res) => {
+                          if (err) {
+                            console.log("[ERROR UPDATING]");
+                            console.log(err.stack);
+                          } else {
+                            console.log("[res.rows[0]]");
+                            console.log(res.rows[0]);
+                            //console.log(res);
+                          }
+                        }
+                      );
+                    } else {
+                      console.log("[res.rows[0]]");
+                      console.log(res.rows[0]);
+                      // si todo va bien, tomo los valores
+                      reply_rep = res.rows[0].rep;
+                      reply_nick = res.rows[0].nick;
+                    }
+
+                    query(
+                      `UPDATE usuarios SET rep = rep - 1, fecha = now() WHERE tg_id = '${reply_id}' RETURNING *`,
+                      [],
+                      (err, res) => {
+                        if (err) {
+                          console.log("[ERROR UPDATING]");
+                          console.log(err.stack);
+                        } else {
+                          console.log("[res.rows[0]]");
+                          console.log(res.rows[0]);
+                          //console.log(res);
+                        }
+                      }
+                    );
+
+                    console.log(
+                      `${reply_nick} tiene ${
+                        reply_rep - 1
+                      } puntos de reputación ahora, cortesía de ${from_nick} (rep: ${from_rep})`
+                    );
+                    bot.sendMessage(
+                      msg.chat.id,
+                      `<a href="tg://user?id=${reply_id}">${reply_nick}</a> tiene ${
+                        reply_rep - 1
+                      } puntos de reputación ahora, cortesía de <a href="tg://user?id=${from_id}">${from_nick}</a> (rep: ${from_rep})`,
+                      { parseMode: "html" }
+                    );
+                  }
+                }
+              );
+            }
           }
-        });
-        console.log("[BD] actualizada");
-      });
+        }
+      );
+    }
   }
 );
 
 // para reiniciar los valores de rep
 bot.on("/reset_rep", (msg) => {
   if (msg.from.id.toString() === my_id) {
-    db.update({}, { $set: { rep: 1000 } });
+    query("UPDATE usuarios SET rep = 0");
+
     return bot.sendMessage(
       msg.chat.id,
       `Se ha reiniciado la reputación para todos los usuarios`
@@ -1080,101 +1171,106 @@ bot.on(/^\/set_rep (\d+) (\d+|\-\d+)$/, (msg, props) => {
     const dest_id = props.match[1];
     const dest_rep = props.match[2];
 
-    db.findOne({ tg_id: dest_id.toString() })
-      .then((res) => {
-        const dest_nick =
-          res === null
-            ? msg.from.first_name
-            : res.nick
-            ? res.nick
-            : msg.from.first_name;
-        if (res === null) {
-          const new_input = {
-            tg_id: dest_id.toString(),
-            nick: dest_nick,
-            rep: parseInt(dest_rep) + 1000,
-            fecha: new Date(),
-          };
-          db.insert(new_input);
-          removeUnusedItems();
-          return bot.sendMessage(
-            msg.chat.id,
-            `Se ha registrado a ${dest_nick} con reputación ${dest_rep}`
-          );
+    query(
+      `SELECT rep, nick FROM usuarios WHERE tg_id = '${dest_id}'`,
+      [],
+      (err, res) => {
+        if (err) {
+          console.log("[ERROR SELECTING] weird af");
+          console.log(err.stack);
         } else {
-          db.update(
-            { tg_id: dest_id.toString() },
-            { $set: { rep: parseInt(dest_rep) + 1000 } }
-          );
-          removeUnusedItems();
-          return bot.sendMessage(
-            msg.chat.id,
-            `Se ha actualizado el registro de ${dest_nick} con reputación ${dest_rep}`
-          );
+          // inicializar rep y nick del otro usuario
+
+          let dest_nick = msg.from.first_name;
+          // en caso de no encontrar elementos en la tabla, agrega un nuevo usuario
+          if (res.rows[0] === undefined) {
+            const values = {
+              tg_id: dest_id.toString(),
+              nick: dest_nick,
+              rep: parseInt(dest_rep),
+              fecha: new Date(),
+            };
+            query(
+              "INSERT INTO usuarios(tg_id, rep, fecha, nick) VALUES($1, $2, $3, $4)",
+              values,
+              (err, res) => {
+                if (err) {
+                  console.log("[ERROR UPDATING]");
+                  console.log(err.stack);
+                } else {
+                  console.log("[res.rows[0]]");
+                  console.log(res.rows[0]);
+                  //console.log(res);
+                }
+              }
+            );
+            return bot.sendMessage(
+              msg.chat.id,
+              `Se ha registrado a ${dest_nick} con reputación ${dest_rep}`
+            );
+          } else {
+            console.log("[res.rows[0]]");
+            console.log(res.rows[0]);
+            // si todo va bien, tomo los valores
+
+            dest_nick = res.rows[0].nick;
+            query(
+              `UPDATE usuarios SET rep = ${parseInt(
+                dest_rep
+              )}, fecha = now() WHERE tg_id = '${dest_id}' RETURNING *`,
+              [],
+              (err, res) => {
+                if (err) {
+                  console.log("[ERROR UPDATING]");
+                  console.log(err.stack);
+                } else {
+                  console.log("[res.rows[0]]");
+                  console.log(res.rows[0]);
+                  //console.log(res);
+                }
+              }
+            );
+            return bot.sendMessage(
+              msg.chat.id,
+              `Se ha actualizado el registro de ${dest_nick} con reputación ${dest_rep}`
+            );
+          }
         }
-      })
-      .then((res) => {
-        fs.copyFile("database/nicks.db", "database/copy_nicks.db", (err) => {
-          if (err) {
-            console.log("[ERROR DE COPIA] ", err);
-          }
-        });
-        console.log("[BD] actualizada");
-      });
+      }
+    );
   }
 });
 
-bot.on("/bd", (msg) => {
-  if (msg.from.id.toString() === my_id) {
-    removeUnusedItems();
-    return bot.sendDocument(msg.from.id, "database/nicks.db", {
-      caption: `Copia de seguridad de la BD\n${new Date()}`,
-    });
-  }
-});
+// importar BD, no debe ser necesario (por lo menos la implementación actual no sirve)
 
-bot.on(["/set_bd", "/set_db"], (msg) => {
-  console.log(msg);
-  if (msg.reply_to_message && msg.from.id.toString() === my_id) {
-    if (msg.reply_to_message.document) {
-      console.log("[DOCUMENT FOUND]");
-      bot.getFile(msg.reply_to_message.document.file_id).then((res) => {
-        //console.log(res);
-        const url = res.fileLink;
-        axios({
-          //method: "get",
-          url: url,
-          //responseType: "blob",
-        }).then(async (res) => {
-          //console.log(res.data);
-          const new_data = res.data
-            .replace(/,"_id":"[a-zA-Z0-9]+"}/g, "}")
-            .replace(/\n/g, "123")
-            .split("123");
+// bot.on(["/set_bd", "/set_db"], (msg) => {
+//   console.log(msg);
+//   if (msg.reply_to_message && msg.from.id.toString() === my_id) {
+//     if (msg.reply_to_message.document) {
+//       console.log("[DOCUMENT FOUND]");
+//       bot.getFile(msg.reply_to_message.document.file_id).then((res) => {
+//         const url = res.fileLink;
+//         axios({
+//           url: url,
+//         }).then(async (res) => {
+//           const new_data = res.data
+//             .replace(/,"_id":"[a-zA-Z0-9]+"}/g, "}")
+//             .replace(/\n/g, "123")
+//             .split("123");
 
-          let list = [];
-          //list.push(new_data);
-          //console.log(new_data);
-          //console.log(JSON.parse(new_data[0]));
-          for (let i = 0; i < new_data.length - 1; i++) {
-            list.push(JSON.parse(new_data[i]));
-          }
-          //console.log(new Date(list[0].fecha.$$date));
-
-          for (let i = 0; i < list.length; i++) {
-            list[i].fecha = new Date(list[i].fecha.$$date);
-          }
-
-          //console.log(list[0]);
-
-          await db.insert(list);
-          //removeUnusedItems();
-        });
-      });
-    }
-    //console.log("test");
-  }
-});
+//           let list = [];
+//           for (let i = 0; i < new_data.length - 1; i++) {
+//             list.push(JSON.parse(new_data[i]));
+//           }
+//           for (let i = 0; i < list.length; i++) {
+//             list[i].fecha = new Date(list[i].fecha.$$date);
+//           }
+//           await db.insert(list);
+//         });
+//       });
+//     }
+//   }
+// });
 
 // SPAM
 bot.on(/^\/ta(g|g@\w+)( \d+)?$/, (msg, self) => {
@@ -1252,87 +1348,79 @@ bot.on("/sticker", (msg) => {
 // trabajo con bases de datos
 
 bot.on(/^\/(nick|nick@\w+) (.+)$/, (msg, props) => {
-  const texto = props.match[2];
+  const nuevo_nick = props.match[2];
   const tg_id = msg.from.id;
-  db.findOne({ tg_id: tg_id.toString() })
-    .then((res, err) => {
-      //console.log(res);
-      console.log(err);
-      if (res === null) {
-        let new_nick = {
-          tg_id: tg_id.toString(),
-          nick: texto,
-          fecha: new Date(),
-          rep: 1000,
-        };
-        db.insert(new_nick);
-
-        console.log(
-          "El nick de " +
-            msg.from.first_name +
-            " será " +
-            texto +
-            "\ncon una reputación de 0"
-        );
-        return bot
-          .sendMessage(
-            msg.chat.id,
-            "El nick de " + msg.from.first_name + " será " + texto,
-            {
-              parseMode: "html",
-            }
-          )
-          .catch((error) => {
-            console.log("Hubo un error", error.description);
-            return bot.sendMessage(msg.from.id, error.description);
-          });
+  //buscar el id en la bd
+  query(
+    `SELECT nick FROM usuarios WHERE tg_id = '${tg_id}'`,
+    [],
+    (err, res) => {
+      if (err) {
+        console.log("[ERROR SELECTING] weird af");
+        console.log(err.stack);
       } else {
-        let new_nick = {
-          nick: texto,
-          //fecha: new Date(),
-        };
-        db.update({ tg_id: tg_id.toString() }, { $set: new_nick });
+        // en caso de no encontrar elementos en la tabla, agrega un nuevo usuario
+        if (res.rows[0] === undefined) {
+          const values = [tg_id, 0, new Date(), nuevo_nick];
+          query(
+            "INSERT INTO usuarios(tg_id, rep, fecha, nick) VALUES($1, $2, $3, $4)",
+            values,
+            (err, res) => {
+              if (err) {
+                console.log("[ERROR UPDATING]");
+                console.log(err.stack);
+              } else {
+                console.log("[res.rows[0]]");
+                console.log(res.rows[0]);
+                //console.log(res);
+              }
+            }
+          );
+        } else {
+          console.log("[res.rows[0]]");
+          console.log(res.rows[0]);
+          // si todo va bien, cambio el nick
+          query(
+            `UPDATE usuarios SET nick = '${nuevo_nick}', fecha = now() WHERE tg_id = '${tg_id}' RETURNING *`,
+            [],
+            (err, res) => {
+              if (err) {
+                console.log("[ERROR UPDATING]");
+                console.log(err.stack);
+              } else {
+                console.log("[res.rows[0]]");
+                console.log(res.rows[0]);
+                //console.log(res);
+              }
+            }
+          );
+        }
         console.log(
-          "El nuevo nick de " +
-            msg.from.first_name +
-            " será " +
-            texto +
-            "\ncon una reputación de " +
-            (res.rep - 1000)
+          "El nick de " + msg.from.first_name + " será " + nuevo_nick
         );
         return bot
           .sendMessage(
             msg.chat.id,
-            "El nuevo nick de " + msg.from.first_name + " será " + texto,
+            "El nick de " + msg.from.first_name + " será " + nuevo_nick,
             {
               parseMode: "html",
             }
           )
           .catch((error) => {
-            console.log("Hubo un error", error.description);
+            console.log(
+              "[/nick] Hubo un error agregando un usuario",
+              error.description
+            );
             return bot.sendMessage(msg.from.id, error.description);
           });
       }
-    })
-    .then((res) => {
-      console.log(res);
-      fs.copyFile("database/nicks.db", "database/copy_nicks.db", (err) => {
-        if (err) {
-          console.log("[ERROR DE COPIA] ", err);
-        }
-      });
-    });
+    }
+  );
 });
 
 // error handling
 
 bot.on("error", (error) => console.error("ERROR", error));
-
-bot.on("/fix", (msg) => {
-  removeUnusedItems();
-  //console.log(error);
-  return bot.sendMessage(msg.from.id, "[CALLING removeUnusedItems()]");
-});
 
 bot.start();
 
@@ -1369,45 +1457,6 @@ process.on("unhandledRejection", (reason, promise) => {
   // Application specific logging, throwing an error, or other logic here
   //bot.start();
 });
-
-// TODO: función para borrar entradas repetidas (porque fueron actualizadas) de la BD
-async function removeUnusedItems() {
-  try {
-    await db
-      .find({})
-      .sort({ fecha: -1 })
-      .then((res) => {
-        console.log("[removeUnusedItems]");
-        let idList = [];
-        // revisar cada usuario de la BD
-        for (const current_user of res) {
-          if (!idList.includes(current_user.tg_id)) {
-            idList.push(current_user.tg_id);
-            //console.log(current_user.tg_id);
-          }
-        }
-        db.count({}).then((res) => console.log("[COUNT BEFORE] " + res));
-        for (const id of idList) {
-          db.findOne({ tg_id: id }).then(async (res) => {
-            //console.log(res.fecha);
-
-            await db.remove({
-              tg_id: id,
-              fecha: res.fecha,
-              _id: { $ne: res._id },
-            });
-
-            await db
-              .remove({ tg_id: id, fecha: { $gt: res.fecha } }, { multi: true })
-              .catch((err) => console.error(err));
-          });
-        }
-        db.count({}).then((res) => console.log("[COUNT AFTER] " + res));
-      });
-  } catch (err) {
-    console.error(err);
-  }
-}
 
 // probando ejemplo de reddit
 bot.on(/^\/meme$/, (msg, self) => {
@@ -1615,8 +1664,17 @@ bot.on(/^\/(cr|cuantarazon) (\d+)( p(\d+))?$/, (msg, self) => {
 cron.schedule("0 */1 * * *", () => {
   const chat_id = process.env.KEEP_ALIVE_CHAT_ID;
   const fecha = new Date();
-  console.log("[ping] Todo fresa\n", fecha);
-  bot.sendMessage(chat_id, `Estoy vivo\nCon fecha ${fecha}`);
+  const opts = {
+    weekday: "long",
+    hour: "numeric",
+    minute: "numeric",
+    second: "numeric",
+  };
+  console.log("[ping] Todo fresa\n", fecha.toLocaleDateString("es-CU", opts));
+  bot.sendMessage(
+    chat_id,
+    `[BOT ALIVE] ${fecha.toLocaleDateString("es-CU", opts)}`
+  );
 });
 
 // TODO: hacer un contador
