@@ -1334,7 +1334,6 @@ bot.on(/^\/ta(g|g@\w+)( \d+)?$/, (msg, self) => {
 });
 
 bot.on("/sticker", (msg) => {
-  console.log(msg.reply_to_message);
   if (msg.reply_to_message.sticker) {
     return bot
       .setChatStickerSet(msg.chat.id, msg.reply_to_message.sticker.set_name)
