@@ -800,8 +800,8 @@ bot.on("text", (msg) => {
         console.log("[ERROR SELECTING] weird af");
         console.log(err.stack);
       } else {
-        console.log("[res.rows[0]]");
-        console.log(res.rows[0]);
+        // console.log("[res.rows[0]]");
+        // console.log(res.rows[0]);
 
         name = res.rows[0] === undefined ? first_name : res.rows[0].nick;
 
