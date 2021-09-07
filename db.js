@@ -14,10 +14,10 @@ const pool = new Pool(credenciales);
 function query(text, params, callback) {
   const start = Date.now();
   return pool.query(text, params, (err, res) => {
-    const duration = Date.now() - start;
     if (res) {
+      const duration = Date.now() - start;
       //console.log("[executed query]", { text, duration, rows: res.rowCount });
-      console.log("[executed query]");
+      console.log(`[executed query] time: ${duration}`);
     }
 
     if (callback) {
