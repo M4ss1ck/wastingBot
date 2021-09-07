@@ -1418,12 +1418,6 @@ bot.on(/^\/(nick|nick@\w+) (.+)$/, (msg, props) => {
   );
 });
 
-// error handling
-
-bot.on("error", (error) => console.error("ERROR", error));
-
-bot.start();
-
 // webhook: https://wastingbot.up.railway.app/webhooks/railway
 // app.post("/webhooks/railway/", async (req, res) => {
 //   const {
@@ -1697,3 +1691,9 @@ cron.schedule("0 */1 * * *", () => {
 //   ]);
 
 // }
+
+// error handling
+
+bot.on("error", (error) => console.error("ERROR", error));
+
+bot.start();
