@@ -8,8 +8,14 @@ const credenciales = {
   password: process.env.PGPASSWORD,
   port: process.env.PGPORT,
 };
+const connectionString = process.env.DATABASE_URL;
+let pool;
 
-const pool = new Pool(credenciales);
+if (process.env.PGHOST === "localhost") {
+  pool = new Pool(credenciales);
+} else {
+  pool = new Pool({ connectionString });
+}
 
 function query(text, params, callback) {
   const start = Date.now();
