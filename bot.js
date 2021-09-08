@@ -890,7 +890,7 @@ bot.on(
                     console.log(err.stack);
                   } else {
                     console.log("[usuario agregado]");
-                    console.log(res.rows[0].nick);
+                    //console.log(res.rows[0].nick);
                     //console.log(res);
                   }
                 }
@@ -956,7 +956,7 @@ bot.on(
                             console.log(
                               "[usuario agregado][mensaje respondido]"
                             );
-                            console.log(res.rows[0].nick);
+                            //console.log(res.rows[0].nick);
                             //console.log(res);
                           }
                         }
@@ -1068,7 +1068,7 @@ bot.on(
                     console.log(err.stack);
                   } else {
                     console.log("[usuario agregado]");
-                    console.log(res.rows[0].nick);
+                    //console.log(res.rows[0].nick);
                     //console.log(res);
                   }
                 }
@@ -1134,7 +1134,7 @@ bot.on(
                             console.log(
                               "[usuario agregado][mensaje respondido]"
                             );
-                            console.log(res.rows[0].nick);
+                            //console.log(res.rows[0].nick);
                             //console.log(res);
                           }
                         }
