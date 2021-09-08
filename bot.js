@@ -17,11 +17,13 @@ import {
   dankMemesEsp,
   cuantaRazon,
   cuantaRazonUno,
+  setRango,
+  adornarRango,
 } from "./functions.js";
 
 import cron from "node-cron";
 
-import { query } from "./db.js";
+import { query, updateUserStat } from "./db.js";
 
 //const app = express();
 
@@ -232,10 +234,7 @@ bot.on(/^\/cal(c|c@\w+)( (.+))?$/, (msg, props) => {
 });
 
 bot.on(["/start", "/jelou"], async (msg, self) => {
-  //console.log("SELF: ", self);
-  //console.log("MSG: ", msg);
   let id = self.type === "callbackQuery" ? msg.message.chat.id : msg.chat.id;
-  await query("SELECT * FROM usuarios");
   return bot.sendMessage(id, "Envía /ayuda para ver algunas opciones.");
 });
 
@@ -332,75 +331,59 @@ bot.on("/info", (msg) => {
   });
 });
 
-bot.on(
-  "/size",
-  (msg) => {
-    if (!msg.reply_to_message) {
-      return bot.sendMessage(
-        msg.chat.id,
-        `<a href="tg://user?id=${msg.from.id}"> ${msg.from.first_name}</a>, el comando se usa respondiendo un mensaje`,
-        { parseMode: "html", replyToMessage: msg.message_id }
-      );
-    }
-    if (msg.reply_to_message.sticker) {
-      bot.sendMessage(
-        msg.chat.id,
-        `Dimensiones: ${msg.reply_to_message.sticker.width}x${
-          msg.reply_to_message.sticker.height
-        }\nEmoji ${msg.reply_to_message.sticker.emoji}\nTamaño: ${roundToAny(
-          msg.reply_to_message.sticker.file_size / 1024,
-          1
-        )}KB`,
-        { parseMode: "html", replyToMessage: msg.reply_to_message.message_id }
-      );
-    }
-
-    if (msg.reply_to_message.photo) {
-      bot.sendMessage(
-        msg.chat.id,
-        `Dimensiones: ${
-          msg.reply_to_message.photo[msg.reply_to_message.photo.length - 1]
-            .width
-        }x${
-          msg.reply_to_message.photo[msg.reply_to_message.photo.length - 1]
-            .height
-        }\nTamaño: ${roundToAny(
-          msg.reply_to_message.photo[msg.reply_to_message.photo.length - 1]
-            .file_size / 1024,
-          1
-        )}KB`,
-
-        { parseMode: "html", replyToMessage: msg.reply_to_message.message_id }
-      );
-    }
-    if (msg.reply_to_message.animation) {
-      bot.sendMessage(
-        msg.chat.id,
-        `Dimensiones: ${msg.reply_to_message.animation.width}x${
-          msg.reply_to_message.animation.height
-        }\nDuración: ${
-          msg.reply_to_message.animation.duration
-        }s\nTamaño: ${roundToAny(
-          msg.reply_to_message.animation.file_size / 1024,
-          1
-        )}KB`,
-
-        { parseMode: "html", replyToMessage: msg.reply_to_message.message_id }
-      );
-    }
+bot.on("/size", (msg) => {
+  if (!msg.reply_to_message) {
+    return bot.sendMessage(
+      msg.chat.id,
+      `<a href="tg://user?id=${msg.from.id}"> ${msg.from.first_name}</a>, el comando se usa respondiendo un mensaje`,
+      { parseMode: "html", replyToMessage: msg.message_id }
+    );
   }
-  // msg.reply.text(
-  //   "Tamaño: " +
-  //     roundToAny(
-  //       msg.reply_to_message.photo[msg.reply_to_message.photo.length - 1]
-  //         .file_size / 1024
-  //     ) +
-  //     "KB",
-  //   {
-  //     asReply: true,
-  //   }
-  // )
-);
+  if (msg.reply_to_message.sticker) {
+    bot.sendMessage(
+      msg.chat.id,
+      `Dimensiones: ${msg.reply_to_message.sticker.width}x${
+        msg.reply_to_message.sticker.height
+      }\nEmoji ${msg.reply_to_message.sticker.emoji}\nTamaño: ${roundToAny(
+        msg.reply_to_message.sticker.file_size / 1024,
+        1
+      )}KB`,
+      { parseMode: "html", replyToMessage: msg.reply_to_message.message_id }
+    );
+  }
+
+  if (msg.reply_to_message.photo) {
+    bot.sendMessage(
+      msg.chat.id,
+      `Dimensiones: ${
+        msg.reply_to_message.photo[msg.reply_to_message.photo.length - 1].width
+      }x${
+        msg.reply_to_message.photo[msg.reply_to_message.photo.length - 1].height
+      }\nTamaño: ${roundToAny(
+        msg.reply_to_message.photo[msg.reply_to_message.photo.length - 1]
+          .file_size / 1024,
+        1
+      )}KB`,
+
+      { parseMode: "html", replyToMessage: msg.reply_to_message.message_id }
+    );
+  }
+  if (msg.reply_to_message.animation) {
+    bot.sendMessage(
+      msg.chat.id,
+      `Dimensiones: ${msg.reply_to_message.animation.width}x${
+        msg.reply_to_message.animation.height
+      }\nDuración: ${
+        msg.reply_to_message.animation.duration
+      }s\nTamaño: ${roundToAny(
+        msg.reply_to_message.animation.file_size / 1024,
+        1
+      )}KB`,
+
+      { parseMode: "html", replyToMessage: msg.reply_to_message.message_id }
+    );
+  }
+});
 
 bot.on("forward", (msg) => {
   console.log(msg);
@@ -637,7 +620,6 @@ bot.on(/^\/say (.+)$/, (msg, props) => {
   return bot.sendMessage(msg.chat.id, text, { replyToMessage: msg.message_id });
 });
 
-// my username is currently hardcoded FIXED
 bot.on("/quit", (msg) => {
   console.log(msg.from);
   if (msg.from.username === process.env.ADMIN_USERNAME) {
@@ -792,8 +774,9 @@ bot.on("text", (msg) => {
   );
 
   let name;
+  let rango;
   query(
-    `SELECT nick FROM usuarios WHERE tg_id = '${from_id}'`,
+    `SELECT nick, rango FROM usuarios WHERE tg_id = '${from_id}'`,
     [],
     (err, res) => {
       if (err) {
@@ -804,6 +787,10 @@ bot.on("text", (msg) => {
         // console.log(res.rows[0]);
 
         name = res.rows[0] === undefined ? first_name : res.rows[0].nick;
+        rango =
+          res.rows[0] === undefined || res.rows[0].rango === null
+            ? setRango(1)
+            : res.rows[0].rango;
 
         lista.map((launcher) => {
           const re = new RegExp("^" + launcher.search + "$", "i");
@@ -814,7 +801,7 @@ bot.on("text", (msg) => {
               //console.log("[alone] [name] ", name);
               return bot.sendMessage(
                 msg.chat.id,
-                `<a href="tg://user?id=${from_id}"> ${name} </a> ${
+                `<a href="tg://user?id=${from_id}">[${rango}] ${name}</a> ${
                   launcher.alone[
                     Math.floor(Math.random() * launcher.alone.length)
                   ]
@@ -884,29 +871,39 @@ bot.on(
             // inicializar rep y nick del usuario
             let from_rep = 0;
             let from_nick = msg.from.first_name;
+            let from_rango = setRango(from_rep);
             // en caso de no encontrar elementos en la tabla, agrega un nuevo usuario
             if (res.rows[0] === undefined) {
-              const values = [from_id, from_rep, new Date(), from_nick];
+              const values = [
+                from_id,
+                from_rep,
+                new Date(),
+                from_nick,
+                from_rango,
+              ];
               query(
-                "INSERT INTO usuarios(tg_id, rep, fecha, nick) VALUES($1, $2, $3, $4)",
+                "INSERT INTO usuarios(tg_id, rep, fecha, nick, rango) VALUES($1, $2, $3, $4, $5)",
                 values,
                 (err, res) => {
                   if (err) {
                     console.log("[ERROR UPDATING]");
                     console.log(err.stack);
                   } else {
-                    console.log("[res.rows[0]]");
-                    console.log(res.rows[0]);
+                    console.log("[usuario agregado]");
+                    console.log(res.rows[0].nick);
                     //console.log(res);
                   }
                 }
               );
             } else {
-              console.log("[res.rows[0]]");
-              console.log(res.rows[0]);
               // si todo va bien, tomo los valores
               from_rep = res.rows[0].rep;
               from_nick = res.rows[0].nick;
+              from_rango = setRango(from_rep);
+              // en caso de que el usuario no tenga rango
+              if (res.rows[0].rango === null) {
+                updateUserStat(from_id, "rango", from_rango);
+              }
             }
 
             //farmeo de puntos
@@ -917,7 +914,9 @@ bot.on(
               //responder a uno mismo
               return bot.sendMessage(
                 msg.chat.id,
-                `<a href="tg://user?id=${from_id}">${from_nick}</a> ha intentado hacer trampas... \n<em>qué idiota</em>`,
+                `<a href="tg://user?id=${from_id}">[${adornarRango(
+                  from_rango
+                )}] ${from_nick}</a> ha intentado hacer trampas... \n<em>qué idiota</em>`,
                 { parseMode: "html" }
               );
             } else {
@@ -926,7 +925,7 @@ bot.on(
 
               //buscando al que sube la reputación en la BD
               query(
-                `SELECT rep, nick FROM usuarios WHERE tg_id = '${reply_id}'`,
+                `SELECT rep, nick, rango FROM usuarios WHERE tg_id = '${reply_id}'`,
                 [],
                 (err, res) => {
                   if (err) {
@@ -936,6 +935,7 @@ bot.on(
                     // inicializar rep y nick del otro usuario
                     let reply_rep = 1;
                     let reply_nick = msg.reply_to_message.from.first_name;
+                    let reply_rango = setRango(reply_rep);
                     // en caso de no encontrar elementos en la tabla, agrega un nuevo usuario
                     if (res.rows[0] === undefined) {
                       const values = [
@@ -943,54 +943,71 @@ bot.on(
                         reply_rep,
                         new Date(),
                         reply_nick,
+                        reply_rango,
                       ];
                       query(
-                        "INSERT INTO usuarios(tg_id, rep, fecha, nick) VALUES($1, $2, $3, $4)",
+                        "INSERT INTO usuarios(tg_id, rep, fecha, nick, rango) VALUES($1, $2, $3, $4, $5)",
                         values,
                         (err, res) => {
                           if (err) {
                             console.log("[ERROR UPDATING]");
                             console.log(err.stack);
                           } else {
-                            console.log("[res.rows[0]]");
-                            console.log(res.rows[0]);
+                            console.log(
+                              "[usuario agregado][mensaje respondido]"
+                            );
+                            console.log(res.rows[0].nick);
                             //console.log(res);
                           }
                         }
                       );
                     } else {
-                      console.log("[res.rows[0]]");
-                      console.log(res.rows[0]);
                       // si todo va bien, tomo los valores
                       reply_rep = res.rows[0].rep;
                       reply_nick = res.rows[0].nick;
+                      reply_rango = setRango(reply_rep + 1);
+                      // en caso de que el usuario no tenga rango
+                      if (res.rows[0].rango === null) {
+                        updateUserStat(reply_id, "rango", reply_rango);
+                      }
                     }
 
                     query(
-                      `UPDATE usuarios SET rep = rep + 1, fecha = now() WHERE tg_id = '${reply_id}' RETURNING *`,
+                      `UPDATE usuarios SET rep = rep + 1, rango = '${setRango(
+                        reply_rep + 1
+                      )}', fecha = now() WHERE tg_id = '${reply_id}' RETURNING *`,
                       [],
                       (err, res) => {
                         if (err) {
                           console.log("[ERROR UPDATING]");
                           console.log(err.stack);
                         } else {
-                          console.log("[res.rows[0]]");
-                          console.log(res.rows[0]);
-                          //console.log(res);
+                          console.log(
+                            "[rep y rango actualizados][mensaje respondido]"
+                          );
+                          console.log(res.rows[0].nick);
+                          console.log(res.rows[0].rango);
+                          reply_rango = res.rows[0].rango;
                         }
                       }
                     );
 
                     console.log(
-                      `${reply_nick} tiene ${
+                      `[${adornarRango(reply_rango)}] ${reply_nick} tiene ${
                         reply_rep + 1
-                      } puntos de reputación ahora, cortesía de ${from_nick} (rep: ${from_rep})`
+                      } puntos de reputación ahora, cortesía de [${adornarRango(
+                        from_rango
+                      )}] ${from_nick} (rep: ${from_rep})`
                     );
                     bot.sendMessage(
                       msg.chat.id,
-                      `<a href="tg://user?id=${reply_id}">${reply_nick}</a> tiene ${
+                      `<a href="tg://user?id=${reply_id}">[${adornarRango(
+                        reply_rango
+                      )}] ${reply_nick}</a> tiene ${
                         reply_rep + 1
-                      } puntos de reputación ahora, cortesía de <a href="tg://user?id=${from_id}">${from_nick}</a> (rep: ${from_rep})`,
+                      } puntos de reputación ahora, cortesía de <a href="tg://user?id=${from_id}">[${adornarRango(
+                        from_rango
+                      )}] ${from_nick}</a>`,
                       { parseMode: "html" }
                     );
                   }
@@ -1032,29 +1049,39 @@ bot.on(
             // inicializar rep y nick del usuario
             let from_rep = 0;
             let from_nick = msg.from.first_name;
+            let from_rango = setRango(from_rep);
             // en caso de no encontrar elementos en la tabla, agrega un nuevo usuario
             if (res.rows[0] === undefined) {
-              const values = [from_id, from_rep, new Date(), from_nick];
+              const values = [
+                from_id,
+                from_rep,
+                new Date(),
+                from_nick,
+                from_rango,
+              ];
               query(
-                "INSERT INTO usuarios(tg_id, rep, fecha, nick) VALUES($1, $2, $3, $4)",
+                "INSERT INTO usuarios(tg_id, rep, fecha, nick, rango) VALUES($1, $2, $3, $4, $5)",
                 values,
                 (err, res) => {
                   if (err) {
                     console.log("[ERROR UPDATING]");
                     console.log(err.stack);
                   } else {
-                    console.log("[res.rows[0]]");
-                    console.log(res.rows[0]);
+                    console.log("[usuario agregado]");
+                    console.log(res.rows[0].nick);
                     //console.log(res);
                   }
                 }
               );
             } else {
-              console.log("[res.rows[0]]");
-              console.log(res.rows[0]);
               // si todo va bien, tomo los valores
               from_rep = res.rows[0].rep;
               from_nick = res.rows[0].nick;
+              from_rango = setRango(from_rep);
+              // en caso de que el usuario no tenga rango
+              if (res.rows[0].rango === null) {
+                updateUserStat(from_id, "rango", from_rango);
+              }
             }
 
             //farmeo de puntos
@@ -1065,7 +1092,9 @@ bot.on(
               //responder a uno mismo
               return bot.sendMessage(
                 msg.chat.id,
-                `<a href="tg://user?id=${from_id}">${from_nick}</a> ha intentado hacer trampas... \n<em>qué idiota</em>`,
+                `<a href="tg://user?id=${from_id}">[${adornarRango(
+                  from_rango
+                )}] ${from_nick}</a> ha intentado hacer trampas... \n<em>qué idiota</em>`,
                 { parseMode: "html" }
               );
             } else {
@@ -1074,7 +1103,7 @@ bot.on(
 
               //buscando al que sube la reputación en la BD
               query(
-                `SELECT rep, nick FROM usuarios WHERE tg_id = '${reply_id}'`,
+                `SELECT rep, nick, rango FROM usuarios WHERE tg_id = '${reply_id}'`,
                 [],
                 (err, res) => {
                   if (err) {
@@ -1082,8 +1111,9 @@ bot.on(
                     console.log(err.stack);
                   } else {
                     // inicializar rep y nick del otro usuario
-                    let reply_rep = -1;
+                    let reply_rep = 0;
                     let reply_nick = msg.reply_to_message.from.first_name;
+                    let reply_rango = setRango(reply_rep);
                     // en caso de no encontrar elementos en la tabla, agrega un nuevo usuario
                     if (res.rows[0] === undefined) {
                       const values = [
@@ -1091,54 +1121,71 @@ bot.on(
                         reply_rep,
                         new Date(),
                         reply_nick,
+                        reply_rango,
                       ];
                       query(
-                        "INSERT INTO usuarios(tg_id, rep, fecha, nick) VALUES($1, $2, $3, $4)",
+                        "INSERT INTO usuarios(tg_id, rep, fecha, nick, rango) VALUES($1, $2, $3, $4, $5)",
                         values,
                         (err, res) => {
                           if (err) {
                             console.log("[ERROR UPDATING]");
                             console.log(err.stack);
                           } else {
-                            console.log("[res.rows[0]]");
-                            console.log(res.rows[0]);
+                            console.log(
+                              "[usuario agregado][mensaje respondido]"
+                            );
+                            console.log(res.rows[0].nick);
                             //console.log(res);
                           }
                         }
                       );
                     } else {
-                      console.log("[res.rows[0]]");
-                      console.log(res.rows[0]);
                       // si todo va bien, tomo los valores
                       reply_rep = res.rows[0].rep;
                       reply_nick = res.rows[0].nick;
+                      reply_rango = setRango(reply_rep - 1);
+                      // en caso de que el usuario no tenga rango
+                      if (res.rows[0].rango === null) {
+                        updateUserStat(reply_id, "rango", reply_rango);
+                      }
                     }
 
                     query(
-                      `UPDATE usuarios SET rep = rep - 1, fecha = now() WHERE tg_id = '${reply_id}' RETURNING *`,
+                      `UPDATE usuarios SET rep = rep - 1, rango = '${setRango(
+                        reply_rep - 1
+                      )}', fecha = now() WHERE tg_id = '${reply_id}' RETURNING *`,
                       [],
                       (err, res) => {
                         if (err) {
                           console.log("[ERROR UPDATING]");
                           console.log(err.stack);
                         } else {
-                          console.log("[res.rows[0]]");
-                          console.log(res.rows[0]);
-                          //console.log(res);
+                          console.log(
+                            "[rep y rango actualizados][mensaje respondido]"
+                          );
+                          console.log(res.rows[0].nick);
+                          console.log(res.rows[0].rango);
+                          reply_rango = res.rows[0].rango;
                         }
                       }
                     );
 
                     console.log(
-                      `${reply_nick} tiene ${
+                      `[${adornarRango(reply_rango)}] ${reply_nick} tiene ${
                         reply_rep - 1
-                      } puntos de reputación ahora, cortesía de ${from_nick} (rep: ${from_rep})`
+                      } puntos de reputación ahora, cortesía de [${adornarRango(
+                        from_rango
+                      )}] ${from_nick} (rep: ${from_rep})`
                     );
                     bot.sendMessage(
                       msg.chat.id,
-                      `<a href="tg://user?id=${reply_id}">${reply_nick}</a> tiene ${
+                      `<a href="tg://user?id=${reply_id}">[${adornarRango(
+                        reply_rango
+                      )}] ${reply_nick}</a> tiene ${
                         reply_rep - 1
-                      } puntos de reputación ahora, cortesía de <a href="tg://user?id=${from_id}">${from_nick}</a> (rep: ${from_rep})`,
+                      } puntos de reputación ahora, cortesía de <a href="tg://user?id=${from_id}">[${adornarRango(
+                        from_rango
+                      )}] ${from_nick}</a>`,
                       { parseMode: "html" }
                     );
                   }
@@ -1214,22 +1261,9 @@ bot.on(/^\/set_rep (\d+) (\d+|\-\d+)$/, (msg, props) => {
             // si todo va bien, tomo los valores
 
             dest_nick = res.rows[0].nick;
-            query(
-              `UPDATE usuarios SET rep = ${parseInt(
-                dest_rep
-              )}, fecha = now() WHERE tg_id = '${dest_id}' RETURNING *`,
-              [],
-              (err, res) => {
-                if (err) {
-                  console.log("[ERROR UPDATING]");
-                  console.log(err.stack);
-                } else {
-                  console.log("[res.rows[0]]");
-                  console.log(res.rows[0]);
-                  //console.log(res);
-                }
-              }
-            );
+
+            updateUserStat(dest_id, "rep", parseInt(dest_rep));
+
             return bot.sendMessage(
               msg.chat.id,
               `Se ha actualizado el registro de ${dest_nick} con reputación ${dest_rep}`
@@ -1369,30 +1403,13 @@ bot.on(/^\/(nick|nick@\w+) (.+)$/, (msg, props) => {
                 console.log("[ERROR UPDATING]");
                 console.log(err.stack);
               } else {
-                console.log("[res.rows[0]]");
-                console.log(res.rows[0]);
-                //console.log(res);
+                console.log("[usuario agregado]");
               }
             }
           );
         } else {
-          console.log("[res.rows[0]]");
-          console.log(res.rows[0]);
           // si todo va bien, cambio el nick
-          query(
-            `UPDATE usuarios SET nick = '${nuevo_nick}', fecha = now() WHERE tg_id = '${tg_id}' RETURNING *`,
-            [],
-            (err, res) => {
-              if (err) {
-                console.log("[ERROR UPDATING]");
-                console.log(err.stack);
-              } else {
-                console.log("[res.rows[0]]");
-                console.log(res.rows[0]);
-                //console.log(res);
-              }
-            }
-          );
+          updateUserStat(tg_id, "nick", nuevo_nick);
         }
         console.log(
           "El nick de " + msg.from.first_name + " será " + nuevo_nick
