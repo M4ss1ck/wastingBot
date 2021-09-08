@@ -437,6 +437,9 @@ bot.on("forward", (msg) => {
           console.log("Hubo un error", error.description);
         });
     }
+
+    console.log(msg);
+
     if (msg.sticker) {
       bot.sendMessage(
         msg.from.id,
@@ -469,6 +472,20 @@ bot.on("forward", (msg) => {
           msg.animation.file_size / 1024,
           1
         )}KB`,
+
+        { parseMode: "html", replyToMessage: msg.message_id }
+      );
+    }
+
+    if (msg.video) {
+      bot.sendMessage(
+        msg.from.id,
+        `Nombre: ${msg.video.file_name}\nDimensiones: ${msg.video.width}x${
+          msg.video.height
+        }\nDuración: ${roundToAny(
+          msg.video.duration / 60,
+          1
+        )} min\nTamaño: ${roundToAny(msg.video.file_size / 1024 / 1024, 1)}MB`,
 
         { parseMode: "html", replyToMessage: msg.message_id }
       );
