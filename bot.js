@@ -30,6 +30,9 @@ import { query, updateUserStat } from "./db.js";
 const my_id = process.env.ADMIN_ID;
 const victim = process.env.VICTIM;
 
+// hora en que arranca el bot
+const inicio = new Date();
+
 const bot = new TeleBot({
   token: process.env.TG_TOKEN,
   usePlugins: ["commandButton", "reporter"],
@@ -239,13 +242,24 @@ bot.on(["/start", "/jelou"], async (msg, self) => {
 });
 
 bot.on("/ping", (msg, self) => {
+  const ahora = new Date();
+  const activo = ahora - inicio;
+  // dar el resultado en dependencia del tiempo
+  let tiempo;
+  if (activo > 60 * 60 * 1000) {
+    tiempo = `${roundToAny(activo / 3600000, 1)} h`;
+  } else if (activo > 60000) {
+    tiempo = `${roundToAny(activo / 60000, 1)} min`;
+  } else {
+    tiempo = `${roundToAny(activo / 1000, 1)} s`;
+  }
   let id;
   if (self.type === "callbackQuery") {
     id = msg.message.chat.id;
   } else {
     id = msg.chat.id;
   }
-  return bot.sendMessage(id, "Pong!");
+  return bot.sendMessage(id, `Pong! Tiempo activo: ${tiempo}`);
 });
 
 bot.on("/info", (msg) => {
@@ -1690,18 +1704,24 @@ bot.on(/^\/(cr|cuantarazon) (\d+)( p(\d+))?$/, (msg, self) => {
 // para que el bot no deje de funcionar a la semana, que envíe mensajes constantemente
 cron.schedule("0 */1 * * *", () => {
   const chat_id = process.env.KEEP_ALIVE_CHAT_ID;
-  const fecha = new Date();
-  const opts = {
-    weekday: "long",
-    hour: "numeric",
-    minute: "numeric",
-    second: "numeric",
-  };
-  console.log("[ping] Todo fresa\n", fecha.toLocaleDateString("es-CU", opts));
-  bot.sendMessage(
-    chat_id,
-    `[BOT ALIVE] ${fecha.toLocaleDateString("es-CU", opts)}`
+  const ahora = new Date();
+  const activo = ahora - inicio;
+  // dar el resultado en dependencia del tiempo
+  let tiempo;
+  if (activo > 60 * 60 * 1000) {
+    tiempo = `${roundToAny(activo / 3600000, 1)} h`;
+  } else if (activo > 60000) {
+    tiempo = `${roundToAny(activo / 60000, 1)} min`;
+  } else {
+    tiempo = `${roundToAny(activo / 1000, 1)} s`;
+  }
+
+  console.log(
+    "[ping] Todo fresa\n",
+    fecha.toLocaleDateString("es-CU", opts),
+    `\ntiempo activo: ${tiempo}`
   );
+  bot.sendMessage(chat_id, `[BOT ALIVE] tiempo activo: ${tiempo}`);
 });
 
 // TODO: hacer un contador
