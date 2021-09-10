@@ -1716,11 +1716,7 @@ cron.schedule("0 */1 * * *", () => {
     tiempo = `${roundToAny(activo / 1000, 1)} s`;
   }
 
-  console.log(
-    "[ping] Todo fresa\n",
-    fecha.toLocaleDateString("es-CU", opts),
-    `\ntiempo activo: ${tiempo}`
-  );
+  console.log("[ping] Todo fresa\n", ahora, "\ntiempo activo:\n", tiempo);
   bot.sendMessage(chat_id, `[BOT ALIVE] tiempo activo: ${tiempo}`);
 });
 
