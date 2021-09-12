@@ -247,9 +247,15 @@ bot.on("/ping", (msg, self) => {
   // dar el resultado en dependencia del tiempo
   let tiempo;
   if (activo > 60 * 60 * 1000) {
-    tiempo = `${roundToAny(activo / 3600000, 1)} h`;
+    const valor = roundToAny(activo / 3600000, 1);
+    const horas = Math.floor(valor);
+    const minutos = roundToAny((valor - horas) * 60, 0);
+    tiempo = `${horas} h ${minutos} min`;
   } else if (activo > 60000) {
-    tiempo = `${roundToAny(activo / 60000, 1)} min`;
+    const valor = roundToAny(activo / 60000, 1);
+    const minutos = Math.floor(valor);
+    const segundos = roundToAny((valor - minutos) * 60, 0);
+    tiempo = `${minutos} min ${segundos} s`;
   } else {
     tiempo = `${roundToAny(activo / 1000, 1)} s`;
   }
@@ -1709,15 +1715,21 @@ cron.schedule("0 */1 * * *", () => {
   // dar el resultado en dependencia del tiempo
   let tiempo;
   if (activo > 60 * 60 * 1000) {
-    tiempo = `${roundToAny(activo / 3600000, 1)} h`;
+    const valor = roundToAny(activo / 3600000, 1);
+    const horas = Math.floor(valor);
+    const minutos = roundToAny((valor - horas) * 60, 0);
+    tiempo = `${horas} h ${minutos} min`;
   } else if (activo > 60000) {
-    tiempo = `${roundToAny(activo / 60000, 1)} min`;
+    const valor = roundToAny(activo / 60000, 1);
+    const minutos = Math.floor(valor);
+    const segundos = roundToAny((valor - minutos) * 60, 0);
+    tiempo = `${minutos} min ${segundos} s`;
   } else {
     tiempo = `${roundToAny(activo / 1000, 1)} s`;
   }
 
-  console.log("[ping] Todo fresa\n", ahora, "\ntiempo activo:\n", tiempo);
-  bot.sendMessage(chat_id, `[BOT ALIVE] tiempo activo: ${tiempo}`);
+  console.log("[ok]\n", ahora, "\nTiempo activo:\n", tiempo);
+  bot.sendMessage(chat_id, `[OK] tiempo activo: ${tiempo}`);
 });
 
 // TODO: hacer un contador
