@@ -1022,8 +1022,8 @@ bot.on(
                           console.log(
                             "[rep y rango actualizados][mensaje respondido]"
                           );
-                          console.log(res.rows[0].nick);
-                          console.log(res.rows[0].rango);
+                          //console.log(res.rows[0].nick);
+                          //console.log(res.rows[0].rango);
                           reply_rango = res.rows[0].rango;
                         }
                       }
@@ -1200,8 +1200,8 @@ bot.on(
                           console.log(
                             "[rep y rango actualizados][mensaje respondido]"
                           );
-                          console.log(res.rows[0].nick);
-                          console.log(res.rows[0].rango);
+                          //console.log(res.rows[0].nick);
+                          //console.log(res.rows[0].rango);
                           reply_rango = res.rows[0].rango;
                         }
                       }
