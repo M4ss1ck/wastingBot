@@ -1728,7 +1728,7 @@ cron.schedule("0 */1 * * *", () => {
     tiempo = `${roundToAny(activo / 1000, 1)} s`;
   }
 
-  console.log("[ok]\n", ahora, "\nTiempo activo:\n", tiempo);
+  console.log("[ok] ", ahora, "\nTiempo activo: ", tiempo);
   bot.sendMessage(chat_id, `[OK] tiempo activo: ${tiempo}`);
 });
 
