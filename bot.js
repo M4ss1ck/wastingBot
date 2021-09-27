@@ -247,12 +247,12 @@ bot.on("/ping", (msg, self) => {
   // dar el resultado en dependencia del tiempo
   let tiempo;
   if (activo > 60 * 60 * 1000) {
-    const valor = roundToAny(activo / 3600000, 1);
+    const valor = roundToAny(activo / 3600000, 2);
     const horas = Math.floor(valor);
     const minutos = roundToAny((valor - horas) * 60, 0);
     tiempo = `${horas} h ${minutos} min`;
   } else if (activo > 60000) {
-    const valor = roundToAny(activo / 60000, 1);
+    const valor = roundToAny(activo / 60000, 2);
     const minutos = Math.floor(valor);
     const segundos = roundToAny((valor - minutos) * 60, 0);
     tiempo = `${minutos} min ${segundos} s`;
@@ -265,7 +265,13 @@ bot.on("/ping", (msg, self) => {
   } else {
     id = msg.chat.id;
   }
-  return bot.sendMessage(id, `Pong! Tiempo activo: ${tiempo}`);
+  bot.getMe().then((res) => {
+    bot.sendMessage(
+      id,
+      `[${res.first_name} (@${res.username})] Tiempo activo: ${tiempo}`
+    );
+  });
+  //return bot.sendMessage(id, `Pong! Tiempo activo: ${tiempo}`);
 });
 
 bot.on("/info", (msg) => {
@@ -1729,7 +1735,13 @@ cron.schedule("0 */1 * * *", () => {
   }
 
   console.log("[ok] ", ahora, "\nTiempo activo: ", tiempo);
-  bot.sendMessage(chat_id, `[OK] tiempo activo: ${tiempo}`);
+  //bot.sendMessage(chat_id, `[OK] tiempo activo: ${tiempo}`);
+  bot.getMe().then((res) => {
+    bot.sendMessage(
+      chat_id,
+      `[${res.first_name} (@${res.username})] Tiempo activo: ${tiempo}`
+    );
+  });
 });
 
 // TODO: hacer un contador
