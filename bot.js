@@ -346,7 +346,7 @@ bot.on("/info", (msg) => {
         }\nNombre de usuario: ${user}\nFecha: ${fecha.toLocaleDateString(
           "es-CU",
           opts
-        )}`,
+        )}\nmessageId: ${msg.reply_to_message.message_id}`,
 
         {
           parseMode: "html",
@@ -1665,8 +1665,60 @@ bot.on(/^\/(lec|lectulandia) (\d+)$/, (msg, self) => {
 // lo mismo de lectulandia para cuantarazon.com
 
 bot.on([/^\/cr( p(\d+))?$/i, /^\/cuantarazon( p(\d+))?$/i], (msg, self) => {
+  //console.log(msg.message_id);
   let id = self.type === "callbackQuery" ? msg.message.chat.id : msg.chat.id;
   const pagina = self.match[2] === undefined ? 1 : self.match[2];
+  const mainUrl = `https://www.cuantarazon.com/ultimos/p/${pagina}`;
+  axios
+    .get(mainUrl)
+    .then(async (response) => {
+      const cant = await cuantaRazon(response.data);
+
+      await bot
+        .sendMessage(
+          id,
+          `${cant} fotos robadas de https://www.cuantarazon.com\n(página ${pagina})`,
+          { parseMode: "html", webPreview: false }
+        )
+        .then((res) => {
+          let botones = [];
+          for (let i = 0; i < cant; i++) {
+            const boton = [
+              bot.inlineButton(`Foto número ${i + 1}`, {
+                callback: `/cr ${i} p${pagina}`,
+              }),
+            ];
+
+            botones.push(boton);
+          }
+          //botón para cambiar de página
+          const ultimoBoton = [
+            bot.inlineButton(`Siguiente página (${pagina + 1})`, {
+              callback: `/editcr ${res.message_id} p${pagina + 1}`,
+            }),
+          ];
+          botones.push(ultimoBoton);
+
+          const replyMarkup = bot.inlineKeyboard(botones);
+
+          bot.editMessageReplyMarkup(
+            { chatId: id, messageId: res.message_id },
+            { replyMarkup }
+          );
+        });
+    })
+    .catch((err) => {
+      console.log(err);
+    });
+});
+
+// editar la lista de imágenes de cuantarazon.com
+
+bot.on(/^\/editcr (\d+)( p(\d+))?$/i, (msg, self) => {
+  //console.log(msg.message_id);
+  let id = self.type === "callbackQuery" ? msg.message.chat.id : msg.chat.id;
+  const msgId = parseInt(self.match[1]);
+  const pagina = self.match[3] === undefined ? 1 : parseInt(self.match[3]);
   const mainUrl = `https://www.cuantarazon.com/ultimos/p/${pagina}`;
   axios
     .get(mainUrl)
@@ -1683,13 +1735,37 @@ bot.on([/^\/cr( p(\d+))?$/i, /^\/cuantarazon( p(\d+))?$/i], (msg, self) => {
 
         botones.push(boton);
       }
+      //botón para cambiar de página
+      const ultimoBoton = [
+        bot.inlineButton(`Siguiente página (${pagina + 1})`, {
+          callback: `/editcr ${msgId} p${pagina + 1}`,
+        }),
+      ];
+      botones.push(ultimoBoton);
+
       const replyMarkup = bot.inlineKeyboard(botones);
 
-      await bot.sendMessage(
-        id,
-        `${cant} fotos robadas de https://www.cuantarazon.com\n(página ${pagina})`,
-        { parseMode: "html", webPreview: false, replyMarkup }
-      );
+      //console.log(id, msgId);
+      bot
+        .editMessageText(
+          { chatId: id, messageId: msgId },
+          `Más fotos robadas de https://www.cuantarazon.com\n(página ${pagina})`,
+          { parseMode: "html", webPreview: false }
+        )
+
+        .then(() =>
+          bot.editMessageReplyMarkup(
+            { chatId: id, messageId: msgId },
+            { replyMarkup }
+          )
+        )
+        .catch((err) => console.error(err));
+
+      // await bot.sendMessage(
+      //   id,
+      //   `${cant} fotos robadas de https://www.cuantarazon.com\n(página ${pagina})`,
+      //   { parseMode: "html", webPreview: false, replyMarkup }
+      // );
     })
     .catch((err) => {
       console.log(err);
@@ -1707,8 +1783,10 @@ bot.on(/^\/(cr|cuantarazon) (\d+)( p(\d+))?$/, (msg, self) => {
   const mainUrl = `https://www.cuantarazon.com/ultimos/p/${pagina}`;
   axios.get(mainUrl).then(async (response) => {
     const [url, titulo] = await cuantaRazonUno(response.data, index);
+    //console.log(url, titulo);
     await bot.sendPhoto(id, url, {
-      caption: `"${titulo}"\nRobada de https://www.cuantarazon.com`,
+      caption: `<a href="${url}">${titulo}</a>\nRobada de https://www.cuantarazon.com`,
+      parseMode: "html",
     });
   });
 });
