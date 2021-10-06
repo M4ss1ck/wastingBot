@@ -1791,6 +1791,28 @@ bot.on(/^\/(cr|cuantarazon) (\d+)( p(\d+))?$/, (msg, self) => {
   });
 });
 
+// ud attempt
+bot.on(/^\/ud (\w+)$/i, (msg, self) => {
+  const term = self.match[1];
+  let options = {
+    method: "GET",
+    url: "https://mashape-community-urban-dictionary.p.rapidapi.com/define",
+    params: { term: term },
+    headers: {
+      "x-rapidapi-host": "mashape-community-urban-dictionary.p.rapidapi.com",
+      "x-rapidapi-key": process.env.RAPIDAPI_KEY,
+    },
+  };
+  axios
+    .request(options)
+    .then(function (response) {
+      console.log(response.data);
+    })
+    .catch(function (error) {
+      console.error(error);
+    });
+});
+
 // para que el bot no deje de funcionar a la semana, que envíe mensajes constantemente
 cron.schedule("0 */1 * * *", () => {
   const chat_id = process.env.KEEP_ALIVE_CHAT_ID;
