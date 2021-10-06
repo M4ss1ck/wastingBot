@@ -1792,7 +1792,7 @@ bot.on(/^\/(cr|cuantarazon) (\d+)( p(\d+))?$/, (msg, self) => {
 });
 
 // ud attempt
-bot.on(/^\/ud (\w+)$/i, (msg, self) => {
+bot.on(/^\/ud (\w+(\s\w+)?)$/i, (msg, self) => {
   let id = self.type === "callbackQuery" ? msg.message.chat.id : msg.chat.id;
   const term = self.match[1];
   let options = {
@@ -1807,13 +1807,23 @@ bot.on(/^\/ud (\w+)$/i, (msg, self) => {
   axios
     .request(options)
     .then(function (response) {
-      //console.log(response.data);
-      const data = response.data[0];
+      console.log(typeof response.data.list);
+      console.log(response.data.list);
+
+      const data = response.data.list[0];
       let def = data.definition;
       let ejem = data.example;
+      // el tamaño máximo de un mensaje son 4096 caracteres
+      if (def.length > 2000) {
+        def = def.substring(0, 2000) + "...";
+      }
+      if (ejem.length > 2000) {
+        ejem = ejem.substring(0, 2000) + "...";
+      }
+
       bot.sendMessage(
         id,
-        `<b>${term}:</b>\n<em>Def.</em>: ${def}\n<em>Ex.: ${ejem}</em>`,
+        `<b>${term}:</b>\n\n<em>Def.</em>: ${def}\n\n<em>Ex.: ${ejem}</em>`,
         { parseMode: "html", webPreview: false }
       );
     })
@@ -1822,6 +1832,13 @@ bot.on(/^\/ud (\w+)$/i, (msg, self) => {
     });
 });
 
+bot.on(/^\/ud$/i, (msg) => {
+  bot.sendMessage(
+    msg.chat.id,
+    "Comando para buscar palabras en el Urban Dictionary\nEjemplo: <pre>/ud cum</pre>",
+    { parseMode: "html", replyToMessage: msg.message_id }
+  );
+});
 // para que el bot no deje de funcionar a la semana, que envíe mensajes constantemente
 cron.schedule("0 */1 * * *", () => {
   const chat_id = process.env.KEEP_ALIVE_CHAT_ID;
