@@ -1793,6 +1793,7 @@ bot.on(/^\/(cr|cuantarazon) (\d+)( p(\d+))?$/, (msg, self) => {
 
 // ud attempt
 bot.on(/^\/ud (\w+)$/i, (msg, self) => {
+  let id = self.type === "callbackQuery" ? msg.message.chat.id : msg.chat.id;
   const term = self.match[1];
   let options = {
     method: "GET",
@@ -1806,7 +1807,15 @@ bot.on(/^\/ud (\w+)$/i, (msg, self) => {
   axios
     .request(options)
     .then(function (response) {
-      console.log(response.data);
+      //console.log(response.data);
+      const data = response.data[0];
+      let def = data.definition;
+      let ejem = data.example;
+      bot.sendMessage(
+        id,
+        `<b>${term}:</b>\n<em>Def.</em>: ${def}\n<em>Ex.: ${ejem}</em>`,
+        { parseMode: "html", webPreview: false }
+      );
     })
     .catch(function (error) {
       console.error(error);
