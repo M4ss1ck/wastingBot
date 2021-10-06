@@ -889,15 +889,7 @@ bot.on("text", (msg) => {
 //postgres
 
 bot.on(
-  [
-    /^\++$/,
-    /^this$/i,
-    /^op$/i,
-    /^nice$/i,
-    /^nai(s|z)$/i,
-    /^g(u|oo)d$/i,
-    /^yes$/,
-  ],
+  [/^\++$/, /^this$/i, /^op$/i, /^nice$/i, /^nai(s|z)$/i, /^g(u|oo)d$/i],
   (msg) => {
     if (msg.reply_to_message) {
       //id del remitente
@@ -1073,7 +1065,7 @@ bot.on(
     /^thisn't$/i,
     /^uff$/i,
     /^mm+$/i,
-    /^n(o|op|ope)$/i,
+    /^n(op|ope)$/i,
     /^yesn't$/i,
   ],
   (msg) => {
@@ -1810,6 +1802,7 @@ bot.on(/^\/ud (\w+(\s\w+)?)$/i, (msg, self) => {
       console.log(typeof response.data.list);
       console.log(response.data.list);
 
+      const cantDef = response.data.list.length;
       const data = response.data.list[0];
       let def = data.definition;
       let ejem = data.example;
@@ -1821,11 +1814,114 @@ bot.on(/^\/ud (\w+(\s\w+)?)$/i, (msg, self) => {
         ejem = ejem.substring(0, 2000) + "...";
       }
 
-      bot.sendMessage(
-        id,
-        `<b>${term}:</b>\n\n<em>Def.</em>: ${def}\n\n<em>Ex.: ${ejem}</em>`,
-        { parseMode: "html", webPreview: false }
-      );
+      bot
+        .sendMessage(
+          id,
+          `<b>${term}:</b>\n\n<em>Def.</em>: ${def}\n\n<em>Ex.: ${ejem}</em>`,
+          { parseMode: "html", webPreview: false }
+        )
+        .then((res) => {
+          //botonera
+          let botones = [[], []];
+          for (let i = 0; i < cantDef; i++) {
+            const boton = [
+              bot.inlineButton(`Def ${i + 1}`, {
+                callback: `/ud1 ${i} ${res.message_id} ${term}`,
+              }),
+            ];
+
+            if (i < 5) {
+              botones[0] = [].concat(...botones[0], boton);
+            } else {
+              botones[1] = [].concat(...botones[1], boton);
+            }
+          }
+          const replyMarkup = bot.inlineKeyboard(botones);
+          bot.editMessageReplyMarkup(
+            { chatId: id, messageId: res.message_id },
+            { replyMarkup }
+          );
+        });
+    })
+    .catch(function (error) {
+      console.error(error);
+    });
+});
+
+// para pedir una acepción distinta
+bot.on(/^\/ud1 (\d+) (\d+) (\w+(\s\w+)?)$/i, (msg, self) => {
+  let id = self.type === "callbackQuery" ? msg.message.chat.id : msg.chat.id;
+  const elem = parseInt(self.match[1]);
+  const msgId = parseInt(self.match[2]);
+  const term = self.match[3];
+  let options = {
+    method: "GET",
+    url: "https://mashape-community-urban-dictionary.p.rapidapi.com/define",
+    params: { term: term },
+    headers: {
+      "x-rapidapi-host": "mashape-community-urban-dictionary.p.rapidapi.com",
+      "x-rapidapi-key": process.env.RAPIDAPI_KEY,
+    },
+  };
+  axios
+    .request(options)
+    .then(function (response) {
+      console.log(typeof response.data.list);
+      console.log(response.data.list);
+
+      const cantDef = response.data.list.length;
+      const data = response.data.list[elem];
+      let def = data.definition;
+      let ejem = data.example;
+
+      console.log(cantDef);
+      // el tamaño máximo de un mensaje son 4096 caracteres
+      if (def.length > 2000) {
+        def = def.substring(0, 2000) + "...";
+      }
+      if (ejem.length > 2000) {
+        ejem = ejem.substring(0, 2000) + "...";
+      }
+      //botonera
+      let botones = [[], []];
+      for (let i = 0; i < cantDef; i++) {
+        if (i !== elem) {
+          const boton = [
+            bot.inlineButton(`Def ${i + 1}`, {
+              callback: `/ud1 ${i} ${msgId} ${term}`,
+            }),
+          ];
+
+          if (i < 5) {
+            botones[0] = [].concat(...botones[0], boton);
+          } else {
+            botones[1] = [].concat(...botones[1], boton);
+          }
+        }
+      }
+
+      const replyMarkup = bot.inlineKeyboard(botones);
+
+      bot
+        .editMessageText(
+          { chatId: id, messageId: msgId },
+          `<b>${term}:</b>\n\n<em>Def.</em>: ${def}\n\n<em>Ex.: ${ejem}</em>`,
+          { parseMode: "html", webPreview: false }
+        )
+
+        .then(() =>
+          bot.editMessageReplyMarkup(
+            { chatId: id, messageId: msgId },
+            { replyMarkup }
+          )
+        )
+        .catch((err) => console.error(err));
+
+      // bot.sendMessage(
+      //   id,
+      //   `<b>${term}:</b>\n\n<em>Def.</em>: ${def}\n\n<em>Ex.: ${ejem}</em>`,
+      //   { replyMarkup, parseMode: "html", webPreview: false }
+      // );
     })
     .catch(function (error) {
       console.error(error);
@@ -1839,6 +1935,7 @@ bot.on(/^\/ud$/i, (msg) => {
     { parseMode: "html", replyToMessage: msg.message_id }
   );
 });
+
 // para que el bot no deje de funcionar a la semana, que envíe mensajes constantemente
 cron.schedule("0 */1 * * *", () => {
   const chat_id = process.env.KEEP_ALIVE_CHAT_ID;
