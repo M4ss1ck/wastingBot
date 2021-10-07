@@ -1742,15 +1742,15 @@ bot.on(/^\/editcr (\d+)( p(\d+))?$/i, (msg, self) => {
         .editMessageText(
           { chatId: id, messageId: msgId },
           `Más fotos robadas de https://www.cuantarazon.com\n(página ${pagina})`,
-          { parseMode: "html", webPreview: false }
+          { replyMarkup, parseMode: "html", webPreview: false }
         )
 
-        .then(() =>
-          bot.editMessageReplyMarkup(
-            { chatId: id, messageId: msgId },
-            { replyMarkup }
-          )
-        )
+        // .then(() =>
+        //   bot.editMessageReplyMarkup(
+        //     { chatId: id, messageId: msgId },
+        //     { replyMarkup }
+        //   )
+        // )
         .catch((err) => console.error(err));
 
       // await bot.sendMessage(
@@ -1906,15 +1906,9 @@ bot.on(/^\/ud1 (\d+) (\d+) (\w+(\s\w+)?)$/i, (msg, self) => {
         .editMessageText(
           { chatId: id, messageId: msgId },
           `<b>${term}:</b>\n\n<em>Def.</em>: ${def}\n\n<em>Ex.: ${ejem}</em>`,
-          { parseMode: "html", webPreview: false }
+          { replyMarkup, parseMode: "html", webPreview: false }
         )
 
-        .then(() =>
-          bot.editMessageReplyMarkup(
-            { chatId: id, messageId: msgId },
-            { replyMarkup }
-          )
-        )
         .catch((err) => console.error(err));
 
       // bot.sendMessage(
