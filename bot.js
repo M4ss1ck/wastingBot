@@ -1518,15 +1518,15 @@ bot.on(/^\/meme$/, (msg, self) => {
             callback: `/memeRandom`,
           }),
         ],
+        [],
       ];
       for (let i = 0; i < cant; i++) {
         const boton = [
-          bot.inlineButton(`Post número ${i + 1}`, {
+          bot.inlineButton(`img ${i + 1}`, {
             callback: `/meme ${i}`,
           }),
         ];
-
-        botones.push(boton);
+        botones[1] = [].concat(...botones[1], boton);
       }
       const replyMarkup = bot.inlineKeyboard(botones);
 
