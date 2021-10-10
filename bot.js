@@ -464,7 +464,7 @@ bot.on("forward", (msg) => {
         });
     }
 
-    console.log(msg);
+    //console.log(msg);
 
     if (msg.sticker) {
       bot.sendMessage(
@@ -1784,9 +1784,10 @@ bot.on(/^\/(cr|cuantarazon) (\d+)( p(\d+))?$/, (msg, self) => {
 });
 
 // ud attempt
-bot.on(/^\/ud (\w+(\s\w+)?)$/i, (msg, self) => {
+bot.on("/ud", (msg, self) => {
   let id = self.type === "callbackQuery" ? msg.message.chat.id : msg.chat.id;
-  const term = self.match[1];
+
+  const term = msg.text.replace("/ud ", "");
   let options = {
     method: "GET",
     url: "https://mashape-community-urban-dictionary.p.rapidapi.com/define",
