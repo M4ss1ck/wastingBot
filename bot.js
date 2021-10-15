@@ -1850,7 +1850,7 @@ bot.on("/ud", (msg, self) => {
 });
 
 // para pedir una acepción distinta
-bot.on(/^\/ud1 (\d+) (\d+) (\w+(\s\w+)?)$/i, (msg, self) => {
+bot.on(/^\/ud1 (\d+) (\d+) (.+)$/i, (msg, self) => {
   let id = self.type === "callbackQuery" ? msg.message.chat.id : msg.chat.id;
   const elem = parseInt(self.match[1]);
   const msgId = parseInt(self.match[2]);
@@ -1929,6 +1929,98 @@ bot.on(/^\/ud$/i, (msg) => {
     "Comando para buscar palabras en el Urban Dictionary\nEjemplo: <pre>/ud cum</pre>",
     { parseMode: "html", replyToMessage: msg.message_id }
   );
+});
+
+// traducciones
+bot.on(/^\/tr (\w{2})( .+)?$/, (msg, self) => {
+  let id = self.type === "callbackQuery" ? msg.message.chat.id : msg.chat.id;
+
+  const destino = self.match[1];
+  let term;
+  let replyto;
+  //diferenciar cuando se responde un mensaje a cuando se pone la frase junto al comando
+  if (msg.reply_to_message) {
+    replyto = msg.reply_to_message.message_id;
+    if (msg.reply_to_message.text === undefined) {
+      term = msg.reply_to_message.caption;
+    } else {
+      term = msg.reply_to_message.text;
+    }
+  } else {
+    replyto = msg.message_id;
+    term = msg.text.replace(/\/tr \w{2}\s/i, "");
+  }
+
+  let options = {
+    method: "POST",
+    url: "https://deep-translate1.p.rapidapi.com/language/translate/v2",
+    headers: {
+      "content-type": "application/json",
+      "x-rapidapi-host": "deep-translate1.p.rapidapi.com",
+      "x-rapidapi-key": process.env.RAPIDAPI_KEY,
+    },
+    data: { q: term, source: "auto", target: destino },
+  };
+  axios
+    .request(options)
+    .then(function (response) {
+      //console.log(response.data.data.translations.translatedText);
+      const trad = response.data.data.translations.translatedText;
+      console.log(`Traducción a ${destino}: ${trad}`);
+      bot.sendMessage(id, trad, { replyToMessage: replyto });
+    })
+    .catch(function (error) {
+      console.error(error);
+    });
+});
+
+// por defecto traduce a español
+bot.on(/^\/tr( .{3,})?$/, (msg, self) => {
+  let id = self.type === "callbackQuery" ? msg.message.chat.id : msg.chat.id;
+  let term;
+  let replyto;
+  //diferenciar cuando se responde un mensaje a cuando se pone la frase junto al comando
+  if (msg.reply_to_message) {
+    replyto = msg.reply_to_message.message_id;
+    if (msg.reply_to_message.text === undefined) {
+      term = msg.reply_to_message.caption;
+    } else {
+      term = msg.reply_to_message.text;
+    }
+  } else {
+    replyto = msg.message_id;
+    term = msg.text.replace("/tr ", "");
+    console.log(term);
+    if (term === "" || term === "/tr") {
+      return bot.sendMessage(
+        id,
+        "Debes escribir algo o responder un mensaje que desees traducir",
+        { replyToMessage: replyto }
+      );
+    }
+  }
+
+  let options = {
+    method: "POST",
+    url: "https://deep-translate1.p.rapidapi.com/language/translate/v2",
+    headers: {
+      "content-type": "application/json",
+      "x-rapidapi-host": "deep-translate1.p.rapidapi.com",
+      "x-rapidapi-key": process.env.RAPIDAPI_KEY,
+    },
+    data: { q: term, source: "auto", target: "es" },
+  };
+  axios
+    .request(options)
+    .then(function (response) {
+      //console.log(response.data.data.translations.translatedText);
+      const trad = response.data.data.translations.translatedText;
+      console.log(`Traducción por defecto a español: ${trad}`);
+      bot.sendMessage(id, trad, { replyToMessage: replyto });
+    })
+    .catch(function (error) {
+      console.error(error);
+    });
 });
 
 // para que el bot no deje de funcionar a la semana, que envíe mensajes constantemente
