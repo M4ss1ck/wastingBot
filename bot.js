@@ -1824,24 +1824,27 @@ bot.on("/ud", (msg, self) => {
         .then((res) => {
           //botonera
           let botones = [[], []];
-          for (let i = 0; i < cantDef; i++) {
-            const boton = [
-              bot.inlineButton(`Def ${i + 1}`, {
-                callback: `/ud1 ${i} ${res.message_id} ${term}`,
-              }),
-            ];
+          // quitar botón de la primera definición
+          if (cantDef > 1) {
+            for (let i = 1; i < cantDef; i++) {
+              const boton = [
+                bot.inlineButton(`Def ${i + 1}`, {
+                  callback: `/ud1 ${i} ${res.message_id} ${term}`,
+                }),
+              ];
 
-            if (i < 5) {
-              botones[0] = [].concat(...botones[0], boton);
-            } else {
-              botones[1] = [].concat(...botones[1], boton);
+              if (i < 6) {
+                botones[0] = [].concat(...botones[0], boton);
+              } else {
+                botones[1] = [].concat(...botones[1], boton);
+              }
             }
+            const replyMarkup = bot.inlineKeyboard(botones);
+            bot.editMessageReplyMarkup(
+              { chatId: id, messageId: res.message_id },
+              { replyMarkup }
+            );
           }
-          const replyMarkup = bot.inlineKeyboard(botones);
-          bot.editMessageReplyMarkup(
-            { chatId: id, messageId: res.message_id },
-            { replyMarkup }
-          );
         });
     })
     .catch(function (error) {
