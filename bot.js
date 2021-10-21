@@ -824,7 +824,8 @@ bot.on("text", (msg) => {
       //console.log(res.rows);
       res.rows.map((trigger) => {
         const regex = new RegExp("^" + trigger.filtro + "$", "i");
-
+        let caption =
+          trigger.respuesta[1] === undefined ? null : trigger.respuesta[1];
         if (msg.text.match(regex) || msg.caption?.match(regex)) {
           console.log("TIPO DE FILTRO\n", trigger.tipo);
           if (trigger.tipo === "text") {
@@ -833,16 +834,24 @@ bot.on("text", (msg) => {
             });
           } else if (trigger.tipo === "photo") {
             bot.sendPhoto(chat_id, trigger.respuesta[0], {
-              caption: trigger.respuesta[1],
+              caption: caption,
+              replyToMessage: msg.message_id,
+            });
+          } else if (trigger.tipo === "sticker") {
+            bot.sendSticker(chat_id, trigger.respuesta[0], {
               replyToMessage: msg.message_id,
             });
           } else if (trigger.tipo === "voice") {
             bot.sendVoice(chat_id, trigger.respuesta[0], {
+              caption: caption,
+              replyToMessage: msg.message_id,
+            });
+          } else if (trigger.tipo === "video") {
+            bot.sendVideo(chat_id, trigger.respuesta[0], {
+              caption: caption,
               replyToMessage: msg.message_id,
             });
           } else {
-            let caption =
-              trigger.respuesta[1] === undefined ? null : trigger.respuesta[1];
             bot.sendDocument(chat_id, trigger.respuesta[0], {
               caption: caption,
               replyToMessage: msg.message_id,
@@ -852,75 +861,6 @@ bot.on("text", (msg) => {
       });
     }
   });
-
-  // let name;
-  // let rango;
-  // query(
-  //   `SELECT nick, rango FROM usuarios WHERE tg_id = '${from_id}'`,
-  //   [],
-  //   (err, res) => {
-  //     if (err) {
-  //       console.log("[ERROR SELECTING] weird af");
-  //       console.log(err.stack);
-  //     } else {
-  //       // console.log("[res.rows[0]]");
-  //       // console.log(res.rows[0]);
-
-  //       name = res.rows[0] === undefined ? first_name : res.rows[0].nick;
-  //       rango =
-  //         res.rows[0] === undefined || res.rows[0].rango === null
-  //           ? setRango(1)
-  //           : res.rows[0].rango;
-
-  //       // triggers desde un archivo, reemplazar por los q agreguen los usuarios
-  //       // lista.map((launcher) => {
-  //       //   const re = new RegExp("^" + launcher.search + "$", "i");
-
-  //       //   if (msg.text.match(re)) {
-  //       //     console.log(re);
-  //       //     if (!msg.reply_to_message) {
-  //       //       //console.log("[alone] [name] ", name);
-  //       //       return bot.sendMessage(
-  //       //         msg.chat.id,
-  //       //         `<a href="tg://user?id=${from_id}">[${rango}] ${name}</a> ${
-  //       //           launcher.alone[
-  //       //             Math.floor(Math.random() * launcher.alone.length)
-  //       //           ]
-  //       //         }`,
-  //       //         { parseMode: "html" }
-  //       //       );
-  //       //     } else {
-  //       //       let reply_name = msg.reply_to_message.from.first_name;
-  //       //       const reply_id = msg.reply_to_message.from.id;
-
-  //       //       query(
-  //       //         `SELECT nick FROM usuarios WHERE tg_id = '${reply_id}'`,
-  //       //         [],
-  //       //         (err, res) => {
-  //       //           if (err) {
-  //       //             console.log("[ERROR SELECTING] weird af");
-  //       //             console.log(err.stack);
-  //       //           } else {
-  //       //             reply_name =
-  //       //               res.rows[0] === undefined ? reply_name : res.rows[0].nick;
-  //       //             return bot.sendMessage(
-  //       //               msg.chat.id,
-  //       //               `<a href="tg://user?id=${from_id}"> ${name} </a> ${
-  //       //                 launcher.as_reply[
-  //       //                   Math.floor(Math.random() * launcher.as_reply.length)
-  //       //                 ]
-  //       //               } <a href="tg://user?id=${reply_id}"> ${reply_name} </a>`,
-  //       //               { parseMode: "html" }
-  //       //             );
-  //       //           }
-  //       //         }
-  //       //       );
-  //       //     }
-  //       //   }
-  //       // });
-  //     }
-  //   }
-  // );
 });
 
 // añadir un atajo
@@ -939,20 +879,22 @@ bot.on("/add", (msg, self) => {
       answer = [
         msg.reply_to_message.photo[msg.reply_to_message.photo.length - 1]
           .file_id,
-        msg.reply_to_message.caption,
       ];
     } else if (msg.reply_to_message.voice) {
       type = "voice";
       answer = [msg.reply_to_message.voice.file_id];
-      // } else if (msg.reply_to_message.animation) {
-      //   type = "animation";
-      //   answer = msg.reply_to_message.document.file_id;
+    } else if (msg.reply_to_message.video) {
+      type = "video";
+      answer = msg.reply_to_message.video.file_id;
+    } else if (msg.reply_to_message.sticker) {
+      type = "sticker";
+      answer = msg.reply_to_message.sticker.file_id;
     } else {
       type = "document";
       answer = [msg.reply_to_message.document.file_id];
-      if (msg.reply_to_message.caption !== undefined) {
-        answer.push(msg.reply_to_message.caption);
-      }
+    }
+    if (msg.reply_to_message.caption !== undefined) {
+      answer.push(msg.reply_to_message.caption);
     }
     console.log(trigger, "\n", type, "\n", answer);
     // insertar los valores
