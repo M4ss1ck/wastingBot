@@ -824,8 +824,9 @@ bot.on("text", (msg) => {
       //console.log(res.rows);
       res.rows.map((trigger) => {
         const regex = new RegExp("^" + trigger.filtro + "$", "i");
-        console.log("TIPO DE FILTRO\n", trigger.tipo);
+
         if (msg.text.match(regex) || msg.caption?.match(regex)) {
+          console.log("TIPO DE FILTRO\n", trigger.tipo);
           if (trigger.tipo === "text") {
             bot.sendMessage(chat_id, trigger.respuesta[0], {
               replyToMessage: msg.message_id,
@@ -965,7 +966,9 @@ bot.on("/add", (msg, self) => {
           console.log(err.stack);
         } else {
           console.log("[filtro agregado]");
-          bot.sendMessage(id, `Nuevo filtro <pre>${trigger}</pre>`);
+          bot.sendMessage(id, `Nuevo filtro <pre>${trigger}</pre>`, {
+            parseMode: "html",
+          });
         }
       }
     );
