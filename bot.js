@@ -816,7 +816,7 @@ bot.on("text", (msg) => {
       .join(" ")} (${from_id}) - ${text}`
   );
 
-  query("SELECT * FROM filtros", [], (err, res) => {
+  query("SELECT * FROM filters", [], (err, res) => {
     if (err) {
       console.log("[ERROR UPDATING]");
       console.log(err.stack);
@@ -958,7 +958,7 @@ bot.on("/add", (msg, self) => {
     // insertar los valores
     const values = [trigger, answer, type, id];
     query(
-      "INSERT INTO filtros(filtro, respuesta, tipo, chat) VALUES($1, $2, $3, $4)",
+      "INSERT INTO filters(filtro, respuesta, tipo, chat) VALUES($1, $2, $3, $4)",
       values,
       (err, res) => {
         if (err) {
@@ -976,7 +976,7 @@ bot.on("/add", (msg, self) => {
 });
 
 bot.on("/filtros", (msg) => {
-  query("SELECT * FROM filtros", [], (err, res) => {
+  query("SELECT * FROM filters", [], (err, res) => {
     if (err) {
       console.log("[ERROR UPDATING]");
       console.log(err.stack);
@@ -989,7 +989,7 @@ bot.on("/filtros", (msg) => {
 //crear tabla
 bot.on("/create_table", (msg) => {
   query(
-    "CREATE TABLE IF NOT EXISTS public.filtros(filtro text NOT NULL, respuesta text[] NOT NULL, tipo text NOT NULL, chat text); ALTER TABLE public.filtros OWNER to postgres;"
+    "CREATE TABLE IF NOT EXISTS public.filters(filtro text NOT NULL, respuesta text[] NOT NULL, tipo text NOT NULL, chat text); ALTER TABLE public.filters OWNER to postgres;"
   );
   bot.sendMessage(msg.chat.id, "tabla creada");
 });
