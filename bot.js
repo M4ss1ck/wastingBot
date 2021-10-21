@@ -897,6 +897,8 @@ bot.on("/add", (msg, self) => {
       answer.push(msg.reply_to_message.caption);
     }
     console.log(trigger, "\n", type, "\n", answer);
+    // eliminar posibles duplicados
+    query(`DELETE FROM filters WHERE filtro = '${trigger}'`);
     // insertar los valores
     const values = [trigger, answer, type, id];
     query(
@@ -916,7 +918,17 @@ bot.on("/add", (msg, self) => {
     );
   }
 });
+//remover filtro
+bot.on("/rem", (msg, self) => {
+  let id = self.type === "callbackQuery" ? msg.message.chat.id : msg.chat.id;
+  const trigger = msg.text.replace("/rem ", "");
+  query(`DELETE FROM filters WHERE filtro = '${trigger}'`);
+  bot.sendMessage(id, `Se eliminó el filtro <pre>${trigger}</pre>`, {
+    parseMode: "html",
+  });
+});
 
+// listar filtros
 bot.on("/filtros", (msg) => {
   query("SELECT * FROM filters", [], (err, res) => {
     if (err) {
