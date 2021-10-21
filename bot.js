@@ -986,6 +986,14 @@ bot.on("/filtros", (msg) => {
   });
 });
 
+//crear tabla
+bot.on("/create_table", (msg) => {
+  query(
+    "CREATE TABLE contacts (id serial PRIMARY KEY, name VARCHAR (100), phones TEXT [])"
+  );
+  bot.sendMessage(msg.chat.id, "tabla creada");
+});
+
 //para la reputación
 //postgres
 
