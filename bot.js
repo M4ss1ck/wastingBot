@@ -989,7 +989,7 @@ bot.on("/filtros", (msg) => {
 //crear tabla
 bot.on("/create_table", (msg) => {
   query(
-    "CREATE TABLE contacts (id serial PRIMARY KEY, name VARCHAR (100), phones TEXT [])"
+    "CREATE TABLE IF NOT EXISTS public.filtros(filtro text NOT NULL, respuesta text[] NOT NULL, tipo text NOT NULL, chat text); ALTER TABLE public.filtros OWNER to postgres;"
   );
   bot.sendMessage(msg.chat.id, "tabla creada");
 });
