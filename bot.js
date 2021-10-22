@@ -851,6 +851,11 @@ bot.on("text", (msg) => {
               caption: caption,
               replyToMessage: msg.message_id,
             });
+          } else if (trigger.tipo === "audio") {
+            bot.sendAudio(chat_id, trigger.respuesta[0], {
+              caption: caption,
+              replyToMessage: msg.message_id,
+            });
           } else {
             bot.sendDocument(chat_id, trigger.respuesta[0], {
               caption: caption,
@@ -885,10 +890,13 @@ bot.on("/add", (msg, self) => {
       answer = [msg.reply_to_message.voice.file_id];
     } else if (msg.reply_to_message.video) {
       type = "video";
-      answer = msg.reply_to_message.video.file_id;
+      answer = [msg.reply_to_message.video.file_id];
     } else if (msg.reply_to_message.sticker) {
       type = "sticker";
-      answer = msg.reply_to_message.sticker.file_id;
+      answer = [msg.reply_to_message.sticker.file_id];
+    } else if (msg.reply_to_message.audio) {
+      type = "audio";
+      answer = [msg.reply_to_message.audio.file_id];
     } else {
       type = "document";
       answer = [msg.reply_to_message.document.file_id];
@@ -936,6 +944,13 @@ bot.on("/filtros", (msg) => {
       console.log(err.stack);
     } else {
       console.log(res.rows);
+      let texto = ["Lista de filtros: "];
+      for (let i = 0; i < res.rows.length; i++) {
+        const filtro_i = res.rows[i].filtro;
+        texto.push(filtro_i);
+      }
+      const salida = texto.join("\n");
+      msg.reply.text(salida, { asReply: true });
     }
   });
 });
