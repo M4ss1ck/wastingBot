@@ -16,12 +16,9 @@ function query(text, params, callback) {
   return pool.query(text, params, (err, res) => {
     if (res) {
       const duration = Date.now() - start;
-      //console.log("[executed query]", { text, duration, rows: res.rowCount });
       console.log(`query: "${text}" time: ${duration}`);
     }
-
     if (callback) {
-      //console.log(callback);
       callback(err, res);
     }
   });
