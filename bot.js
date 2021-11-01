@@ -2171,13 +2171,7 @@ bot.on(/^\/ran( ([-\d]+) ([-\d]+))?$/, (msg, self) => {
     console.log(
       `Par de números aleatorios entre ${min} y ${max}: ${num1} y ${num2}`
     );
-    bot.sendMessage(
-      id,
-      `<pre>${
-        Math.floor(Math.random() * (max - min + 1)) + min
-      }, ${num2}</pre>`,
-      { parseMode: "html" }
-    );
+    bot.sendMessage(id, `<pre>${num1}, ${num2}</pre>`, { parseMode: "html" });
   } else {
     bot.sendMessage(id, "El número mínimo debe ser menor que el máximo");
   }
