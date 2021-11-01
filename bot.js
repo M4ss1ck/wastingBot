@@ -2156,6 +2156,24 @@ cron.schedule("0 */1 * * *", () => {
 
 // }
 
+bot.on(/^\/ran( (\d+) (\d+))?$/, (msg, self) => {
+  let id = self.type === "callbackQuery" ? msg.message.chat.id : msg.chat.id;
+  let min = 251;
+  let max = 6000;
+  if (msg.text.match(/\d+ \d+/)) {
+    min = self.match[2];
+    max = self.match[3];
+  } else if (msg.text.match(/\d+/)) {
+    min = self.match[2];
+  }
+  const num1 = Math.floor(Math.random() * (max - min + 1)) + min;
+  const num2 = Math.floor(Math.random() * (max - min + 1)) + min;
+  console.log(
+    `Par de números aleatorios entre ${min} y ${max}: ${num1} y ${num2}`
+  );
+  bot.sendMessage(id, `<pre>${num1}, ${num2}</pre>`, { parseMode: "html" });
+});
+
 // error handling
 
 bot.on("error", (error) => console.error("ERROR", error));
