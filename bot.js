@@ -1912,7 +1912,7 @@ bot.on("/ud", (msg, self) => {
                 }),
               ];
 
-              if (i <= mitad) {
+              if (i < mitad) {
                 botones[0] = [].concat(...botones[0], boton);
               } else {
                 botones[1] = [].concat(...botones[1], boton);
@@ -1976,7 +1976,7 @@ bot.on(/^\/ud1 (\d+) (\d+) (.+)$/i, (msg, self) => {
             }),
           ];
 
-          if (i <= mitad) {
+          if (i < mitad) {
             botones[0] = [].concat(...botones[0], boton);
           } else {
             botones[1] = [].concat(...botones[1], boton);
