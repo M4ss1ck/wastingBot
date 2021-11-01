@@ -2156,22 +2156,31 @@ cron.schedule("0 */1 * * *", () => {
 
 // }
 
-bot.on(/^\/ran( (\d+) (\d+))?$/, (msg, self) => {
+bot.on(/^\/ran( ([-\d]+) ([-\d]+))?$/, (msg, self) => {
   let id = self.type === "callbackQuery" ? msg.message.chat.id : msg.chat.id;
   let min = 251;
   let max = 6000;
-  if (msg.text.match(/\d+ \d+/)) {
-    min = self.match[2];
-    max = self.match[3];
-  } else if (msg.text.match(/\d+/)) {
-    min = self.match[2];
+  if (msg.text.match(/[-\d]+ [-\d]+/)) {
+    min = parseInt(self.match[2]);
+    max = parseInt(self.match[3]);
   }
-  const num1 = Math.floor(Math.random() * (max - min + 1)) + min;
-  const num2 = Math.floor(Math.random() * (max - min + 1)) + min;
-  console.log(
-    `Par de números aleatorios entre ${min} y ${max}: ${num1} y ${num2}`
-  );
-  bot.sendMessage(id, `<pre>${num1}, ${num2}</pre>`, { parseMode: "html" });
+  if (min < max) {
+    const num1 = Math.floor(Math.random() * (max - min + 1)) + min;
+    const num2 = Math.floor(Math.random() * (max - min + 1)) + min;
+
+    console.log(
+      `Par de números aleatorios entre ${min} y ${max}: ${num1} y ${num2}`
+    );
+    bot.sendMessage(
+      id,
+      `<pre>${
+        Math.floor(Math.random() * (max - min + 1)) + min
+      }, ${num2}</pre>`,
+      { parseMode: "html" }
+    );
+  } else {
+    bot.sendMessage(id, "El número mínimo debe ser menor que el máximo");
+  }
 });
 
 // error handling
