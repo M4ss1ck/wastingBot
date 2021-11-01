@@ -1882,6 +1882,7 @@ bot.on("/ud", (msg, self) => {
       console.log(response.data.list);
 
       const cantDef = response.data.list.length;
+      const mitad = Math.ceil(cantDef / 2);
       const data = response.data.list[0];
       let def = data.definition;
       let ejem = data.example;
@@ -1911,7 +1912,7 @@ bot.on("/ud", (msg, self) => {
                 }),
               ];
 
-              if (i < 6) {
+              if (i <= mitad) {
                 botones[0] = [].concat(...botones[0], boton);
               } else {
                 botones[1] = [].concat(...botones[1], boton);
@@ -1952,6 +1953,7 @@ bot.on(/^\/ud1 (\d+) (\d+) (.+)$/i, (msg, self) => {
       console.log(response.data.list);
 
       const cantDef = response.data.list.length;
+      const mitad = Math.ceil(cantDef / 2);
       const data = response.data.list[elem];
       let def = data.definition;
       let ejem = data.example;
@@ -1974,7 +1976,7 @@ bot.on(/^\/ud1 (\d+) (\d+) (.+)$/i, (msg, self) => {
             }),
           ];
 
-          if (i < 5) {
+          if (i <= mitad) {
             botones[0] = [].concat(...botones[0], boton);
           } else {
             botones[1] = [].concat(...botones[1], boton);
@@ -1992,12 +1994,6 @@ bot.on(/^\/ud1 (\d+) (\d+) (.+)$/i, (msg, self) => {
         )
 
         .catch((err) => console.error(err));
-
-      // bot.sendMessage(
-      //   id,
-      //   `<b>${term}:</b>\n\n<em>Def.</em>: ${def}\n\n<em>Ex.: ${ejem}</em>`,
-      //   { replyMarkup, parseMode: "html", webPreview: false }
-      // );
     })
     .catch(function (error) {
       console.error(error);
