@@ -1899,7 +1899,7 @@ bot.on("/ud", (msg, self) => {
                   callback: `/ud1 ${i} ${res.message_id} ${term}`,
                 }),
               ];
-              const division = i < mitad ? mitad + 1 : mitad;
+              const division = i <= mitad ? mitad + 1 : mitad;
               if (i < division) {
                 botones[0] = [].concat(...botones[0], boton);
               } else {
@@ -1963,7 +1963,7 @@ bot.on(/^\/ud1 (\d+) (\d+) (.+)$/i, (msg, self) => {
               callback: `/ud1 ${i} ${msgId} ${term}`,
             }),
           ];
-          const division = i < mitad ? mitad + 1 : mitad;
+          const division = i <= mitad ? mitad + 1 : mitad;
           if (i < division) {
             botones[0] = [].concat(...botones[0], boton);
           } else {
