@@ -1866,14 +1866,15 @@ bot.on("/ud", (msg, self) => {
   axios
     .request(options)
     .then(function (response) {
-      console.log(typeof response.data.list);
-      console.log(response.data.list);
+      //console.log(typeof response.data.list);
+      //console.log(response.data.list);
 
       const cantDef = response.data.list.length;
-      const mitad = Math.floor(cantDef / 2);
       const data = response.data.list[0];
       let def = data.definition;
       let ejem = data.example;
+      let votos_positivos = data.thumbs_up;
+      let votos_negativos = data.thumbs_down;
       // el tamaño máximo de un mensaje son 4096 caracteres
       if (def.length > 2000) {
         def = def.substring(0, 2000) + "...";
@@ -1885,7 +1886,7 @@ bot.on("/ud", (msg, self) => {
       bot
         .sendMessage(
           id,
-          `<b>${term}:</b>\n\n<em>Def.</em>: ${def}\n\n<em>Ex.: ${ejem}</em>`,
+          `<b>${term}:</b>\n\n<em>Def.</em>: ${def}\n\n<em>Ex.: ${ejem}</em>\n\n👍: ${votos_positivos} 👎: ${votos_negativos}`,
           { parseMode: "html", webPreview: false }
         )
         .then((res) => {
@@ -1899,12 +1900,12 @@ bot.on("/ud", (msg, self) => {
                   callback: `/ud1 ${i} ${res.message_id} ${term}`,
                 }),
               ];
-              const division = i <= mitad ? mitad + 1 : mitad;
-              if (i < division) {
-                botones[0] = [].concat(...botones[0], boton);
-              } else {
-                botones[1] = [].concat(...botones[1], boton);
-              }
+              const divisor =
+                i < (cantDef - 1) / 2 + 1
+                  ? (cantDef - 1) / 2 + 1
+                  : (cantDef - 1) / 2;
+              const fila = i < divisor ? 0 : 1;
+              botones[fila] = [].concat(...botones[fila], boton);
             }
             const replyMarkup = bot.inlineKeyboard(botones);
             bot.editMessageReplyMarkup(
@@ -1941,11 +1942,11 @@ bot.on(/^\/ud1 (\d+) (\d+) (.+)$/i, (msg, self) => {
       console.log(response.data.list);
 
       const cantDef = response.data.list.length;
-      const mitad = Math.floor(cantDef / 2);
       const data = response.data.list[elem];
       let def = data.definition;
       let ejem = data.example;
-
+      let votos_positivos = data.thumbs_up;
+      let votos_negativos = data.thumbs_down;
       console.log(cantDef);
       // el tamaño máximo de un mensaje son 4096 caracteres
       if (def.length > 2000) {
@@ -1956,6 +1957,7 @@ bot.on(/^\/ud1 (\d+) (\d+) (.+)$/i, (msg, self) => {
       }
       //botonera
       let botones = [[], []];
+
       for (let i = 0; i < cantDef; i++) {
         if (i !== elem) {
           const boton = [
@@ -1963,12 +1965,9 @@ bot.on(/^\/ud1 (\d+) (\d+) (.+)$/i, (msg, self) => {
               callback: `/ud1 ${i} ${msgId} ${term}`,
             }),
           ];
-          const division = i <= mitad ? mitad + 1 : mitad;
-          if (i < division) {
-            botones[0] = [].concat(...botones[0], boton);
-          } else {
-            botones[1] = [].concat(...botones[1], boton);
-          }
+
+          const fila = i <= cantDef / 2 ? 0 : 1;
+          botones[fila] = [].concat(...botones[fila], boton);
         }
       }
 
@@ -1977,7 +1976,7 @@ bot.on(/^\/ud1 (\d+) (\d+) (.+)$/i, (msg, self) => {
       bot
         .editMessageText(
           { chatId: id, messageId: msgId },
-          `<b>${term}:</b>\n\n<em>Def.</em>: ${def}\n\n<em>Ex.: ${ejem}</em>`,
+          `<b>${term}:</b>\n\n<em>Def.</em>: ${def}\n\n<em>Ex.: ${ejem}</em>\n\n👍: ${votos_positivos} 👎: ${votos_negativos}`,
           { replyMarkup, parseMode: "html", webPreview: false }
         )
 
