@@ -1870,7 +1870,7 @@ bot.on("/ud", (msg, self) => {
       console.log(response.data.list);
 
       const cantDef = response.data.list.length;
-      const mitad = Math.ceil(cantDef / 2);
+      const mitad = Math.floor(cantDef / 2);
       const data = response.data.list[0];
       let def = data.definition;
       let ejem = data.example;
@@ -1941,7 +1941,7 @@ bot.on(/^\/ud1 (\d+) (\d+) (.+)$/i, (msg, self) => {
       console.log(response.data.list);
 
       const cantDef = response.data.list.length;
-      const mitad = Math.ceil(cantDef / 2);
+      const mitad = Math.floor(cantDef / 2);
       const data = response.data.list[elem];
       let def = data.definition;
       let ejem = data.example;
