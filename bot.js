@@ -2134,7 +2134,52 @@ cron.schedule("0 */1 * * *", () => {
 });
 
 // contador para enfrentar 2 elemntos
-//bot.on(/^\/vs (\w+) /)
+bot.on(/^\/vs (\w+) (\w+)$/i, (msg, self) => {
+  let id = self.type === "callbackQuery" ? msg.message.chat.id : msg.chat.id;
+  const a = self.match[1];
+  const b = self.match[2];
+
+  bot.sendMessage(id, "FIGHT!").then((res) => {
+    const msgId = res.message_id;
+    let replyMarkup = bot.inlineKeyboard([
+      [
+        bot.inlineButton(`${a} x0`, {
+          callback: `/setvs ${msgId} ${a} 1 ${b} 0`,
+        }),
+        bot.inlineButton(`${b} x0`, {
+          callback: `/setvs ${msgId} ${a} 0 ${b} 1`,
+        }),
+      ],
+    ]);
+    bot.editMessageReplyMarkup(
+      { chatId: id, messageId: msgId },
+      { replyMarkup, webPreview: false }
+    );
+  });
+});
+
+bot.on(/^\/setvs (\d+) (\w+) (\d+) (\w+) (\d+)$/i, (msg, self) => {
+  let id = self.type === "callbackQuery" ? msg.message.chat.id : msg.chat.id;
+  const msgId = self.match[1];
+  const a = self.match[2];
+  const a_ptos = parseInt(self.match[3]);
+  const b = self.match[4];
+  const b_ptos = parseInt(self.match[5]);
+  let replyMarkup = bot.inlineKeyboard([
+    [
+      bot.inlineButton(`${a} x${a_ptos}`, {
+        callback: `/setvs ${msgId} ${a} ${a_ptos + 1} ${b} ${b_ptos}`,
+      }),
+      bot.inlineButton(`${b} x${b_ptos}`, {
+        callback: `/setvs ${msgId} ${a} ${a_ptos} ${b} ${b_ptos + 1}`,
+      }),
+    ],
+  ]);
+  bot.editMessageReplyMarkup(
+    { chatId: id, messageId: msgId },
+    { replyMarkup, webPreview: false }
+  );
+});
 
 bot.on(/^\/ran( ([-\d]+) ([-\d]+))?$/, (msg, self) => {
   let id = self.type === "callbackQuery" ? msg.message.chat.id : msg.chat.id;
