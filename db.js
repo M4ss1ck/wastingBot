@@ -1,5 +1,6 @@
 import pkg from "pg";
 const { Pool } = pkg;
+import execa from "execa";
 
 const credenciales = {
   user: process.env.PGUSER,
@@ -40,4 +41,22 @@ function updateUserStat(id, key, value) {
   });
 }
 
-export { query, updateUserStat };
+// función para exportar la BD, añadir C:\Program Files\PostgreSQL\13\bin a PATH
+async function exportDB() {
+  const { stdout, stderr } = await execa("pg_dump", [
+    "--host",
+    process.env.PGHOST,
+    "--port",
+    process.env.PGPORT,
+    "--username",
+    process.env.PGUSER,
+    "--dbname",
+    process.env.PGDATABASE,
+    "--file",
+    "db.sql",
+  ]);
+  console.log(stdout);
+  console.log(stderr);
+}
+
+export { query, updateUserStat, exportDB };

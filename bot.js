@@ -23,7 +23,9 @@ import {
 
 import cron from "node-cron";
 
-import { query, updateUserStat } from "./db.js";
+import { query, updateUserStat, exportDB } from "./db.js";
+
+//import shell from "shelljs";
 
 //const app = express();
 
@@ -672,7 +674,7 @@ bot.on(/^\/say (.+)$/, (msg, props) => {
 
 bot.on("/quit", (msg) => {
   console.log(msg.from);
-  if (msg.from.username === process.env.ADMIN_USERNAME) {
+  if (msg.from.id.toString() === my_id) {
     return bot.leaveChat(msg.chat.id).catch((error) => {
       console.log("Hubo un error", error.description);
       return bot.sendMessage(msg.from.id, error.description);
@@ -1995,6 +1997,19 @@ bot.on(/^\/ud$/i, (msg) => {
   );
 });
 
+//export database commands FIX: no funciona
+bot.on(/^\/export$/i, async (msg) => {
+  if (msg.from.id.toString() === my_id) {
+    try {
+      exportDB();
+      bot.sendMessage(msg.chat.id, "Exportación completada");
+    } catch (error) {
+      console.log(error);
+      bot.sendMessage(msg.chat.id, "Error al exportar");
+    }
+  }
+});
+
 // traducciones
 bot.on(/^\/tr (\w{2})( .+)?$/, (msg, self) => {
   let id = self.type === "callbackQuery" ? msg.message.chat.id : msg.chat.id;
@@ -2118,26 +2133,8 @@ cron.schedule("0 */1 * * *", () => {
   });
 });
 
-// TODO: hacer un contador
-// function updateKeyboard(count) {
-
-//   let apples = 'apples';
-//   let oranges = 'oranges';
-
-//   if (count == 'apples') {
-//       apples = `==> ${ apples } <==`;
-//   } else {
-//       oranges = `==> ${ oranges } <==`;
-//   }
-
-//   return bot.inlineKeyboard([
-//       [
-//           bot.inlineButton(apples, {callback: 'apples'}),
-//           bot.inlineButton(oranges, {callback: 'oranges'})
-//       ]
-//   ]);
-
-// }
+// contador para enfrentar 2 elemntos
+//bot.on(/^\/vs (\w+) /)
 
 bot.on(/^\/ran( ([-\d]+) ([-\d]+))?$/, (msg, self) => {
   let id = self.type === "callbackQuery" ? msg.message.chat.id : msg.chat.id;
@@ -2158,6 +2155,38 @@ bot.on(/^\/ran( ([-\d]+) ([-\d]+))?$/, (msg, self) => {
   } else {
     bot.sendMessage(id, "El número mínimo debe ser menor que el máximo");
   }
+});
+
+// comando para que el bot responda preguntas de manera aleatoria
+bot.on(/^.+\?$/, (msg) => {
+  const bola8 = [
+    "En mi opinión, sí",
+    "Es cierto",
+    "Definitivamente",
+    "Probablemente",
+    "Eso parece",
+    "Todo apunta a que sí",
+    "Sin duda",
+    "Sí",
+    "Sí, definitivamente",
+    "Debes confiar en ello",
+    "Hmm, vuelve a intentarlo",
+    "Pregunta en otro momento",
+    "Será mejor que no te responda ahora",
+    "No puedo predecirlo ahora",
+    "Concéntrate y vuelve a preguntar",
+    "No cuentes con ello",
+    "Mi respuesta es no",
+    "Mis fuentes me dicen que no",
+    "Las perspectivas no son buenas",
+    "Muy dudoso",
+    "Eso escuché por ahí",
+    "Nop",
+    "Esa respuesta no la conozco, pero te puedo decir con toda confianza que el limón es la base de todo",
+  ];
+  //responder con un elemento aleatorio de la lista
+  const respuesta = bola8[Math.floor(Math.random() * bola8.length)];
+  bot.sendMessage(msg.chat.id, respuesta, { replyToMessage: msg.message_id });
 });
 
 // error handling
