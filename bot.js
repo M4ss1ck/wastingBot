@@ -100,6 +100,7 @@ bot.on(["/group", "/grupo", "/promo"], (msg, self) => {
   );
 });
 
+// TODO: actualizar la ayuda
 bot.on(["/help", "/ayuda"], (msg, self) => {
   console.log(self);
   const replyMarkup = bot.inlineKeyboard([
@@ -130,7 +131,7 @@ bot.on(["/help", "/ayuda"], (msg, self) => {
       "/tag <em>n</em> - para molestar a Yacel o, en su defecto, a cualquier otro miembro del chat <em>n veces</em>\n" +
       "/group, /grupo o /promo - spam\n" +
       "/help o /ayuda - para ver este menú\n\n" +
-      "También puede utilizar algunas palabras claves como <em>nudes</em>, <em>patada</em>, <em>beso</em> y otras (muchas más en el futuro)",
+      "También puede utilizar + y - para influir en la reputación de otros usuarios",
     { parseMode: "html", replyMarkup }
   );
 });
@@ -1421,21 +1422,10 @@ bot.on(/^\/ta(g|g@\w+)( \d+)?$/, (msg, self) => {
     }
   }
 
-  let new_victim = victim;
-  if (msg.reply_to_message) {
-    new_victim = msg.reply_to_message.from.id;
-  }
-  console.log("Se repetirá: " + n + " veces");
+  let new_victim = msg.reply_to_message ? msg.reply_to_message.from.id : victim;
+  let id = self.type === "callbackQuery" ? msg.message.chat.id : msg.chat.id;
 
-  //diferenciando las queries
-  let id;
-  if (self.type === "callbackQuery") {
-    id = msg.message.chat.id;
-  } else {
-    id = msg.chat.id;
-  }
-
-  if (new_victim.toString() === my_id.toString()) {
+  if (new_victim.toString() === my_id) {
     bot
       .sendMessage(
         id,
@@ -1475,7 +1465,7 @@ bot.on("/sticker", (msg) => {
     return bot
       .setChatStickerSet(msg.chat.id, msg.reply_to_message.sticker.set_name)
       .catch((error) => {
-        console.log("Hubo un puto error", error.description);
+        console.log("Hubo un error\n", error.description);
         return bot.sendMessage(msg.from.id, error.description);
       });
   }
@@ -1902,11 +1892,8 @@ bot.on("/ud", (msg, self) => {
                   callback: `/ud1 ${i} ${res.message_id} ${term}`,
                 }),
               ];
-              const divisor =
-                i < (cantDef - 1) / 2 + 1
-                  ? (cantDef - 1) / 2 + 1
-                  : (cantDef - 1) / 2;
-              const fila = i < divisor ? 0 : 1;
+
+              const fila = i < cantDef / 2 ? 0 : 1;
               botones[fila] = [].concat(...botones[fila], boton);
             }
             const replyMarkup = bot.inlineKeyboard(botones);
@@ -2134,6 +2121,7 @@ cron.schedule("0 */1 * * *", () => {
 });
 
 // contador para enfrentar 2 elemntos
+// TODO: que solo funcione una vez por usuario
 bot.on(/^\/vs (\w+) (\w+)$/i, (msg, self) => {
   let id = self.type === "callbackQuery" ? msg.message.chat.id : msg.chat.id;
   const a = self.match[1];
@@ -2203,7 +2191,7 @@ bot.on(/^\/ran( ([-\d]+) ([-\d]+))?$/, (msg, self) => {
 });
 
 // comando para que el bot responda preguntas de manera aleatoria
-bot.on(/^.+\?$/, (msg) => {
+bot.on(/^(¿|@\w+,).+\?$/, (msg) => {
   const bola8 = [
     "En mi opinión, sí",
     "Es cierto",
