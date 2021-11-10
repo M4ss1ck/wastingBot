@@ -200,7 +200,7 @@ bot.on("inlineQuery", (msg) => {
     cacheTime: 1,
   });
 
-  //console.log("El mensaje recibido es ", msg, " y la respuesta ", answers);
+  //console.log("El mensaje recibido es ", query, " y la respuesta ", answers);
   return bot.answerQuery(answers);
 });
 
