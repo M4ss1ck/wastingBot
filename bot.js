@@ -175,41 +175,32 @@ bot.on(["/gay", "/ghei"], (msg, self) => {
   return bot.sendMessage(id, "Mi % de loca", { replyMarkup });
 });
 
+//calculadora inline
 bot.on("inlineQuery", (msg) => {
   const query = msg.query;
   const answers = bot.answerList(msg.id, { cacheTime: 1 });
-
-  if (msg.from.id.toString() === my_id) {
-    answers.addArticle({
-      id: msg.id + query,
-      title: "Cuál es tu % gay?",
-      //description: `Your query: ${query}`,
-      message_text: `Según este bot soy ${Math.floor(Math.random() * 10)}% gay`,
-      cacheTime: 1,
-    });
+  const max_value = msg.from.id.toString() === my_id ? 10 : 100;
+  let texto;
+  if (query.match(/^% (\w+)$/)) {
+    texto = `Según este bot soy ${Math.floor(
+      Math.random() * max_value
+    )}% ${query.replace("% ", "")}`;
   } else {
-    if (msg.from.id.toString() === victim) {
-      answers.addArticle({
-        id: query + msg.id,
-        title: "Cuál es tu % gay?",
-        //description: `Your query: ${query}`,
-        message_text: `ERROR: Memoria insuficiente \n[bot.error.overflow] Gayness safety limit exceeded`,
-        cacheTime: 1,
-      });
-    } else {
-      answers.addArticle({
-        id: query + msg.id,
-        title: "Cuál es tu % gay?",
-        //description: `Your query: ${query}`,
-        message_text: `Según este bot soy ${Math.floor(
-          Math.random() * 100
-        )}% gay`,
-        cacheTime: 1,
-      });
-    }
+    //const math = query.replace("calc ", "");
+    const result = parser.parse(query).simplify();
+    //console.log("resultado: \n\n", result);
+    texto = `${query} = ${result}`;
   }
 
-  console.log("El mensaje recibido es ", msg, " y la respuesta ", answers);
+  answers.addArticle({
+    id: msg.id + query,
+    title: "'% <algo>' o calculadora",
+    description: `'% <algo>' para saber cuál es tu % de ese <algo>\no escribe <operación matemática> que desees resolver`,
+    message_text: texto,
+    cacheTime: 1,
+  });
+
+  //console.log("El mensaje recibido es ", msg, " y la respuesta ", answers);
   return bot.answerQuery(answers);
 });
 
