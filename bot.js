@@ -179,11 +179,10 @@ bot.on(["/gay", "/ghei"], (msg, self) => {
 bot.on("inlineQuery", (msg) => {
   const query = msg.query;
   const answers = bot.answerList(msg.id, { cacheTime: 1 });
-  const max_value = msg.from.id.toString() === my_id ? 10 : 100;
   let texto;
   if (query.match(/^% (\w+)$/)) {
     texto = `Según este bot soy ${Math.floor(
-      Math.random() * max_value
+      Math.random() * 100
     )}% ${query.replace("% ", "")}`;
   } else {
     const result = parser.parse(query).simplify();
