@@ -1,5 +1,6 @@
 import fs from "fs";
 import cheerio from "cheerio";
+import r from "better-redddit";
 
 function setRango(rep) {
   if (rep > 249) {
@@ -91,6 +92,7 @@ async function convertir(Jimp, bot, id, url, name, size, ancho, alto, calidad) {
     console.error(err);
   }
 }
+
 const cuantaRazon = (html) => {
   const $ = cheerio.load(html);
   const urlCR = $(".story_content img");

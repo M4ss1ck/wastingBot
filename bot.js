@@ -25,6 +25,8 @@ import cron from "node-cron";
 
 import { query, updateUserStat, exportDB } from "./db.js";
 
+import r from "better-redddit";
+
 //import shell from "shelljs";
 
 //const app = express();
@@ -134,6 +136,36 @@ bot.on(["/help", "/ayuda"], (msg, self) => {
       "También puede utilizar + y - para influir en la reputación de otros usuarios",
     { parseMode: "html", replyMarkup }
   );
+});
+
+// extraer posts de reddit
+bot.on(/^\/(r|reddit) (\w+)( (\d+))?/i, async (msg, self) => {
+  let id = self.type === "callbackQuery" ? msg.message.chat.id : msg.chat.id;
+  const subreddit = self.match[2];
+  const limit = self.match[4] === undefined ? 10 : self.match[4];
+  if (msg.chat.type === "private") {
+    r.top_posts(subreddit, limit).then(async (results) => {
+      for (let i = 0; i < results.length; i++) {
+        r.get_post(results[i].data.permalink).then((post_info) => {
+          const data = post_info.post[0].data;
+          const titulo = data.title;
+          const autor = data.author;
+          const url = data.url;
+          //const media = data.media;
+          const texto = data.selftext;
+          bot.sendMessage(
+            id,
+            `<a href="${url}">${titulo}</a>\n-${autor}-\n\n${texto}`,
+            { parseMode: "html" }
+          );
+        });
+      }
+    });
+  } else {
+    bot.sendMessage(id, "Solo puedes usar este comando en privado.", {
+      parseMode: "html",
+    });
+  }
 });
 
 bot.on(["/jaja", "/jajaja", "/porn"], (msg) => {
