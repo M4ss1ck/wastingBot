@@ -1557,21 +1557,14 @@ bot.on(/^\/meme$/, (msg, self) => {
     .then(async (response) => {
       const cant = await dankMemes(response.data);
 
-      let botones = [
-        [
-          bot.inlineButton(`Post aleatorio`, {
-            callback: `/memeRandom`,
-          }),
-        ],
-        [],
-      ];
+      let botones = [[]];
       for (let i = 0; i < cant; i++) {
         const boton = [
           bot.inlineButton(`img ${i + 1}`, {
             callback: `/meme ${i}`,
           }),
         ];
-        botones[1] = [].concat(...botones[1], boton);
+        botones[0] = [].concat(...botones[0], boton);
       }
       const replyMarkup = bot.inlineKeyboard(botones);
 
@@ -1597,22 +1590,6 @@ bot.on(/^\/meme (\d+)$/, (msg, self) => {
       caption: `Robado de https://reddit.com/r/dankmemes`,
     });
   });
-});
-
-bot.on("/memeRandom", (msg, self) => {
-  let id = self.type === "callbackQuery" ? msg.message.chat.id : msg.chat.id;
-  const mainUrl = `https://reddit.com/r/dankmemes`;
-  axios
-    .get(mainUrl)
-    .then(async (response) => {
-      const url = await dankMemes(response.data);
-      bot.sendPhoto(id, url, {
-        caption: `Robado de https://reddit.com/r/dankmemes`,
-      });
-    })
-    .catch((err) => {
-      console.log(err);
-    });
 });
 
 bot.on([/^\/lec$/, /^\/lectulandia$/], (msg, self) => {
@@ -1880,7 +1857,7 @@ bot.on("/ud", (msg, self) => {
                 }),
               ];
 
-              const fila = i < cantDef / 2 ? 0 : 1;
+              const fila = i <= cantDef / 2 ? 0 : 1;
               botones[fila] = [].concat(...botones[fila], boton);
             }
             const replyMarkup = bot.inlineKeyboard(botones);
@@ -1933,7 +1910,7 @@ bot.on(/^\/ud1 (\d+) (\d+) (.+)$/i, (msg, self) => {
       }
       //botonera
       let botones = [[], []];
-
+      const divisor = elem < cantDef / 2 ? cantDef / 2 + 1 : cantDef / 2;
       for (let i = 0; i < cantDef; i++) {
         if (i !== elem) {
           const boton = [
@@ -1942,7 +1919,7 @@ bot.on(/^\/ud1 (\d+) (\d+) (.+)$/i, (msg, self) => {
             }),
           ];
 
-          const fila = i <= cantDef / 2 ? 0 : 1;
+          const fila = i < divisor ? 0 : 1;
           botones[fila] = [].concat(...botones[fila], boton);
         }
       }
