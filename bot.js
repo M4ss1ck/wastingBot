@@ -139,11 +139,42 @@ bot.on(["/help", "/ayuda"], (msg, self) => {
 });
 
 // extraer posts de reddit
+bot.on(/^\/(r|reddit)(@\w+)?$/i, (msg, self) => {
+  const id = self.type === "callbackQuery" ? msg.message.chat.id : msg.chat.id;
+  const myreddit = [
+    "gatsbyjs",
+    "edmprodcirclejerk",
+    "dnbproduction",
+    "dubstep",
+    "IdleHeroes",
+    "realdubstep",
+    "mashups",
+  ];
+  let botones = [];
+  for (let i = 0; i < myreddit.length; i++) {
+    const boton = [
+      bot.inlineButton(`r/${myreddit[i]}`, {
+        callback: `/r ${myreddit[i]}`,
+      }),
+    ];
+    botones.push(boton);
+  }
+  const replyMarkup = bot.inlineKeyboard(botones);
+  bot.sendMessage(
+    id,
+    "<b>Lista de subreddits:</b>\n\n(si quieres añadir el tuyo hazme una transferencia)",
+    { parseMode: "html", replyMarkup }
+  );
+});
+
 bot.on(/^\/(r|reddit) (\w+)( (\d+))?/i, async (msg, self) => {
+  //console.log(self);
   let id = self.type === "callbackQuery" ? msg.message.chat.id : msg.chat.id;
+  let tipo =
+    self.type === "callbackQuery" ? msg.message.chat.type : msg.chat.type;
   const subreddit = self.match[2];
   const limit = self.match[4] === undefined ? 10 : self.match[4];
-  if (msg.chat.type === "private") {
+  if (tipo === "private") {
     r.top_posts(subreddit, limit).then(async (results) => {
       for (let i = 0; i < results.length; i++) {
         r.get_post(results[i].data.permalink).then((post_info) => {
