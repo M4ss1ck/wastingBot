@@ -186,9 +186,7 @@ bot.on("inlineQuery", (msg) => {
       Math.random() * max_value
     )}% ${query.replace("% ", "")}`;
   } else {
-    //const math = query.replace("calc ", "");
     const result = parser.parse(query).simplify();
-    //console.log("resultado: \n\n", result);
     texto = `${query} = ${result}`;
   }
 
@@ -199,7 +197,6 @@ bot.on("inlineQuery", (msg) => {
     message_text: texto,
     cacheTime: 1,
   });
-
   //console.log("El mensaje recibido es ", query, " y la respuesta ", answers);
   return bot.answerQuery(answers);
 });
