@@ -149,6 +149,7 @@ bot.on(/^\/(r|reddit)(@\w+)?$/i, (msg, self) => {
     "IdleHeroes",
     "realdubstep",
     "mashups",
+    "dndmaps",
   ];
   let botones = [];
   for (let i = 0; i < myreddit.length; i++) {
@@ -184,10 +185,19 @@ bot.on(/^\/(r|reddit) (\w+)( (\d+))?/i, async (msg, self) => {
           const url = data.url;
           //const media = data.media;
           const texto = data.selftext;
+          const botones = [
+            [
+              bot.inlineButton(`Extraer multimedia`, {
+                callback: `/rmulti ${i} ${subreddit}`,
+              }),
+            ],
+          ];
+
+          const replyMarkup = bot.inlineKeyboard(botones);
           bot.sendMessage(
             id,
-            `<a href="${url}">${titulo}</a>\n-${autor}-\n\n${texto}`,
-            { parseMode: "html" }
+            `r/${subreddit}\n<a href="${url}">${titulo}</a>\nu/${autor}\n\n${texto}`,
+            { parseMode: "html", replyMarkup }
           );
         });
       }
@@ -197,6 +207,50 @@ bot.on(/^\/(r|reddit) (\w+)( (\d+))?/i, async (msg, self) => {
       parseMode: "html",
     });
   }
+});
+
+// comandos /rfotos y /rvideos
+bot.on(/^\/rmulti (\d+) (\w+)$/i, (msg, self) => {
+  const id = self.type === "callbackQuery" ? msg.message.chat.id : msg.chat.id;
+  //const texto = self.type === "callbackQuery" ? msg.message.text : msg.text;
+  //const tipo = texto.match(/rfotos/i) ? "Foto(s)" : "Video(s)";
+  const subreddit = self.match[2];
+  const indice = self.match[1];
+
+  r.top_posts(subreddit, 10).then((results) => {
+    r.get_post(results[indice].data.permalink).then((post_info) => {
+      const data = post_info.post[0].data;
+      const titulo = data.title;
+      // const autor = data.author;
+      // const url = data.url;
+      const media = data.media;
+      //const texto = data.selftext;
+      console.log("Media :\n", media);
+      console.log("Preview: ", data.preview);
+      if (media !== null && media.reddit_video) {
+        const video = media.reddit_video.fallback_url;
+        const alto = media.reddit_video.height;
+        const ancho = media.reddit_video.width;
+        const duracion = media.reddit_video.duration;
+        const caption = `r/${subreddit}\n<a href="${video}">${titulo}</a>\nDimensiones: ${ancho}x${alto}\nDuración (en segundos): ${duracion}`;
+        bot.sendVideo(id, video, { caption, parseMode: "html" });
+      }
+      if (data.preview !== null && data.preview !== undefined) {
+        //const image = data.preview.images[0].source.url.replace("&amp;", "&");
+        data.preview.images.map((elem) => {
+          const url = elem.source.url.replace("&amp;", "&");
+          const alto = data.preview.images[0].source.height;
+          const ancho = data.preview.images[0].source.width;
+          const caption = `r/${subreddit}\n<a href="${url}">${titulo}</a>\nDimensiones: ${ancho}x${alto}`;
+          //bot.sendPhoto(id, image, { caption, parseMode: "html" });
+          bot.sendDocument(id, url, { caption, parseMode: "html" });
+        });
+      }
+      bot.sendMessage(id, `Multimedia de <b>${titulo}</b>\nr/${subreddit}`, {
+        parseMode: "html",
+      });
+    });
+  });
 });
 
 bot.on(["/jaja", "/jajaja", "/porn"], (msg) => {
