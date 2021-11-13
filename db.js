@@ -45,7 +45,7 @@ function updateUserStat(id, key, value) {
 async function exportTable(nombre) {
   const path = process.cwd();
   await query(
-    `COPY ${nombre} TO '${path}\\db\\${nombre}.csv' delimiters ';' WITH CSV HEADER`,
+    `COPY ${nombre} TO '${path}/db/${nombre}.csv' delimiters ';' WITH CSV HEADER`,
     [],
     (err, res) => {
       if (err) {
