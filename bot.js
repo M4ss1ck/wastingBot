@@ -23,7 +23,7 @@ import {
 
 import cron from "node-cron";
 
-import { query, updateUserStat, exportDB } from "./db.js";
+import { query, updateUserStat, exportTable, borrarBD } from "./db.js";
 
 import r from "better-redddit";
 
@@ -2069,13 +2069,38 @@ bot.on(/^\/ud$/i, (msg) => {
 bot.on(/^\/export$/i, async (msg) => {
   if (msg.from.id.toString() === my_id) {
     try {
-      exportDB();
-      bot.sendMessage(msg.chat.id, "Exportación completada");
+      exportTable("filters");
+      exportTable("usuarios");
+
+      const replyMarkup = bot.inlineKeyboard([
+        [
+          bot.inlineButton(`Enviar archivos`, {
+            callback: `/send_bd`,
+          }),
+        ],
+      ]);
+      bot.sendMessage(msg.chat.id, "BD exportada con éxito", { replyMarkup });
     } catch (error) {
       console.log(error);
       bot.sendMessage(msg.chat.id, "Error al exportar");
     }
   }
+});
+
+bot.on("/send_bd", (msg, self) => {
+  const id = self.type === "callbackQuery" ? msg.message.chat.id : msg.chat.id;
+
+  bot
+    .sendDocument(id, "./db/filters.csv", {
+      caption: "Filtros exportados",
+    })
+    .then(() => borrarBD("./db/filters.csv"));
+
+  bot
+    .sendDocument(id, "./db/usuarios.csv", {
+      caption: "Usuarios exportados",
+    })
+    .then(() => borrarBD("./db/usuarios.csv"));
 });
 
 // traducciones

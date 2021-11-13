@@ -3,3 +3,4 @@ package-lock.json
 images
 .env
 database/nicks.db
+db
