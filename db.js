@@ -50,12 +50,12 @@ async function exportTable(nombre) {
       console.error(err.stack);
     } else {
       const jsonData = JSON.parse(JSON.stringify(res.rows));
-      //console.log("\njsonData:", jsonData);
-      fastcsv
-        .writeToPath(`./db/${nombre}.csv`, jsonData, { headers: true })
-        .on("finish", function () {
-          console.log(`Tabla ${nombre} exportada correctamente.`);
-        });
+      console.log("\njsonData:", jsonData);
+      // fastcsv
+      //   .writeToPath(`./db/${nombre}.csv`, jsonData, { headers: true })
+      //   .on("finish", function () {
+      //     console.log(`Tabla ${nombre} exportada correctamente.`);
+      //   });
     }
   });
 }
