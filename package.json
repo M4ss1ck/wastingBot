@@ -18,6 +18,7 @@
     "execa": "^5.1.1",
     "expr-eval": "^2.0.2",
     "express": "^4.17.1",
+    "fast-csv": "^4.3.6",
     "jimp": "^0.16.1",
     "mongodb": "^4.1.0",
     "nedb-promises": "^5.0.0",

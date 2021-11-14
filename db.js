@@ -1,5 +1,6 @@
 import pkg from "pg";
 import fs from "fs";
+import fastcsv from "fast-csv";
 const { Pool } = pkg;
 
 const credenciales = {
@@ -43,19 +44,21 @@ function updateUserStat(id, key, value) {
 
 // función para exportar la BD, añadir C:\Program Files\PostgreSQL\13\bin a PATH
 async function exportTable(nombre) {
-  const path = process.cwd();
-  await query(
-    `COPY ${nombre} TO '${path}/db/${nombre}.csv' delimiters ';' WITH CSV HEADER`,
-    [],
-    (err, res) => {
-      if (err) {
-        console.log(err.stack);
-      } else {
-        console.log(res.rows);
-        //fs.accessSync(`${path}\\db\\${nombre}.csv`);
-      }
+  //const path = process.cwd();
+  await query(`SELECT * FROM ${nombre}`, [], (err, res) => {
+    if (err) {
+      console.log(err.stack);
+    } else {
+      const jsonData = JSON.parse(JSON.stringify(res.rows));
+      //console.log("\njsonData:", jsonData);
+      //fastcsv.write(jsonData, { headers: true })
+      fastcsv
+        .writeToPath(`./db/${nombre}.csv`, jsonData, { headers: true })
+        .on("finish", function () {
+          console.log(`Tabla ${nombre} exportada correctamente.`);
+        });
     }
-  );
+  });
 }
 
 function borrarBD(url) {
