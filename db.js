@@ -46,9 +46,12 @@ function updateUserStat(id, key, value) {
 async function exportTable(nombre) {
   //const path = process.cwd();
   await query(`SELECT * FROM ${nombre}`, [], (err, res) => {
-    if (err) {
-      console.log(err.stack);
-    } else {
+    // if (err) {
+    //   console.error(err.stack);
+    // } else {
+
+    // }
+    try {
       const jsonData = JSON.parse(JSON.stringify(res.rows));
       //console.log("\njsonData:", jsonData);
       fastcsv
@@ -56,6 +59,8 @@ async function exportTable(nombre) {
         .on("finish", function () {
           console.log(`Tabla ${nombre} exportada correctamente.`);
         });
+    } catch (error) {
+      console.error(error);
     }
   });
 }
