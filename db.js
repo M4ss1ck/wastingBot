@@ -51,7 +51,6 @@ async function exportTable(nombre) {
     } else {
       const jsonData = JSON.parse(JSON.stringify(res.rows));
       //console.log("\njsonData:", jsonData);
-      //fastcsv.write(jsonData, { headers: true })
       fastcsv
         .writeToPath(`./db/${nombre}.csv`, jsonData, { headers: true })
         .on("finish", function () {
