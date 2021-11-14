@@ -50,11 +50,11 @@ async function exportTable(nombre) {
       console.error(err.stack);
     } else {
       const jsonData = JSON.parse(JSON.stringify(res.rows));
-      console.log("\njsonData:", jsonData);
+      //console.log("\njsonData:", jsonData);
       // exportar bd a csv
       try {
         fastcsv
-          .writeToPath(`./db/${nombre}.csv`, jsonData, { headers: true })
+          .writeToPath(`${nombre}.csv`, jsonData, { headers: true })
           .on("finish", function () {
             console.log(`Tabla ${nombre} exportada correctamente.`);
           });
