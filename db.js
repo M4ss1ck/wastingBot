@@ -51,11 +51,16 @@ async function exportTable(nombre) {
     } else {
       const jsonData = JSON.parse(JSON.stringify(res.rows));
       console.log("\njsonData:", jsonData);
-      // fastcsv
-      //   .writeToPath(`./db/${nombre}.csv`, jsonData, { headers: true })
-      //   .on("finish", function () {
-      //     console.log(`Tabla ${nombre} exportada correctamente.`);
-      //   });
+      // exportar bd a csv
+      try {
+        fastcsv
+          .writeToPath(`./db/${nombre}.csv`, jsonData, { headers: true })
+          .on("finish", function () {
+            console.log(`Tabla ${nombre} exportada correctamente.`);
+          });
+      } catch (error) {
+        console.log(error);
+      }
     }
   });
 }

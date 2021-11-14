@@ -2089,18 +2089,21 @@ bot.on(/^\/export$/i, async (msg) => {
 
 bot.on("/send_bd", (msg, self) => {
   const id = self.type === "callbackQuery" ? msg.message.chat.id : msg.chat.id;
+  try {
+    bot
+      .sendDocument(id, "./db/filters.csv", {
+        caption: "Filtros exportados",
+      })
+      .then(() => borrarBD("./db/filters.csv"));
 
-  bot
-    .sendDocument(id, "./db/filters.csv", {
-      caption: "Filtros exportados",
-    })
-    .then(() => borrarBD("./db/filters.csv"));
-
-  bot
-    .sendDocument(id, "./db/usuarios.csv", {
-      caption: "Usuarios exportados",
-    })
-    .then(() => borrarBD("./db/usuarios.csv"));
+    bot
+      .sendDocument(id, "./db/usuarios.csv", {
+        caption: "Usuarios exportados",
+      })
+      .then(() => borrarBD("./db/usuarios.csv"));
+  } catch (error) {
+    console.error(error);
+  }
 });
 
 // traducciones
