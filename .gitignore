@@ -4,3 +4,4 @@ images
 .env
 database/nicks.db
 db
+*.csv

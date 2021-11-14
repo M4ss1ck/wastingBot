@@ -2091,16 +2091,16 @@ bot.on("/send_bd", (msg, self) => {
   const id = self.type === "callbackQuery" ? msg.message.chat.id : msg.chat.id;
   try {
     bot
-      .sendDocument(id, "./db/filters.csv", {
+      .sendDocument(id, "filters.csv", {
         caption: "Filtros exportados",
       })
-      .then(() => borrarBD("./db/filters.csv"));
+      .then(() => borrarBD("filters.csv"));
 
     bot
-      .sendDocument(id, "./db/usuarios.csv", {
+      .sendDocument(id, "usuarios.csv", {
         caption: "Usuarios exportados",
       })
-      .then(() => borrarBD("./db/usuarios.csv"));
+      .then(() => borrarBD("usuarios.csv"));
   } catch (error) {
     console.error(error);
   }
