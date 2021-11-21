@@ -23,7 +23,13 @@ import {
 
 import cron from "node-cron";
 
-import { query, updateUserStat, exportTable, borrarBD } from "./db.js";
+import {
+  query,
+  updateUserStat,
+  exportTable,
+  importTable,
+  borrarBD,
+} from "./db.js";
 
 import r from "better-redddit";
 
@@ -296,23 +302,32 @@ bot.on(["/gay", "/ghei"], (msg, self) => {
 bot.on("inlineQuery", (msg) => {
   const query = msg.query;
   const answers = bot.answerList(msg.id, { cacheTime: 1 });
-  let texto;
-  if (query.match(/^% (\w+)$/)) {
-    texto = `Según este bot soy ${Math.floor(
+  try {
+    const perc = `Según este bot soy ${Math.floor(
       Math.random() * 100
-    )}% ${query.replace("% ", "")}`;
-  } else {
-    const result = parser.parse(query).simplify();
-    texto = `${query} = ${result}`;
+    )}% ${query}`;
+
+    answers.addArticle({
+      id: msg.id + " % de " + query,
+      title: `Tu porcentaje de ${query}`,
+      description: `La efectividad está probada científicamente`,
+      message_text: perc,
+      cacheTime: 1,
+    });
+
+    const result = `${query} = ${parser.parse(query).simplify()}`;
+
+    answers.addArticle({
+      id: msg.id + " calc " + query,
+      title: `Calcular ${query}`,
+      description: `Calculadora que usa supercomputadoras de terceros: NASA, MIT...`,
+      message_text: result,
+      cacheTime: 1,
+    });
+  } catch (error) {
+    console.error(error);
   }
 
-  answers.addArticle({
-    id: msg.id + query,
-    title: "'% <algo>' o calculadora",
-    description: `'% <algo>' para saber cuál es tu % de ese <algo>\no escribe <operación matemática> que desees resolver`,
-    message_text: texto,
-    cacheTime: 1,
-  });
   //console.log("El mensaje recibido es ", query, " y la respuesta ", answers);
   return bot.answerQuery(answers);
 });
@@ -324,7 +339,7 @@ bot.on("callbackQuery", (msg) => {
   return bot.answerCallbackQuery(msg.id);
 });
 
-bot.on(/^\/cal(c|c@\w+)( (.+))?$/, (msg, props) => {
+bot.on(/^\/(c|calc|c@\w+|calc@\w+)( (.+))?$/, (msg, props) => {
   const math = props.match[3];
   if (math === undefined) {
     return bot.sendMessage(
@@ -2093,16 +2108,53 @@ bot.on("/send_bd", (msg, self) => {
     bot
       .sendDocument(id, "filters.csv", {
         caption: "Filtros exportados",
+        fileName: "filters.csv",
       })
       .then(() => borrarBD("filters.csv"));
 
     bot
       .sendDocument(id, "usuarios.csv", {
         caption: "Usuarios exportados",
+        fileName: "usuarios.csv",
       })
       .then(() => borrarBD("usuarios.csv"));
   } catch (error) {
     console.error(error);
+  }
+});
+// importar BD
+bot.on(/^\/import$/i, async (msg, self) => {
+  if (
+    msg.from.id.toString() === my_id &&
+    msg.reply_to_message &&
+    msg.reply_to_message.document
+  ) {
+    const nombre = msg.reply_to_message.document.file_name.replace(".csv", "");
+    bot.getFile(msg.reply_to_message.document.file_id).then((res) => {
+      const url = res.fileLink;
+      //console.log(res);
+      axios({ url }).then(async (res) => {
+        let data = res.data;
+
+        // data = data.replace(/\r/g, "");
+        // data = data.split("\n");
+        // data.shift();
+        // data = data.join("\n");
+        // data = data.split("\n");
+        // data = data.map((elem) => elem.split(","));
+        // //console.log(data);
+        // if (nombre === "filters") {
+        //   await importarBD(data, nombre);
+        //   bot.sendMessage(msg.chat.id, "BD importada con éxito");
+        // } else if (nombre === "usuarios") {
+        //   await importarBD(data, nombre);
+        //   bot.sendMessage(msg.chat.id, "BD importada con éxito");
+        // } else {
+        //   bot.sendMessage(msg.chat.id, "Error al importar");
+        // }
+        importTable(nombre, data);
+      });
+    });
   }
 });
 

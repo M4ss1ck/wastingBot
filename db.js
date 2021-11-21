@@ -42,7 +42,7 @@ function updateUserStat(id, key, value) {
   });
 }
 
-// función para exportar la BD, añadir C:\Program Files\PostgreSQL\13\bin a PATH
+// función para exportar la BD a un archivo CSV
 async function exportTable(nombre) {
   //const path = process.cwd();
   await query(`SELECT * FROM ${nombre}`, [], (err, res) => {
@@ -65,6 +65,24 @@ async function exportTable(nombre) {
   });
 }
 
+// funcion para importar una tabla CSV a la BD
+async function importTable(name, data) {
+  const path = process.cwd();
+  fs.writeFileSync(`${path}\\${name}.csv`, data, "utf8");
+  //FIXME: error de parsing de datos
+  query(
+    `COPY ${name} FROM '${path}\\${name}.csv' DELIMITER ',' CSV HEADER`,
+    [],
+    (err, res) => {
+      if (err) {
+        console.error(err.stack);
+      } else {
+        console.log(`Tabla ${name} importada correctamente.`);
+      }
+    }
+  );
+}
+
 function borrarBD(url) {
   fs.unlink(url, (err) => {
     if (err) {
@@ -73,4 +91,4 @@ function borrarBD(url) {
   });
 }
 
-export { query, updateUserStat, exportTable, borrarBD };
+export { query, updateUserStat, exportTable, importTable, borrarBD };
