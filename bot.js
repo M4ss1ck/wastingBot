@@ -290,8 +290,8 @@ bot.on(["/gay", "/ghei"], (msg, self) => {
 
   let replyMarkup = bot.inlineKeyboard([
     [
-      bot.inlineButton("en otro chat", { inline: "soy loca?" }),
-      bot.inlineButton("aquí mismo", { inlineCurrent: "soy loquísima?" }),
+      bot.inlineButton("en otro chat", { inline: "loca" }),
+      bot.inlineButton("aquí mismo", { inlineCurrent: "loca" }),
     ],
   ]);
 

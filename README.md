@@ -15,7 +15,8 @@ Any doubt or -most likely- suggestion you can find me [here](https://t.me/m4ss1c
 - [process](https://github.com/shtylman/node-process): Handling some specific errors.
 - [jimp](https://github.com/oliver-moran/jimp): Our image converter, although it can do much more.
 - [expr-eval](https://github.com/silentmatt/expr-eval): To calculate mathematical operations using the `/calc` command.
-- [nedb-promises](https://github.com/bajankristof/nedb-promises): Our database, although I am very bad at working with them 😥.
+- [pg](https://github.com/brianc/node-postgres): Our database, for managing users, saved messages, reputation...
+- [node-cron](https://github.com/merencia/node-cron): To schedule messages to an specific chat in order to keep the bot running
 
   ##### For some reason I installed express.js... I'll use it at some point.
 
@@ -33,18 +34,39 @@ First of all you need to set some variables in the `.env` file (renamed as `.env
 
 ```
 TG_TOKEN=123456789:AAFbuKsrLW3Q77HsElI7oHGFqJXItozZ2jQ
-ADMIN_USERNAME=your_username
 VICTIM=987654321
 ADMIN_ID=123456789
+KEEP_ALIVE_CHAT_ID=-123456789
+DATABASE_URL=localhost
+PGDATABASE=botlocal
+PGHOST=localhost
+PGPASSWORD=password
+PGPORT=5432
+PGUSER=postgres
+RAPIDAPI_KEY=abdc1234e9abcdefg69d1725e0552p124d4cjsnf48c7cf0a52c
 ```
 
 `TG_TOKEN` is the token you get from [@BotFather](https://t.me/BotFather) when you create your bot.
 
-`ADMIN_USERNAME` is a username with some privileges.
-
-`ADMIN_ID` is the same as the previous variable, this time with the Telegram ID.
+`ADMIN_ID` Telegram ID of the owner
 
 `VICTIM` refers to the default victim of our `/tag` command.
+
+`KEEP_ALIVE_CHAT_ID` is the id of the chat we send our scheduled messages
+
+`DATABASE_URL` url of our postgresql database
+
+`PGDATABASE` database name
+
+`PGHOST` database host
+
+`PGPASSWORD` database password
+
+`PGPORT` database port
+
+`PGUSER` database user
+
+`RAPIDAPI_KEY` our api key to use in `/ud` (Urban Dictionary search) and `/tr` (google translator) commands.
 
 **Available commands:**
 
@@ -54,20 +76,30 @@ ADMIN_ID=123456789
 - `/foto <url>` and `/get <url>` allow us to download photos and any other files, respectively, using their `url`s
 - `/size` allows us to know size and dimensions of images and stickers. It is used by responding to the image or sticker
 - `/conv <width> <height> <quality>` or `/conv <width and height> <quality>` or `/conv <quality>` allows us to convert an image in order to reduce its size. `width` and `height` take values in pixels (e.g. 100, 200) or `auto` which reduces the dimensions by half in both cases, `quality` takes values 1-100.
+- `/r` or `/reddit` shows a preset list of reddits channels in the form of buttons, when you click them, you get the last posts there. Note: it can't be used in groups or channels.
+- `/r <name>` or `/reddit <name>` shows the last post for reddit channel `<name>`. Each post comes with a button to download multimedia files. Note: it can't be used in groups or channels.
+- `/ping` tells how much time has the bot been awake.
+- `/size` shows, when replying a message, the size (and other metadata) of the multimedia. You can achieve this by forwarding the message to the bot too.
+- `/filtros`, `/add <name>`, `/rem <name` list, add and remove, respectively, notes and/or filters.
+- `+`, `++`, `+++` and so on increase reply message's user reputation.
+- `-`, `--`, `---` and so on decrease reply message's user reputation.
+- `/nick <new_nick>` sets `<new_nick>` as your name for the bot to use.
+- `/ud <query>` searches for `<query>` in Urban Dictionary
+- `/tr <language code>` (when replying) translates the replied message to the desired language
+
+There are several others, this section is evolving constantly. For example, the bot now can answer questions (8-ball style)
 
 **Commands for `ADMIN_ID` only:**
 
 - `/quit` the bot leaves the group
 - `/set_del` adds the text of the replied message to the bot's blacklist. It will delete messages exactly the same as any in the list.
+- `/reset_rep` resets reputation values for all users
+- `/set_rep <id> <value>` set `<value>` reputation for the user of id `<id`
 
-**Others**
-In `launcher_list.js` we have an array of objects with 3 elements: `search`, `alone` and `as_reply`.
-When the bot detects a message consisting of `search`:
+**Inline commands**
+Now you can use the bot as an inline calculator or a random percentage generator (in Spanish).
 
-1. If you are not replying to another message: mention the user and add a random string of `alone`.
-2. If you are replying to another message: mention the user, add a random string from `as_reply` and mention the user who sent the replied message.
-
-This list is by no means exhaustive, I am constantly modifying commands and adding others.
+### This list is by no means exhaustive, I am constantly modifying commands and adding others.
 
 ## 🚀 Post on how to create this bot
 
