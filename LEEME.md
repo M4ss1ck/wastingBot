@@ -13,7 +13,8 @@ Cualquier duda o -lo más probable- sugerencia me la puedes hacer llegar [vía t
 - [process](https://github.com/shtylman/node-process): Manejo de algunos errores específicos
 - [jimp](https://github.com/oliver-moran/jimp): Nuestro conversor de imágenes, aunque puede hacer mucho más
 - [expr-eval](https://github.com/silentmatt/expr-eval): Para calcular las operaciones matemáticas usando el comando `/calc`
-- [nedb-promises](https://github.com/bajankristof/nedb-promises): Nuestra base de datos, aunque se me da muy mal trabajar con ellas 😥
+- [pg](https://github.com/brianc/node-postgres): Nuestra base de datos, para gestionar usuarios, mensajes guardados, reputación...
+- [node-cron](https://github.com/merencia/node-cron): Para programar mensajes a un chat específico con el fin de mantener el bot en funcionamiento
 
   ##### Por alguna razón instalé express.js... ya lo usaré
 
@@ -31,18 +32,39 @@ Primeramente necesitas establecer algunas variables en el archivo `.env` (renomb
 
 ```
 TG_TOKEN=123456789:AAFbuKsrLW3Q77HsElI7oHGFqJXItozZ2jQ
-ADMIN_USERNAME=your_username
 VICTIM=987654321
 ADMIN_ID=123456789
+KEEP_ALIVE_CHAT_ID=-123456789
+DATABASE_URL=localhost
+PGDATABASE=botlocal
+PGHOST=localhost
+PGPASSWORD=password
+PGPORT=5432
+PGUSER=postgres
+RAPIDAPI_KEY=abdc1234e9abcdefg69d1725e0552p124d4cjsnf48c7cf0a52c
 ```
 
-`TG_TOKEN` es el token que obtienes de [@BotFather](https://t.me/BotFather) al crear tu bot.
+`TG_TOKEN` es el token que obtienes de [@BotFather](https://t.me/BotFather) cuando creas tu bot.
 
-`ADMIN_USERNAME` es un nombre de usuario con algunos privilegios
+`ADMIN_ID` ID de Telegram del propietario
 
-`ADMIN_ID` lo mismo que la variable anterior, esta vez con el ID de Telegram
+`VICTIM` se refiere a la víctima por defecto de nuestro comando `/tag`.
 
-`VICTIM` se refiere a la víctima por defecto de nuestro comando `/tag`
+`KEEP_ALIVE_CHAT_ID` es el id del chat al que enviamos nuestros mensajes programados
+
+`DATABASE_URL` url de nuestra base de datos postgresql
+
+`PGDATABASE` nombre de la base de datos
+
+`PGHOST` host de la base de datos
+
+`PGPASSWORD` contraseña de la base de datos
+
+`PGPORT` puerto de la base de datos
+
+`PGUSER` usuario de la base de datos
+
+`RAPIDAPI_KEY` nuestra clave de la api para usar en los comandos `/ud` (búsqueda del Urban Dictionary) y `/tr` (traductor de google).
 
 **Comandos disponibles:**
 
@@ -52,20 +74,30 @@ ADMIN_ID=123456789
 - `/foto <url>` y `/get <url>` nos permiten descargar fotos y otros archivos cualesquiera, respectivamente, a partir de su dirección
 - `/size` nos permite conocer tamaño y dimensiones de imágenes y stickers. Se usa respondiendo la imagen o sticker
 - `/conv <ancho> <alto> <calidad>` o `/conv <ancho y alto> <calidad>` o `/conv <calidad>` nos permite convertir una imagen con el objetivo de reducir su tamaño. `ancho` y `alto` toman valores en pixeles (ej: 100, 200) o `auto` que reduce las dimensiones a la mitad en ambos casos, `calidad` toma valores 1-100
+- `/r` o `/reddit` muestra una lista preestablecida de los canales de reddits en forma de botones, cuando se hace clic en ellos, se obtienen las últimas publicaciones allí. Nota: no se puede usar en grupos o canales.
+- `/r <nombre>` o `/reddit <nombre>` muestra el último post del canal de reddit `<nombre>`. Cada post viene con un botón para descargar archivos multimedia. Nota: no se puede usar en grupos o canales.
+- `/ping` indica el tiempo que el bot ha estado despierto.
+- `/size` muestra, al responder un mensaje, el tamaño (y otros metadatos) de la multimedia. También puedes conseguirlo reenviando el mensaje al bot.
+- `/filtros`, `/add <nombre>`, `/rem <nombre` enumeran, añaden y eliminan, respectivamente, notas y/o filtros.
+- `+`, `++`, `+++` y así sucesivamente... aumentan la reputación del usuario del mensaje respondido.
+- `-`, `--`, `---` y así sucesivamente... disminuyen la reputación del usuario del mensaje respondido.
+- `/nick <nuevo_nick>` establece `<nuevo_nick>` como tu nombre para que el bot lo use.
+- `/ud <consulta>` busca `<consulta>` en el Diccionario Urbano
+- `/tr <código de idioma>` (al responder) traduce el mensaje respondido al idioma deseado
+
+Hay varios más, esta sección está en constante evolución. Por ejemplo, el bot ahora puede responder a preguntas (estilo bola 8)
 
 **Comandos solo para `ADMIN_ID`:**
 
 - `/quit` el bot sale del grupo
 - `/set_del` añade el texto del mensaje respondido a la lista negra del bot. Borrará los mensajes exactamente iguales a cualquiera de la lista
+- `/reset_rep` restablece los valores de reputación de todos los usuarios
+- `/set_rep <id> <valor>` establece la reputación de `<valor>` para el usuario de id `<id`
 
-**Otros**
-En `launcher_list.js` tenemos un arreglo de objetos con 3 elementos: `search`, `alone` y `as_reply`.
-Al bot detectar un mensaje que consiste en `search`:
+**Comandos inline**
+Ahora puedes usar el bot como una calculadora inline o un generador de porcentajes aleatorios.
 
-1. Si no está respondiendo otro mensaje: menciona al usuario y le añade un string al azar de `alone`
-2. Si está respondiendo otro mensaje: menciona al usuario, le añade un string al azar de `as_reply` y menciona al usuario que envió el mensaje respondido.
-
-Esta lista no es exhaustiva ni mucho menos, constantemente estoy modificando los comandos y añadiendo otros
+#### Esta lista no es exhaustiva ni mucho menos, constantemente estoy modificando los comandos y añadiendo otros
 
 ## 🚀 Publicación sobre cómo crear un bot
 
