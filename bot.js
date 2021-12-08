@@ -955,41 +955,46 @@ bot.on("text", (msg) => {
         const regex = new RegExp("^" + trigger.filtro + "$", "i");
         let caption =
           trigger.respuesta[1] === undefined ? null : trigger.respuesta[1];
-        if (msg.text.match(regex) || msg.caption?.match(regex)) {
-          console.log("TIPO DE FILTRO\n", trigger.tipo);
-          if (trigger.tipo === "text") {
-            bot.sendMessage(chat_id, trigger.respuesta[0], {
-              replyToMessage: msg.message_id,
-            });
-          } else if (trigger.tipo === "photo") {
-            bot.sendPhoto(chat_id, trigger.respuesta[0], {
-              caption: caption,
-              replyToMessage: msg.message_id,
-            });
-          } else if (trigger.tipo === "sticker") {
-            bot.sendSticker(chat_id, trigger.respuesta[0], {
-              replyToMessage: msg.message_id,
-            });
-          } else if (trigger.tipo === "voice") {
-            bot.sendVoice(chat_id, trigger.respuesta[0], {
-              caption: caption,
-              replyToMessage: msg.message_id,
-            });
-          } else if (trigger.tipo === "video") {
-            bot.sendVideo(chat_id, trigger.respuesta[0], {
-              caption: caption,
-              replyToMessage: msg.message_id,
-            });
-          } else if (trigger.tipo === "audio") {
-            bot.sendAudio(chat_id, trigger.respuesta[0], {
-              caption: caption,
-              replyToMessage: msg.message_id,
-            });
-          } else {
-            bot.sendDocument(chat_id, trigger.respuesta[0], {
-              caption: caption,
-              replyToMessage: msg.message_id,
-            });
+
+        // hacer que el filtro solo funcione en el chat que se creó
+        console.log("Chat BD ", trigger.chat, "\nChat actual ", chat_id);
+        if (trigger.chat === chat_id) {
+          if (msg.text.match(regex) || msg.caption?.match(regex)) {
+            console.log("TIPO DE FILTRO\n", trigger.tipo);
+            if (trigger.tipo === "text") {
+              bot.sendMessage(chat_id, trigger.respuesta[0], {
+                replyToMessage: msg.message_id,
+              });
+            } else if (trigger.tipo === "photo") {
+              bot.sendPhoto(chat_id, trigger.respuesta[0], {
+                caption: caption,
+                replyToMessage: msg.message_id,
+              });
+            } else if (trigger.tipo === "sticker") {
+              bot.sendSticker(chat_id, trigger.respuesta[0], {
+                replyToMessage: msg.message_id,
+              });
+            } else if (trigger.tipo === "voice") {
+              bot.sendVoice(chat_id, trigger.respuesta[0], {
+                caption: caption,
+                replyToMessage: msg.message_id,
+              });
+            } else if (trigger.tipo === "video") {
+              bot.sendVideo(chat_id, trigger.respuesta[0], {
+                caption: caption,
+                replyToMessage: msg.message_id,
+              });
+            } else if (trigger.tipo === "audio") {
+              bot.sendAudio(chat_id, trigger.respuesta[0], {
+                caption: caption,
+                replyToMessage: msg.message_id,
+              });
+            } else {
+              bot.sendDocument(chat_id, trigger.respuesta[0], {
+                caption: caption,
+                replyToMessage: msg.message_id,
+              });
+            }
           }
         }
       });
@@ -1089,7 +1094,10 @@ bot.on("/create_table", (msg) => {
   query(
     "CREATE TABLE IF NOT EXISTS public.filters(filtro text NOT NULL, respuesta text[] NOT NULL, tipo text NOT NULL, chat text); ALTER TABLE public.filters OWNER to postgres;"
   );
-  bot.sendMessage(msg.chat.id, "tabla creada");
+  query(
+    "CREATE TABLE IF NOT EXISTS public.usuarios(tg_id text NOT NULL, rep integer, fecha date, nick text, rango text, chat_ids text[]); ALTER TABLE IF EXISTS public.usuarios OWNER to postgres;"
+  );
+  bot.sendMessage(msg.chat.id, "tablas creadas");
 });
 
 //para la reputación
