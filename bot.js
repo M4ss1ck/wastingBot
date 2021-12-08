@@ -958,7 +958,7 @@ bot.on("text", (msg) => {
 
         // hacer que el filtro solo funcione en el chat que se creó
         console.log("Chat BD ", trigger.chat, "\nChat actual ", chat_id);
-        if (trigger.chat === chat_id) {
+        if (trigger.chat === chat_id.toString()) {
           if (msg.text.match(regex) || msg.caption?.match(regex)) {
             console.log("TIPO DE FILTRO\n", trigger.tipo);
             if (trigger.tipo === "text") {
