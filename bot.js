@@ -1070,8 +1070,29 @@ bot.on("/rem", (msg, self) => {
   });
 });
 
-// listar filtros
-bot.on("/filtros", (msg) => {
+// listar filtros específicos del chat
+bot.on(/^\/(filters|filtros)(@\w+)?$/, (msg, self) => {
+  let id = self.type === "callbackQuery" ? msg.message.chat.id : msg.chat.id;
+
+  query(`SELECT * FROM filters WHERE chat = '${id}'`, [], (err, res) => {
+    if (err) {
+      console.log("[ERROR UPDATING]");
+      console.log(err.stack);
+    } else {
+      console.log(res.rows);
+      let texto = [`Lista de filtros (${id}): `];
+      for (let i = 0; i < res.rows.length; i++) {
+        const filtro_i = res.rows[i].filtro;
+        texto.push(filtro_i);
+      }
+      const salida = texto.join("\n");
+      msg.reply.text(salida, { asReply: true });
+    }
+  });
+});
+
+// listar todos los filtros
+bot.on(/^\/(filters|filtros)(@\w+)? (todos|todo|all)$/, (msg) => {
   query("SELECT * FROM filters", [], (err, res) => {
     if (err) {
       console.log("[ERROR UPDATING]");
@@ -1080,7 +1101,7 @@ bot.on("/filtros", (msg) => {
       console.log(res.rows);
       let texto = ["Lista de filtros: "];
       for (let i = 0; i < res.rows.length; i++) {
-        const filtro_i = res.rows[i].filtro;
+        const filtro_i = `${res.rows[i].filtro} en ${res.rows[i].chat}`;
         texto.push(filtro_i);
       }
       const salida = texto.join("\n");
