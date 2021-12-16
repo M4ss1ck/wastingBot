@@ -31,6 +31,8 @@ import {
   borrarBD,
 } from "./db.js";
 
+//import { parseMSG, parseTEXT } from "./parser.js";
+
 import r from "better-redddit";
 
 //import shell from "shelljs";
@@ -952,6 +954,7 @@ bot.on("text", (msg) => {
     } else {
       //console.log(res.rows);
       res.rows.map((trigger) => {
+        console.log(trigger.filtro, "\n", trigger.respuesta[1]);
         const regex = new RegExp("^" + trigger.filtro + "$", "i");
         let caption =
           trigger.respuesta[1] === undefined ? null : trigger.respuesta[1];
@@ -962,13 +965,21 @@ bot.on("text", (msg) => {
           if (msg.text.match(regex) || msg.caption?.match(regex)) {
             console.log("TIPO DE FILTRO\n", trigger.tipo);
             if (trigger.tipo === "text") {
-              bot.sendMessage(chat_id, trigger.respuesta[0], {
-                replyToMessage: msg.message_id,
-              });
+              if (trigger.respuesta[0].match(/^\d+$/)) {
+                bot.forwardMessage(chat_id, chat_id, trigger.respuesta[0], {
+                  notification: false,
+                });
+              } else {
+                bot.sendMessage(chat_id, trigger.respuesta[0], {
+                  replyToMessage: msg.message_id,
+                  parseMode: "html",
+                });
+              }
             } else if (trigger.tipo === "photo") {
               bot.sendPhoto(chat_id, trigger.respuesta[0], {
                 caption: caption,
                 replyToMessage: msg.message_id,
+                parseMode: "html",
               });
             } else if (trigger.tipo === "sticker") {
               bot.sendSticker(chat_id, trigger.respuesta[0], {
@@ -978,21 +989,25 @@ bot.on("text", (msg) => {
               bot.sendVoice(chat_id, trigger.respuesta[0], {
                 caption: caption,
                 replyToMessage: msg.message_id,
+                parseMode: "html",
               });
             } else if (trigger.tipo === "video") {
               bot.sendVideo(chat_id, trigger.respuesta[0], {
                 caption: caption,
                 replyToMessage: msg.message_id,
+                parseMode: "html",
               });
             } else if (trigger.tipo === "audio") {
               bot.sendAudio(chat_id, trigger.respuesta[0], {
                 caption: caption,
                 replyToMessage: msg.message_id,
+                parseMode: "html",
               });
             } else {
               bot.sendDocument(chat_id, trigger.respuesta[0], {
                 caption: caption,
                 replyToMessage: msg.message_id,
+                parseMode: "html",
               });
             }
           }
@@ -1000,6 +1015,12 @@ bot.on("text", (msg) => {
       });
     }
   });
+});
+
+// mensaje de prueba con comando /try
+bot.on(/^\/try (\d+)$/, (msg, self) => {
+  const msg_id = self.match[1];
+  bot.forwardMessage(msg.chat.id, msg.chat.id, msg_id);
 });
 
 // añadir un atajo
@@ -1012,7 +1033,7 @@ bot.on("/add", (msg, self) => {
     let type;
     if (msg.reply_to_message.text) {
       type = "text";
-      answer = [msg.reply_to_message.text];
+      answer = [msg.reply_to_message.message_id];
     } else if (msg.reply_to_message.photo) {
       type = "photo";
       answer = [
