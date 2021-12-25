@@ -321,7 +321,7 @@ bot.on("inlineQuery", (msg) => {
       Math.random() * 100
     )}%`;
     answers.addArticle({
-      id: msg.id + " probabilidad de que " + query,
+      id: msg.id + " prob de que " + query,
       title: `Probabilidad de que ${query}`,
       description: `La efectividad está probada científicamente`,
       message_text: prob,
