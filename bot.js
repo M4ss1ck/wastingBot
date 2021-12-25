@@ -317,6 +317,17 @@ bot.on("inlineQuery", (msg) => {
       cacheTime: 1,
     });
 
+    const prob = `La probabilidad de que ${query} es de un ${Math.floor(
+      Math.random() * 100
+    )}%`;
+    answers.addArticle({
+      id: msg.id + " probabilidad de que " + query,
+      title: `Probabilidad de que ${query}`,
+      description: `La efectividad está probada científicamente`,
+      message_text: prob,
+      cacheTime: 1,
+    });
+
     const result = `${query} = ${parser.parse(query).simplify()}`;
 
     answers.addArticle({
