@@ -1021,7 +1021,7 @@ bot.on("text", (msg) => {
                 console.log("Tag ", tag);
                 texto_final = texto_final.replace(
                   respuesta.text.substr(offset, length),
-                  `<${tag}${
+                  `<${tag} ${
                     entity.url ? `href="${entity.url}"` : ``
                   }>${respuesta.text.substr(offset, length)}</${tag}>`
                 );
