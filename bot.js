@@ -328,15 +328,18 @@ bot.on("inlineQuery", (msg) => {
       cacheTime: 1,
     });
 
-    const result = `${query} = ${parser.parse(query).simplify()}`;
+    // claculate only if it is a math question
+    if (query.match(/\d+/)) {
+      const result = `${query} = ${parser.parse(query).simplify()}`;
 
-    answers.addArticle({
-      id: msg.id + " calc " + query,
-      title: `Calcular ${query}`,
-      description: `Calculadora que usa supercomputadoras de terceros: NASA, MIT...`,
-      message_text: result,
-      cacheTime: 1,
-    });
+      answers.addArticle({
+        id: msg.id + " calc " + query,
+        title: `Calcular ${query}`,
+        description: `Calculadora que usa supercomputadoras de terceros: NASA, MIT...`,
+        message_text: result,
+        cacheTime: 1,
+      });
+    }
   } catch (error) {
     console.error(error);
   }
@@ -958,64 +961,110 @@ bot.on("text", (msg) => {
       .join(" ")} (${from_id}) - ${text}`
   );
 
-  query("SELECT * FROM filters", [], (err, res) => {
+  query("SELECT * FROM filters2", [], (err, res) => {
     if (err) {
       console.log("[ERROR UPDATING]");
       console.log(err.stack);
     } else {
       //console.log(res.rows);
       res.rows.map((trigger) => {
-        console.log(trigger.filtro, "\n", trigger.respuesta[1]);
+        //console.log(trigger.filtro, "\n", trigger.respuesta[1]);
         const regex = new RegExp("^" + trigger.filtro + "$", "i");
-        let caption =
-          trigger.respuesta[1] === undefined ? null : trigger.respuesta[1];
+        // let caption =
+        //   trigger.respuesta[1] === undefined ? null : trigger.respuesta[1];
 
+        const respuesta = JSON.parse(trigger.respuesta);
+        const caption = respuesta.caption ? respuesta.caption : null;
         // hacer que el filtro solo funcione en el chat que se creó
         //console.log("Chat BD ", trigger.chat, "\nChat actual ", chat_id);
         if (trigger.chat === chat_id.toString()) {
           if (msg.text.match(regex) || msg.caption?.match(regex)) {
-            console.log("TIPO DE FILTRO\n", trigger.tipo);
+            //console.log("TIPO DE FILTRO\n", trigger.tipo);
             if (trigger.tipo === "text") {
-              if (trigger.respuesta[0].match(/^\d+$/)) {
-                bot.forwardMessage(chat_id, chat_id, trigger.respuesta[0], {
-                  notification: false,
-                });
-              } else {
-                bot.sendMessage(chat_id, trigger.respuesta[0], {
-                  replyToMessage: msg.message_id,
-                  parseMode: "html",
-                });
-              }
-            } else if (trigger.tipo === "photo") {
-              bot.sendPhoto(chat_id, trigger.respuesta[0], {
-                caption: caption,
+              // parse entities into message text
+              const entities = respuesta.entities || [];
+              console.log("Entities ", entities);
+              let texto_final = respuesta.text;
+              entities.map((entity) => {
+                const { offset, length, type } = entity;
+                let tag;
+                //const tag = type === "text_link" ? "a" : type;
+                switch (type) {
+                  case "text_link":
+                    tag = "a";
+                    break;
+                  case "bold":
+                    tag = "b";
+                    break;
+                  case "italic":
+                    tag = "i";
+                    break;
+                  case "code":
+                    tag = "code";
+                    break;
+                  case "pre":
+                    tag = "pre";
+                    break;
+                  case "text_mention":
+                    tag = "a";
+                    break;
+                  case "strikethrough":
+                    tag = "s";
+                    break;
+                  case "underline":
+                    tag = "u";
+                    break;
+                  default:
+                    tag = "i";
+                    break;
+                }
+                console.log("Tag ", tag);
+                texto_final = texto_final.replace(
+                  respuesta.text.substr(offset, length),
+                  `<${tag}${
+                    entity.url ? `href="${entity.url}"` : ``
+                  }>${respuesta.text.substr(offset, length)}</${tag}>`
+                );
+              });
+
+              bot.sendMessage(chat_id, texto_final, {
                 replyToMessage: msg.message_id,
                 parseMode: "html",
               });
+            } else if (trigger.tipo === "photo") {
+              bot.sendPhoto(
+                chat_id,
+                respuesta.photo[respuesta.photo.length - 1].file_id,
+                {
+                  caption: caption,
+                  replyToMessage: msg.message_id,
+                  parseMode: "html",
+                }
+              );
             } else if (trigger.tipo === "sticker") {
-              bot.sendSticker(chat_id, trigger.respuesta[0], {
+              bot.sendSticker(chat_id, respuesta.sticker.file_id, {
                 replyToMessage: msg.message_id,
               });
             } else if (trigger.tipo === "voice") {
-              bot.sendVoice(chat_id, trigger.respuesta[0], {
+              bot.sendVoice(chat_id, respuesta.voice.file_id, {
                 caption: caption,
                 replyToMessage: msg.message_id,
                 parseMode: "html",
               });
             } else if (trigger.tipo === "video") {
-              bot.sendVideo(chat_id, trigger.respuesta[0], {
+              bot.sendVideo(chat_id, respuesta.video.file_id, {
                 caption: caption,
                 replyToMessage: msg.message_id,
                 parseMode: "html",
               });
             } else if (trigger.tipo === "audio") {
-              bot.sendAudio(chat_id, trigger.respuesta[0], {
+              bot.sendAudio(chat_id, respuesta.audio.file_id, {
                 caption: caption,
                 replyToMessage: msg.message_id,
                 parseMode: "html",
               });
             } else {
-              bot.sendDocument(chat_id, trigger.respuesta[0], {
+              bot.sendDocument(chat_id, respuesta, {
                 caption: caption,
                 replyToMessage: msg.message_id,
                 parseMode: "html",
@@ -1040,43 +1089,46 @@ bot.on("/add", (msg, self) => {
 
   if (msg.reply_to_message) {
     const trigger = msg.text.replace("/add ", "");
-    let answer;
+    const answer = JSON.stringify(msg.reply_to_message);
     let type;
     if (msg.reply_to_message.text) {
       type = "text";
-      answer = [msg.reply_to_message.message_id];
+      // answer = [msg.reply_to_message.message_id];
     } else if (msg.reply_to_message.photo) {
       type = "photo";
-      answer = [
-        msg.reply_to_message.photo[msg.reply_to_message.photo.length - 1]
-          .file_id,
-      ];
+      // answer = [
+      //   msg.reply_to_message.photo[msg.reply_to_message.photo.length - 1]
+      //     .file_id,
+      // ];
     } else if (msg.reply_to_message.voice) {
       type = "voice";
-      answer = [msg.reply_to_message.voice.file_id];
+      // answer = [msg.reply_to_message.voice.file_id];
     } else if (msg.reply_to_message.video) {
       type = "video";
-      answer = [msg.reply_to_message.video.file_id];
+      // answer = [msg.reply_to_message.video.file_id];
     } else if (msg.reply_to_message.sticker) {
       type = "sticker";
-      answer = [msg.reply_to_message.sticker.file_id];
+      // answer = [msg.reply_to_message.sticker.file_id];
     } else if (msg.reply_to_message.audio) {
       type = "audio";
-      answer = [msg.reply_to_message.audio.file_id];
+      // answer = [msg.reply_to_message.audio.file_id];
     } else {
       type = "document";
-      answer = [msg.reply_to_message.document.file_id];
+      // answer = [msg.reply_to_message.document.file_id];
     }
-    if (msg.reply_to_message.caption !== undefined) {
-      answer.push(msg.reply_to_message.caption);
-    }
-    console.log(trigger, "\n", type, "\n", answer);
-    // eliminar posibles duplicados
-    query(`DELETE FROM filters WHERE filtro = '${trigger}'`);
+    // if (msg.reply_to_message.caption !== undefined) {
+    //   answer.push(msg.reply_to_message.caption);
+    // }
+    // console.log(trigger, "\n", type, "\n", answer);
+
+    // eliminar posibles duplicados REVISAR
+    query(
+      `DELETE FROM filters2 WHERE filtro = '${trigger}' AND chat = '${id}'`
+    );
     // insertar los valores
     const values = [trigger, answer, type, id];
     query(
-      "INSERT INTO filters(filtro, respuesta, tipo, chat) VALUES($1, $2, $3, $4)",
+      "INSERT INTO filters2(filtro, respuesta, tipo, chat) VALUES($1, $2, $3, $4)",
       values,
       (err, res) => {
         if (err) {
@@ -1096,7 +1148,7 @@ bot.on("/add", (msg, self) => {
 bot.on("/rem", (msg, self) => {
   let id = self.type === "callbackQuery" ? msg.message.chat.id : msg.chat.id;
   const trigger = msg.text.replace("/rem ", "");
-  query(`DELETE FROM filters WHERE filtro = '${trigger}'`);
+  query(`DELETE FROM filters2 WHERE filtro = '${trigger}'`);
   bot.sendMessage(id, `Se eliminó el filtro <pre>${trigger}</pre>`, {
     parseMode: "html",
   });
@@ -1106,7 +1158,7 @@ bot.on("/rem", (msg, self) => {
 bot.on(/^\/(filters|filtros)(@\w+)?$/, (msg, self) => {
   let id = self.type === "callbackQuery" ? msg.message.chat.id : msg.chat.id;
 
-  query(`SELECT * FROM filters WHERE chat = '${id}'`, [], (err, res) => {
+  query(`SELECT * FROM filters2 WHERE chat = '${id}'`, [], (err, res) => {
     if (err) {
       console.log("[ERROR UPDATING]");
       console.log(err.stack);
@@ -1125,7 +1177,7 @@ bot.on(/^\/(filters|filtros)(@\w+)?$/, (msg, self) => {
 
 // listar todos los filtros
 bot.on(/^\/(filters|filtros)(@\w+)? (todos|todo|all)$/, (msg) => {
-  query("SELECT * FROM filters", [], (err, res) => {
+  query("SELECT * FROM filters2", [], (err, res) => {
     if (err) {
       console.log("[ERROR UPDATING]");
       console.log(err.stack);
@@ -1145,7 +1197,7 @@ bot.on(/^\/(filters|filtros)(@\w+)? (todos|todo|all)$/, (msg) => {
 //crear tabla
 bot.on("/create_table", (msg) => {
   query(
-    "CREATE TABLE IF NOT EXISTS public.filters(filtro text NOT NULL, respuesta text[] NOT NULL, tipo text NOT NULL, chat text); ALTER TABLE public.filters OWNER to postgres;"
+    "CREATE TABLE IF NOT EXISTS public.filters2(filtro text NOT NULL, respuesta text NOT NULL, tipo text NOT NULL, chat text); ALTER TABLE public.filters2 OWNER to postgres;"
   );
   query(
     "CREATE TABLE IF NOT EXISTS public.usuarios(tg_id text NOT NULL, rep integer, fecha date, nick text, rango text, chat_ids text[]); ALTER TABLE IF EXISTS public.usuarios OWNER to postgres;"
