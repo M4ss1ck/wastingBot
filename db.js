@@ -18,7 +18,7 @@ function query(text, params, callback) {
   return pool.query(text, params, (err, res) => {
     if (res) {
       const duration = Date.now() - start;
-      console.log(`query: "${text}" time: ${duration}`);
+      console.log(`\n[QUERY]: "${text}" time: ${duration}`);
     }
     if (callback) {
       callback(err, res);
@@ -26,6 +26,14 @@ function query(text, params, callback) {
   });
 }
 
+async function anotherQuery(text, params) {
+  const start = Date.now();
+  const res = await pool.query(text, params);
+  const duration = Date.now() - start;
+  console.log(`\n[QUERY2]: "${text}" time: ${duration}`);
+  //await pool.end();
+  return res;
+}
 // función específica para buscar un usuario de la BD y actualizar un valor
 function updateUserStat(id, key, value) {
   const text = `UPDATE usuarios SET ${key} = '${value}', fecha = now() WHERE tg_id = '${id}' RETURNING *`;
@@ -91,4 +99,45 @@ function borrarBD(url) {
   });
 }
 
-export { query, updateUserStat, exportTable, importTable, borrarBD };
+// check if table exists, if not create it, then update it
+async function checkIfCmdProceed(COMMAND_ID, chat_id) {
+  const res = await anotherQuery(
+    `SELECT * FROM config WHERE chat_id = '${chat_id}'`,
+    []
+  );
+  let new_config = "";
+  if (res.rows === undefined || res.rows[0] === undefined) {
+    new_config = JSON.stringify({
+      [COMMAND_ID]: "on",
+    });
+    const values = [chat_id, new_config];
+    const upd = await anotherQuery(
+      "INSERT INTO config(chat_id, opciones) VALUES($1, $2)",
+      values
+    );
+    console.log(upd);
+    return true;
+  } else {
+    const current_config = JSON.parse(res.rows[0].opciones);
+    if (current_config[COMMAND_ID] === "on") {
+      return true;
+    } else {
+      current_config[COMMAND_ID] === "off";
+      new_config = JSON.stringify(current_config);
+      await anotherQuery(
+        `UPDATE config SET opciones = '${new_config}' WHERE chat_id = '${chat_id}' RETURNING *`,
+        []
+      );
+      return current_config[COMMAND_ID] === "off" ? false : true;
+    }
+  }
+}
+
+export {
+  query,
+  updateUserStat,
+  exportTable,
+  importTable,
+  borrarBD,
+  checkIfCmdProceed,
+};
