@@ -1793,7 +1793,7 @@ bot.on(/^\/set_rep (\d+) (\d+|\-\d+)$/, (msg, props) => {
 // });
 
 // SPAM
-bot.on(/^\/ta(g|g@\w+)( \d+)?$/, async (msg, self) => {
+bot.on(/^\/ta(g|g@\w+)_(\d+)?$/, async (msg, self) => {
   const id = self.type === "callbackQuery" ? msg.message.chat.id : msg.chat.id;
   const COMMAND_ID = "tag";
   console.log(COMMAND_ID);
