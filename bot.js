@@ -13,6 +13,10 @@ import Jimp from "jimp";
 import axios from "axios";
 
 import {
+  setTimeout,
+} from 'timers/promises';
+
+import {
   roundToAny,
   convertir,
   dankMemes,
