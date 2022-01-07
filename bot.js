@@ -13,10 +13,6 @@ import Jimp from "jimp";
 import axios from "axios";
 
 import {
-  setTimeout,
-} from 'timers/promises';
-
-import {
   roundToAny,
   convertir,
   dankMemes,
@@ -1837,7 +1833,6 @@ bot.on(/^\/ta(g|g@\w+)_(\d+)?$/, async (msg, self) => {
 
       const forEnOrden = async (_) => {
         for (let i = 0; i < n; i++) {
-          await setTimeout(500, 'resolved')
           await bot
             .sendMessage(
               id,
