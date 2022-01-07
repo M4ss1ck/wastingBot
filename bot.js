@@ -1833,6 +1833,9 @@ bot.on(/^\/ta(g|g@\w+)_(\d+)?$/, async (msg, self) => {
 
       const forEnOrden = async (_) => {
         for (let i = 0; i < n; i++) {
+          const result = await setTimeout(500, 'resolved')
+          // Executed after 2 seconds
+          console.log(result);
           await bot
             .sendMessage(
               id,
