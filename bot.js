@@ -2745,55 +2745,59 @@ bot.on(/^\/config$/, (msg, self) => {
 // set command_id to on or off
 bot.on(/^\/set (\w+) (on|off)$/, (msg, self) => {
   const id = self.type === "callbackQuery" ? msg.message.chat.id : msg.chat.id;
-  const comando = self.match[1];
-  const estado = self.match[2];
+  if (msg.from.id.toString() === my_id) {
+    const comando = self.match[1];
+    const estado = self.match[2];
 
-  query(`SELECT * FROM config WHERE chat_id = '${id}'`, [], (err, res) => {
-    if (err) {
-      console.log("[ERROR] Buscando la configuración del chat");
-      console.log(err.stack);
-    } else {
-      //console.log(res.rows);
-      let new_config = "";
-      if (res.rows[0] === undefined) {
-        new_config = JSON.stringify({
-          [comando]: [estado],
-        });
-        const values = [id, new_config];
-        query(
-          "INSERT INTO config(chat_id, opciones) VALUES($1, $2)",
-          values,
-          (err, res) => {
-            if (err) {
-              console.log("[ERROR UPDATING]");
-              console.log(err.stack);
-            } else {
-              console.log("[config initialized]");
-            }
-          }
-        );
+    query(`SELECT * FROM config WHERE chat_id = '${id}'`, [], (err, res) => {
+      if (err) {
+        console.log("[ERROR] Buscando la configuración del chat");
+        console.log(err.stack);
       } else {
-        const current_config = JSON.parse(res.rows[0].opciones);
-        current_config[comando] = estado;
-        new_config = JSON.stringify(current_config);
-        query(
-          `UPDATE config SET opciones = '${new_config}' WHERE chat_id = '${id}' RETURNING *`,
-          [],
-          (err, res) => {
-            if (err) {
-              console.log("[ERROR UPDATING]");
-              console.log(err.stack);
-            } else {
-              console.log(`[config updated]`);
-              console.log(res.rows[0]);
-              //console.log(res);
+        //console.log(res.rows);
+        let new_config = "";
+        if (res.rows[0] === undefined) {
+          new_config = JSON.stringify({
+            [comando]: [estado],
+          });
+          const values = [id, new_config];
+          query(
+            "INSERT INTO config(chat_id, opciones) VALUES($1, $2)",
+            values,
+            (err, res) => {
+              if (err) {
+                console.log("[ERROR UPDATING]");
+                console.log(err.stack);
+              } else {
+                console.log("[config initialized]");
+              }
             }
-          }
-        );
+          );
+        } else {
+          const current_config = JSON.parse(res.rows[0].opciones);
+          current_config[comando] = estado;
+          new_config = JSON.stringify(current_config);
+          query(
+            `UPDATE config SET opciones = '${new_config}' WHERE chat_id = '${id}' RETURNING *`,
+            [],
+            (err, res) => {
+              if (err) {
+                console.log("[ERROR UPDATING]");
+                console.log(err.stack);
+              } else {
+                console.log(`[config updated]`);
+                console.log(res.rows[0]);
+                //console.log(res);
+              }
+            }
+          );
+        }
       }
-    }
-  });
-  bot.sendMessage(id, `Se estableció: ${comando} - ${estado}`);
+    });
+    bot.sendMessage(id, `Se estableció: ${comando} - ${estado}`);
+  } else {
+    bot.sendMessage(id, "Solo el administrador puede hacer esto");
+  }
 });
 
 // testing checkIfCmdProceed(COMMAND_ID, id)
