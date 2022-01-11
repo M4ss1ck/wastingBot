@@ -103,7 +103,11 @@ Now you can use the bot as an inline calculator or a random percentage generator
 
 ## 🚀 Post on how to create this bot
 
-Pending
+[Creating a Telegram bot using node.js (part I)](https://massick.netlify.app/blog/telegram-bot-part-i/)
+
+## Deploy on railway.app
+
+[![Deploy on Railway](https://railway.app/button.svg)](https://railway.app/new/template?template=https%3A%2F%2Fgithub.com%2FM4ss1ck%2FwastingBot&plugins=postgresql&envs=ADMIN_ID%2CKEEP_ALIVE_CHAT_ID%2CRAPIDAPI_KEY%2CTG_TOKEN%2CVICTIM&ADMIN_IDDesc=Telegram+id+of+bot+owner&KEEP_ALIVE_CHAT_IDDesc=Chat+id+for+sending+scheduled+messages&RAPIDAPI_KEYDesc=key+for+some+apis&TG_TOKENDesc=bot+token&VICTIMDesc=telegram+id+of+someone+you+hate&referralCode=hCqxlN)
 
 ## 👀 Disclaimer
 
