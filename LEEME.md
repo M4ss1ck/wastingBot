@@ -101,7 +101,11 @@ Ahora puedes usar el bot como una calculadora inline o un generador de porcentaj
 
 ## 🚀 Publicación sobre cómo crear un bot
 
-Pendiente
+[Crear bot de Telegram usando node.js (1ra parte)](https://massick.netlify.app/blog/telegram-bot-part-i/)
+
+## Deploy on railway.app
+
+[![Desplegar en Railway](https://railway.app/button.svg)](https://railway.app/new/template?template=https%3A%2F%2Fgithub.com%2FM4ss1ck%2FwastingBot&plugins=postgresql&envs=ADMIN_ID%2CKEEP_ALIVE_CHAT_ID%2CRAPIDAPI_KEY%2CTG_TOKEN%2CVICTIM&ADMIN_IDDesc=Telegram+id+of+bot+owner&KEEP_ALIVE_CHAT_IDDesc=Chat+id+for+sending+scheduled+messages&RAPIDAPI_KEYDesc=key+for+some+apis&TG_TOKENDesc=bot+token&VICTIMDesc=telegram+id+of+someone+you+hate&referralCode=hCqxlN)
 
 ## 👀 Descargo de responsabilidad
 
