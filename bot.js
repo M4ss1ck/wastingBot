@@ -1,12 +1,6 @@
-// TODO: crear tabla "config" para guardar los ajustes de cada chat
-// crear variable command_id para cada comando
-// crear funciones para activar/desactivar comandos
-
 import TeleBot from "telebot";
 import { Parser } from "expr-eval";
-//import express from "express";
 import process from "process";
-//import lista from "./launcher_list.js";
 
 import Jimp from "jimp";
 
