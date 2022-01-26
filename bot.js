@@ -1316,7 +1316,7 @@ bot.on(/^\/(filters|filtros)(@\w+)? (todos|todo|all)$/, async (msg, self) => {
 //crear tabla
 bot.on("/create_table", (msg) => {
   query(
-    "CREATE TABLE IF NOT EXISTS public.filters2(filtro text NOT NULL, respuesta text NOT NULL, tipo text NOT NULL, chat text); ALTER TABLE public.filters2 OWNER to postgres;"
+    "CREATE TABLE IF NOT EXISTS public.filters2(filtro text NOT NULL, respuesta text NOT NULL, tipo text NOT NULL, chat text); ALTER TABLE IF EXISTS public.filters2 OWNER to postgres;"
   );
   query(
     "CREATE TABLE IF NOT EXISTS public.usuarios(tg_id text NOT NULL, rep integer, fecha date, nick text, rango text, chat_ids text[]); ALTER TABLE IF EXISTS public.usuarios OWNER to postgres;"
@@ -1325,6 +1325,22 @@ bot.on("/create_table", (msg) => {
     "CREATE TABLE IF NOT EXISTS public.config(chat_id text NOT NULL, opciones text); ALTER TABLE IF EXISTS public.config OWNER to postgres;"
   );
   bot.sendMessage(msg.chat.id, "tablas creadas");
+});
+
+bot.on("/table_fix", (msg) => {
+  query("ALTER TABLE IF EXISTS public.filters2 DROP COLUMN id;");
+  query("ALTER TABLE IF EXISTS public.usuarios DROP COLUMN id;");
+  query("ALTER TABLE IF EXISTS public.config DROP COLUMN id;");
+  bot.sendMessage(msg.chat.id, "id agregadas");
+});
+
+// quitar duplicados
+bot.on("/rem_dup", (msg) => {
+  query(
+    "DELETE FROM config T1 USING config T2 WHERE T1.ctid < T2.ctid AND T1.chat_id  = T2.chat_id;"
+  );
+
+  bot.sendMessage(msg.chat.id, "duplicados eliminados");
 });
 
 //para la reputación
@@ -2388,9 +2404,9 @@ bot.on(/^\/ud$/i, (msg) => {
 bot.on(/^\/export$/i, async (msg) => {
   if (msg.from.id.toString() === my_id) {
     try {
-      exportTable("filters");
+      exportTable("filters2");
       exportTable("usuarios");
-
+      exportTable("config");
       const replyMarkup = bot.inlineKeyboard([
         [
           bot.inlineButton(`Enviar archivos`, {
@@ -2410,11 +2426,11 @@ bot.on("/send_bd", (msg, self) => {
   const id = self.type === "callbackQuery" ? msg.message.chat.id : msg.chat.id;
   try {
     bot
-      .sendDocument(id, "filters.csv", {
+      .sendDocument(id, "filters2.csv", {
         caption: "Filtros exportados",
         fileName: "filters.csv",
       })
-      .then(() => borrarBD("filters.csv"));
+      .then(() => borrarBD("filters2.csv"));
 
     bot
       .sendDocument(id, "usuarios.csv", {
@@ -2422,6 +2438,12 @@ bot.on("/send_bd", (msg, self) => {
         fileName: "usuarios.csv",
       })
       .then(() => borrarBD("usuarios.csv"));
+    bot
+      .sendDocument(id, "config.csv", {
+        caption: "Configuración exportada",
+        fileName: "config.csv",
+      })
+      .then(() => borrarBD("config.csv"));
   } catch (error) {
     console.error(error);
   }
@@ -2446,7 +2468,7 @@ bot.on(/^\/import$/i, async (msg, self) => {
         // data = data.join("\n");
         // data = data.split("\n");
         // data = data.map((elem) => elem.split(","));
-        // //console.log(data);
+        console.log(data);
         // if (nombre === "filters") {
         //   await importarBD(data, nombre);
         //   bot.sendMessage(msg.chat.id, "BD importada con éxito");

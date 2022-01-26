@@ -58,7 +58,7 @@ async function exportTable(nombre) {
       console.error(err.stack);
     } else {
       const jsonData = JSON.parse(JSON.stringify(res.rows));
-      //console.log("\njsonData:", jsonData);
+      console.log("\njsonData:", jsonData);
       // exportar bd a csv
       try {
         fastcsv
@@ -142,4 +142,4 @@ export {
   checkIfCmdProceed,
 };
 
-// dummy content for redeploy 
+// dummy content for redeploy
