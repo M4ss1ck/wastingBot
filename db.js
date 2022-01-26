@@ -73,8 +73,9 @@ async function exportTable(nombre) {
   //   }
   // });
 
+  //create an empty csv file
+  fs.writeFileSync(`${path}/${nombre}.csv`, "");
   // copy to command to export db to csv
-
   anotherQuery(
     `COPY ${nombre} TO '${path}/${nombre}.csv' DELIMITER ',' CSV HEADER;`,
     []
