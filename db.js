@@ -53,7 +53,7 @@ function updateUserStat(id, key, value) {
 // función para exportar la BD a un archivo CSV
 async function exportTable(nombre) {
   //const path = process.cwd();
-
+  console.log("Export table " + nombre);
   query(`SELECT * FROM ${nombre}`, [], (err, res) => {
     if (err) {
       console.error(err.stack);

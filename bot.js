@@ -2428,7 +2428,7 @@ bot.on("/send_bd", (msg, self) => {
     bot
       .sendDocument(id, "filters2.csv", {
         caption: "Filtros exportados",
-        fileName: "filters.csv",
+        fileName: "filters2.csv",
       })
       .then(() => borrarBD("filters2.csv"));
 
