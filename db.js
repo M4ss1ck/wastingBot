@@ -52,34 +52,34 @@ function updateUserStat(id, key, value) {
 
 // función para exportar la BD a un archivo CSV
 async function exportTable(nombre) {
-  const path = process.cwd();
+  //const path = process.cwd();
 
-  // await query(`SELECT * FROM ${nombre}`, [], (err, res) => {
-  //   if (err) {
-  //     console.error(err.stack);
-  //   } else {
-  //     const jsonData = JSON.parse(JSON.stringify(res.rows));
-  //     console.log("\njsonData:", jsonData);
-  //     // exportar bd a csv
-  //     try {
-  //       fastcsv
-  //         .writeToPath(`${nombre}.csv`, jsonData, { headers: true })
-  //         .on("finish", function () {
-  //           console.log(`Tabla ${nombre} exportada correctamente.`);
-  //         });
-  //     } catch (error) {
-  //       console.log(error);
-  //     }
-  //   }
-  // });
+  query(`SELECT * FROM ${nombre}`, [], (err, res) => {
+    if (err) {
+      console.error(err.stack);
+    } else {
+      const jsonData = JSON.parse(JSON.stringify(res.rows));
+      console.log("\njsonData:", jsonData);
+      // exportar bd a csv
+      try {
+        fastcsv
+          .writeToPath(`${nombre}.csv`, jsonData, { headers: true })
+          .on("finish", function () {
+            console.log(`Tabla ${nombre} exportada correctamente.`);
+          });
+      } catch (error) {
+        console.log(error);
+      }
+    }
+  });
 
-  //create an empty csv file
-  fs.writeFileSync(`${path}/${nombre}.csv`, "");
-  // copy to command to export db to csv
-  anotherQuery(
-    `COPY ${nombre} TO '${path}/${nombre}.csv' DELIMITER ',' CSV HEADER;`,
-    []
-  );
+  // //create an empty csv file
+  // fs.writeFileSync(`${path}/${nombre}.csv`, "");
+  // // copy to command to export db to csv
+  // anotherQuery(
+  //   `COPY ${nombre} TO '${path}/${nombre}.csv' DELIMITER ',' CSV HEADER;`,
+  //   []
+  // );
 }
 
 // funcion para importar una tabla CSV a la BD
