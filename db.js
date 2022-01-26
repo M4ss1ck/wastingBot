@@ -76,7 +76,7 @@ async function exportTable(nombre) {
   // copy to command to export db to csv
 
   anotherQuery(
-    `COPY ${nombre} TO '${path}\\${nombre}.csv' DELIMITER ',' CSV HEADER;`,
+    `COPY ${nombre} TO '${path}/${nombre}.csv' DELIMITER ',' CSV HEADER;`,
     []
   );
 }

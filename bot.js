@@ -2478,7 +2478,12 @@ bot.on(/^\/import$/i, async (msg, self) => {
         // } else {
         //   bot.sendMessage(msg.chat.id, "Error al importar");
         // }
-        importTable(nombre, data);
+        importTable(nombre, data).then(() => {
+          query(
+            "DELETE FROM config T1 USING config T2 WHERE T1.ctid < T2.ctid AND T1.chat_id  = T2.chat_id;"
+          );
+          bot.sendMessage(msg.chat.id, "BD importada con éxito");
+        });
       });
     });
   }
