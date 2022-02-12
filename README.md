@@ -2,6 +2,8 @@
   Telegram bot using Node JS
 </h1>
 
+## Note: I'm moving all commands to [this upgraded bot](https://github.com/M4ss1ck/tg-telegraf-bot)
+
 It's my test bot. It can do a lot of useless stuff in groups, but it has some decent functions too.
 
 Any doubt or -most likely- suggestion you can find me [here](https://t.me/m4ss1ck)
